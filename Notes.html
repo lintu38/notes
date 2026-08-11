@@ -5324,8 +5324,9 @@ async function syncPull(force){
   return true;
 }
 /* 置き場所へ送る */
-async function syncPush(){
-  if(!syncOn() || syncBusy) return;
+async function syncPush(loud){
+  if(!syncOn()){ if(loud) throw new Error('トークンと Gist ID を入れてください'); return; }
+  if(syncBusy) return;
   syncBusy = true;
   try{
     const at = Date.now();
@@ -5347,7 +5348,10 @@ async function syncPush(){
     }
     syncTag('✓ 同期しました');
   }catch(e){
+    syncBusy = false;
     syncTag('同期できません：' + e.message, true);
+    if(loud) throw e;
+    return;
   }
   syncBusy = false;
 }
@@ -5369,9 +5373,9 @@ function syncDialog(rect){
     </div>
     ${gist ? `
       <div class="srow"><label>アクセストークン（gist 権限）</label>
-        <input type="password" id="syT" value="${esc(syncCfg.token)}" placeholder="ghp_ ..."></div>
+        <input type="password" id="syT" value="${esc(syncCfg.token)}" placeholder="ghp_ ..." autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false"></div>
       <div class="srow"><label>Gist ID</label>
-        <input type="text" id="syG" value="${esc(syncCfg.gist)}" placeholder="まだ無ければ下のボタンで作成">
+        <input type="text" id="syG" value="${esc(syncCfg.gist)}" placeholder="まだ無ければ下のボタンで作成" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false">
       </div>
       <button class="stadd" id="syNew" style="margin-bottom:9px">＋ 置き場所（非公開 Gist）を作る</button>
     ` : `
@@ -5396,8 +5400,14 @@ function syncDialog(rect){
   const msg = (t, err) => { $('syMsg').innerHTML =
     `<span style="color:${err ? '#c0392b' : '#3f8046'}">${esc(t)}</span>`; };
   const grab = () => {
-    if($('syT')) syncCfg.token = $('syT').value.trim();
-    if($('syG')) syncCfg.gist = $('syG').value.trim();
+    if($('syT')) syncCfg.token = $('syT').value.trim().replace(/\s+/g, '');
+    if($('syG')){
+      let g = $('syG').value.trim();
+      const m = g.match(/([0-9a-f]{20,})/i);   // URL を貼っても ID だけ拾う
+      if(m) g = m[1];
+      syncCfg.gist = g.toLowerCase();
+      $('syG').value = syncCfg.gist;
+    }
     if($('syU')) syncCfg.url = $('syU').value.trim();
     if($('syK')) syncCfg.key = $('syK').value.trim();
     syncCfg.pass = $('syP').value;
@@ -5421,15 +5431,22 @@ function syncDialog(rect){
   $('syPull').onclick = async () => {
     grab();
     try{
+      const rec = await syncGet();
+      if(!rec) return msg('置き場所が空です。パソコン側で「送る」を先に実行してください', true);
       const got = await syncPull(true);
-      msg(got ? '取り込みました' : '置き場所にデータがありません');
+      msg(got ? '取り込みました' : '取り込めませんでした（合言葉が違うかもしれません）', !got);
       if(got) render();
     }catch(e){ msg(e.message, true); }
   };
   $('syPush').onclick = async () => {
     grab();
-    try{ await syncPush(); msg('送りました'); }
-    catch(e){ msg(e.message, true); }
+    try{
+      msg('送信中…');
+      await syncPush(true);
+      const rec = await syncGet();
+      const n = rec ? JSON.stringify(rec.payload || '').length : 0;
+      msg(n > 200 ? `送りました（${Math.round(n/1024)} KB）` : '送れていません。もう一度お試しください', n <= 200);
+    }catch(e){ msg(e.message, true); }
   };
   $('syClose').onclick = () => { grab(); p.remove(); };
 }
