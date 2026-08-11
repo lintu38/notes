@@ -1303,7 +1303,7 @@
 const APP = 'note';
 const KEY = APP === 'task' ? 'boards.tasks.task.v1' : 'boards.tasks.v1';
 const APP_TITLE = APP === 'task' ? 'Tasks' : 'Notes';
-const APPVER = '20260811-2026';
+const APPVER = '20260811-2036';
 const TIMELB = APP === 'task' ? 'Time Log' : 'Read Time';
 /* Task 用は初回だけ、これまでのデータを引き継ぐ */
 if(APP === 'task' && !localStorage.getItem(KEY)){
@@ -1795,7 +1795,18 @@ function load(){
 let savedT;
 function save(){
   try{
-    localStorage.setItem(KEY, JSON.stringify(S));
+    const json = JSON.stringify(S);
+    localStorage.setItem(KEY, json);
+    /* 本当に書けたか読み返して確かめる */
+    const back = localStorage.getItem(KEY);
+    if(back !== json){
+      const tag = document.getElementById('savedTag');
+      if(tag){
+        tag.textContent = '⚠ 保存が反映されていません（ブラウザの設定を確認してください）';
+        tag.classList.add('on', 'err');
+      }
+      console.error('save verify failed', json.length, back ? back.length : null);
+    }
     scheduleBackup();
     syncLater();
     const tag = document.getElementById('savedTag');
@@ -5816,7 +5827,9 @@ function storeInfo(){
         Object.values(b.days || {}).forEach(v => { if(plain(v).trim()) n++; });
       });
     }catch(e){}
-    out.push({key:k, bytes:raw.length, n, ok, cur:k === KEY});
+    let up = '';
+    try{ const d2 = JSON.parse(raw); up = d2 && d2.lastExport ? d2.lastExport : ''; }catch(e){}
+    out.push({key:k, bytes:raw.length, n, ok, cur:k === KEY, up});
   }
   return out.sort((a, b) => b.n - a.n);
 }
@@ -5956,6 +5969,9 @@ async function checkUpdate(){
   }catch(e){}
 }
 
+window.addEventListener('pagehide', () => {
+  try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){}
+});
 load();
 const boot = () => {
   if(window.matchMedia('(max-width: 860px)').matches){
