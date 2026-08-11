@@ -80,7 +80,7 @@
     .col{flex:1 1 auto!important;width:auto!important;max-width:none}
     .col .rz,.colrz{display:none!important}
     /* Daily / Read Log は上下に */
-    .dailywrap,.tlrow{flex-direction:column}
+    .dailywrap,.tlrow{flex-direction:column;align-items:stretch}
     .dailyside,.readrow > .cal,.cal{width:auto!important;flex:1 1 auto!important;max-width:none}
     .dailymain,.rdmain{max-width:none;width:auto}
     .dailymain{padding:14px 14px 18px;border-radius:12px}
@@ -103,8 +103,15 @@
     .add,.rsubadd{padding:10px}
     .ck{width:18px;height:18px}
     /* ポップアップは画面内に収める */
-    .pop{max-width:94vw;max-height:78vh;overflow:auto}
-    .dpanel{width:auto!important;max-width:88vw}
+    /* ポップアップは下から出るシート風に。引き出しより手前へ */
+    .pop{z-index:200!important;position:fixed!important;
+      left:50%!important;right:auto!important;transform:translateX(-50%);
+      top:auto!important;bottom:14px!important;
+      width:94vw;max-width:94vw;max-height:76vh;overflow:auto;
+      box-shadow:0 -6px 40px rgba(30,25,15,.3)}
+    .dpanel{width:auto!important;max-width:none}
+    .pop button{font-size:14.5px;padding:10px 12px}
+    .pop .srow input,.pop .drow input,.pop .strow input{font-size:16px}
     .deck{max-width:none}
     .dcard{padding:22px 20px 20px}
     .dcard::before,.dcard::after{display:none}
@@ -150,6 +157,11 @@
     .dailycards{margin-top:14px;padding-top:12px}
     .dailycards .add{width:100%}
     .dl-item{padding:9px 10px}
+    /* ボタンの文字が折り返さないように */
+    .qfoot{flex-wrap:wrap;gap:8px;align-items:center}
+    .imgadd,.fmtb,.qreg,.btn,.add,.rsubadd,.stadd{white-space:nowrap;flex:0 0 auto}
+    .qreg{margin-left:auto;padding:7px 18px}
+    .fmtwrap{display:inline-flex;flex:0 0 auto}
     /* カレンダー → 入力欄 → これまでのメモ の順に */
     .dailyside{display:contents}
     .dailywrap > .cal,.dailyside > .cal{order:1;margin-bottom:12px}
