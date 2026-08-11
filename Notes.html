@@ -1303,7 +1303,7 @@
 const APP = 'note';
 const KEY = APP === 'task' ? 'boards.tasks.task.v1' : 'boards.tasks.v1';
 const APP_TITLE = APP === 'task' ? 'Tasks' : 'Notes';
-const APPVER = '20260811-1929';
+const APPVER = '20260811-1933';
 const TIMELB = APP === 'task' ? 'Time Log' : 'Read Time';
 /* Task 用は初回だけ、これまでのデータを引き継ぐ */
 if(APP === 'task' && !localStorage.getItem(KEY)){
@@ -5512,7 +5512,7 @@ document.addEventListener('click', e => {
 
 
 /* ---------------- 同期（置き場所と自動でやりとり） ---------------- */
-const SYNCK = 'notes.sync.v1';
+const SYNCK = APP === 'task' ? 'notes.sync.task.v1' : 'notes.sync.v1';
 let syncCfg = {mode:'gist', url:'', key:'', token:'', gist:'', pass:'', at:0},
     syncT = null, syncBusy = false;
 function loadSync(){
@@ -5520,9 +5520,9 @@ function loadSync(){
   catch(e){}
 }
 const saveSync = () => localStorage.setItem(SYNCK, JSON.stringify(syncCfg));
-const syncOn = () => syncCfg.mode === 'gist'
+const syncOn = () => APP !== 'task' && (syncCfg.mode === 'gist'
   ? !!(syncCfg.token && syncCfg.gist)
-  : !!(syncCfg.url && syncCfg.key);
+  : !!(syncCfg.url && syncCfg.key));
 const syncURL = () => syncCfg.url.replace(/\/+$/, '');
 
 const errText = e => e ? ((e.name && e.name !== 'Error' ? e.name + '：' : '') +
