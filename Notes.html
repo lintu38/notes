@@ -188,6 +188,20 @@
     /* 計測ボタン */
     .card .meta.meta2{margin-left:0;margin-top:6px}
     .qcard,.qbox{padding-left:2px;padding-right:2px}
+    /* Time Log / Done Task の表は横スクロール */
+    .ttable{overflow-x:auto;-webkit-overflow-scrolling:touch}
+    .ttable .trow{min-width:780px}
+    .dtable{display:block;overflow-x:auto}
+    .dtable table,.dtable thead,.dtable tbody{min-width:640px}
+    /* グラフ */
+    .pie{gap:14px}
+    .pie svg{width:112px;height:112px;flex:0 0 112px}
+    .pie .lg{font-size:12px}
+    .chartbox h5,.pie h5{font-size:11.5px}
+    .sum{flex-wrap:wrap;gap:10px 16px;font-size:12.5px}
+    .sum b{font-size:17px}
+    .daysum{margin-top:-4px}
+    .ds-lb{letter-spacing:.02em}
   }
   @media (max-width: 520px){
     .scroll{padding:12px 10px 120px}
@@ -1198,7 +1212,7 @@
     <div id="navList">
     <div class="nav" id="navSearch" data-nav="search" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><circle cx="7.2" cy="7.2" r="4.6"/><path d="M10.6 10.6l3.2 3.2"/></svg></span><span>Search</span></div>
     <div class="nav" id="navTasks" data-nav="tasks" draggable="true"><span class="ico">✓</span><span>Tasks</span><span class="cnt" id="cntAll">0</span></div>
-    <div class="nav" id="navTimes" data-nav="times" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 4.6V8l2.4 1.6"/></svg></span><span>Time Log</span><span class="cnt" id="cntTime"></span></div>
+    <div class="nav" id="navTimes" data-nav="times" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 4.6V8l2.4 1.6"/></svg></span><span id="navTimesLb">Time Log</span><span class="cnt" id="cntTime"></span></div>
     <div class="nav" id="navDone" data-nav="done" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M2.6 8.4l3.3 3.3 7.5-7.6"/></svg></span><span>Done Task</span><span class="cnt" id="cntDone">0</span></div>
     <div class="nav" id="navRead" data-nav="read" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M2.6 3.1h4.1c.9 0 1.3.5 1.3 1.2v8.6c0-.6-.5-1-1.3-1H2.6z"/><path d="M13.4 3.1H9.3c-.9 0-1.3.5-1.3 1.2v8.6c0-.6.5-1 1.3-1h4.1z"/></svg></span><span>Read Log</span><span class="cnt" id="cntRead">0</span></div>
     <div class="nav" id="navQuote" data-nav="quote" draggable="true"><span class="ico">❝</span><span>Quotes</span><span class="cnt" id="cntQuote">0</span></div>
@@ -1267,6 +1281,7 @@
 const APP = 'note';
 const KEY = APP === 'task' ? 'boards.tasks.task.v1' : 'boards.tasks.v1';
 const APP_TITLE = APP === 'task' ? 'Tasks' : 'Notes';
+const TIMELB = APP === 'task' ? 'Time Log' : 'Read Time';
 /* Task 用は初回だけ、これまでのデータを引き継ぐ */
 if(APP === 'task' && !localStorage.getItem(KEY)){
   try{
@@ -1909,7 +1924,7 @@ function boardNav(b, inFolder){
 }
 const NAVKEYS = APP === 'task'
   ? ['search', 'tasks', 'done', 'times']
-  : ['search', 'read', 'quote', 'cards', 'times'];
+  : ['search', 'tasks', 'read', 'times', 'quote', 'cards'];
 const NAVALL = ['search','tasks','times','done','read','quote','cards'];
 let dragNav = null;
 /* サイドバー上部メニューの並び替え */
@@ -1921,6 +1936,8 @@ function renderNavOrder(){
     const el = box.querySelector(`[data-nav="${k}"]`);
     if(el) el.style.display = NAVKEYS.includes(k) ? '' : 'none';
   });
+  /* 並びを一度だけ既定に揃える */
+  if(APP === 'note' && !S.navFix2){ S.navOrder = NAVKEYS.slice(); S.navFix2 = true; }
   S.navOrder = (S.navOrder || []).filter(k => NAVKEYS.includes(k));
   NAVKEYS.forEach(k => { if(!S.navOrder.includes(k)) S.navOrder.push(k); });
   S.navOrder.forEach(k => {
@@ -2262,7 +2279,7 @@ function cardHTML(k){
     if(k.doneAt) chips.push(`<span class="chip done" data-donedate="${k.id}" style="cursor:pointer" title="完了日">✓ ${fmtDue(k.doneAt)}</span>`);
   }
   if(chips.filter(Boolean).length) inner += `<div class="meta">${chips.join('')}</div>`;
-  if(isTask || k.type === 'read') inner += `<div class="meta meta2">${timerChip(k)}</div>`;
+  if(canTime(k)) inner += `<div class="meta meta2">${timerChip(k)}</div>`;
 
   if(k.type === 'quote') inner += quoteSection(k, true);
   if(k.type === 'read') inner += readSection(k, true);
@@ -2356,6 +2373,8 @@ function quoteCardHTML(k){
   </div>`;
 }
 
+/* 時間計測を使えるカード：Tasks では Task、Notes では Read だけ */
+const canTime = k => APP === 'task' ? k.type === 'task' : k.type === 'read';
 function timerChip(k){
   const tot = totalSec(k);
   const run = !!k.timer;
@@ -2365,6 +2384,7 @@ function timerChip(k){
 }
 
 function timeSection(k){
+  if(!canTime(k)) return '';
   if(!hasTime(k)) return '';
   const open = !(k.fold && k.fold.time);
   const times = k.times || [];
@@ -3023,13 +3043,18 @@ function popup(x, y, html){
   }), 0);
   return p;
 }
+const NEWBTN = {
+  task: `<button data-t="task"><i class="ic">✓</i>Task</button>`,
+  note: `<button data-t="note"><i class="ic"><svg class="mico" viewBox="0 0 16 16"><path d="M3.4 2.4h6.3l3 3v8.2H3.4z"/><path d="M9.5 2.5v3.2h3.1"/><path d="M5.6 8.4h5M5.6 10.8h3.4"/></svg></i>Memo</button>`,
+  quote: `<button data-t="quote"><i class="ic">❝</i>Quote</button>`,
+  read: `<button data-t="read"><i class="ic"><svg class="mico" viewBox="0 0 16 16"><path d="M2.6 3.1h4.1c.9 0 1.3.5 1.3 1.2v8.6c0-.6-.5-1-1.3-1H2.6z"/><path d="M13.4 3.1H9.3c-.9 0-1.3.5-1.3 1.2v8.6c0-.6.5-1 1.3-1h4.1z"/></svg></i>Read</button>`,
+};
 function addMenu(e, colId){
   const r = e.currentTarget.getBoundingClientRect();
   const p = popup(r.left, r.bottom + 4, `
-    <button data-t="task"><i class="ic">✓</i>Task</button>
-    <button data-t="note"><i class="ic"><svg class="mico" viewBox="0 0 16 16"><path d="M3.4 2.4h6.3l3 3v8.2H3.4z"/><path d="M9.5 2.5v3.2h3.1"/><path d="M5.6 8.4h5M5.6 10.8h3.4"/></svg></i>Memo</button>
-    <button data-t="quote"><i class="ic">❝</i>Quote</button>
-    <button data-t="read"><i class="ic"><svg class="mico" viewBox="0 0 16 16"><path d="M2.6 3.1h4.1c.9 0 1.3.5 1.3 1.2v8.6c0-.6-.5-1-1.3-1H2.6z"/><path d="M13.4 3.1H9.3c-.9 0-1.3.5-1.3 1.2v8.6c0-.6.5-1 1.3-1h4.1z"/></svg></i>Read</button>
+    ${(APP === 'note'
+      ? ['note', 'read', 'quote', 'task']
+      : ['task', 'note', 'quote', 'read']).map(t => NEWBTN[t]).join('')}
     <button data-t="heading"><i class="ic">H</i>見出し</button>`);
   p.querySelectorAll('[data-t]').forEach(btn => btn.onclick = () => {
     const bd = board(view.id);
@@ -3648,7 +3673,7 @@ function rowHTML({board:b, col:c, card:k}, gi){
         <div class="tline">
           <input type="checkbox" class="ck" data-tdone="${k.id}" ${k.done?'checked':''}>
           <div class="tt">${clean(k.title) || '<span style="color:#c4bcbe">無題</span>'}</div>
-          <span class="tmwrap">${timerChip(k)}</span>
+          ${canTime(k) ? `<span class="tmwrap">${timerChip(k)}</span>` : ''}
         </div>
         ${!isOpen ? '' : `<div class="sm">
           ${catChip(k)}
@@ -4049,7 +4074,7 @@ function renderTimes(){
   t.disabled = true; t.oninput = null; t.style.color = '';
   const sel = timeSel || today();
   calMonth ||= sel.slice(0, 7);
-  t.value = timeAll ? 'Time Log（すべて）' : `Time Log ${sel === today() ? '｜今日' : '｜' + sel}`;
+  t.value = timeAll ? `${TIMELB}（すべて）` : `${TIMELB} ${sel === today() ? '｜今日' : '｜' + sel}`;
 
   let all = allTimes();
   if(timeClient && !S.boards.some(b => b.id === timeClient)) timeClient = '';
@@ -5823,6 +5848,8 @@ const boot = () => {
   document.title = APP_TITLE;
   const bn = document.getElementById('brandName');
   if(bn) bn.textContent = APP_TITLE;
+  const tl = document.getElementById('navTimesLb');
+  if(tl) tl.textContent = TIMELB;
   applySide();
   renderBanner();
   applyRight();
