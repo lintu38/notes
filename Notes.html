@@ -59,158 +59,7 @@
   button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
   input,textarea,select{font:inherit;color:inherit}
   .app{display:flex;height:100vh;overflow:hidden}
-  /* ===== スマホ・タブレット ===== */
-  @media (max-width: 860px){
-    /* スマホのアドレスバーぶんを差し引いた実高さで */
-    html,body{height:100%;overflow:hidden}
-    .app{height:100dvh;min-height:100dvh}
-    .side{position:fixed!important;left:0;top:0;bottom:0;z-index:120;
-      width:84vw!important;max-width:330px;flex-basis:auto!important;
-      display:flex!important;
-      transform:translateX(-102%);transition:transform .22s ease;
-      box-shadow:0 0 40px rgba(30,25,15,.28)}
-    .side.hide{display:flex!important}
-    body.mnav .side{transform:translateX(0)!important}
-    body.mnav::after{content:"";position:fixed;inset:0;z-index:110;background:rgba(30,25,15,.35)}
-    #sideShow{display:flex!important;align-items:center;justify-content:center;
-      position:fixed;left:8px;top:9px;z-index:130;width:38px;height:38px;font-size:17px}
-    body.nosidebar #sideShow{display:flex!important}
-    .side-rz,.rside,.rside-rz,#rsideShow{display:none!important}
-    .main{width:100%}
-    .topbar{height:52px;flex:0 0 52px;padding-left:54px;padding-right:12px}
-    .title{font-size:16px}
-    .scroll{padding:14px 13px calc(120px + env(safe-area-inset-bottom));
-      -webkit-overflow-scrolling:touch;overscroll-behavior:contain}
-    /* ボードは1列ずつ縦に */
-    .cols{flex-direction:column;gap:22px}
-    .col{flex:1 1 auto!important;width:auto!important;max-width:none}
-    .col .rz,.colrz{display:none!important}
-    /* Daily / Read Log は上下に */
-    .dailywrap,.tlrow{flex-direction:column;align-items:stretch}
-    .dailyside,.readrow > .cal,.cal{width:auto!important;flex:1 1 auto!important;max-width:none}
-    .dailymain,.rdmain{max-width:none;width:auto}
-    .dailymain{padding:14px 14px 18px;border-radius:12px}
-    .dailylist{max-height:none}
-    .qrand{flex:1 1 auto!important;width:auto!important}
-    /* 表は横スクロール */
-    .ttable,.dtable{display:block;overflow-x:auto;white-space:nowrap}
-    .pie,.chartbox{flex:1 1 auto!important;width:auto!important;margin-bottom:12px}
-    /* 入力・ボタンを大きく */
-    .tools{gap:6px}
-    .search{width:100%;font-size:16px;padding:9px 12px}
-    .clsel,.gsel select{font-size:15px}
-    .seg button{padding:7px 13px;font-size:13.5px}
-    .nav{padding:11px 10px;font-size:15px}
-    .chip{height:23px;min-height:23px;max-height:23px;font-size:11.5px;padding:0 9px}
-    .card{padding:13px 14px}
-    .ctitle,.row .tt{font-size:15px}
-    .body,.log-t{font-size:15px}
-    .dailybody{font-size:16px}
-    .add,.rsubadd{padding:10px}
-    .ck{width:18px;height:18px}
-    /* ポップアップは画面内に収める */
-    /* ポップアップは下から出るシート風に。引き出しより手前へ */
-    .pop{z-index:200!important;position:fixed!important;
-      left:50%!important;right:auto!important;transform:translateX(-50%);
-      top:auto!important;bottom:14px!important;
-      width:94vw;max-width:94vw;max-height:76vh;overflow:auto;
-      box-shadow:0 -6px 40px rgba(30,25,15,.3)}
-    .dpanel{width:auto!important;max-width:none}
-    .pop button{font-size:14.5px;padding:10px 12px}
-    .pop .srow input,.pop .drow input,.pop .strow input{font-size:16px}
-    .deck{max-width:none}
-    .dcard{padding:22px 20px 20px}
-    .dcard::before,.dcard::after{display:none}
-    .side-foot{gap:6px}
-    .mini{padding:8px 11px;font-size:12.5px}
-    /* 右サイドは使わない */
-    body.norside .topbar{padding-right:12px}
-  }
-  @media (max-width: 860px){
-    /* はみ出し対策 */
-    .scroll,.scroll *{max-width:100%}
-    .scroll img{max-width:100%!important;height:auto!important}
-    .card,.colitem,.rwrap,.qcard,.qbox,.dcard,.dailymain{width:auto!important;
-      max-width:100%;box-sizing:border-box}
-    .drop,.dailycards .drop,.cols,.col{min-width:0}
-    .card,.rwrap,.sec,.subs,.rsubs,.meta,.sm,.bdrow,.tline{flex-wrap:wrap;min-width:0}
-    .row .tt{flex:1 1 100%}
-    .row .tmwrap{margin-left:0;padding-left:0;margin-top:4px}
-    .qbox{padding:0 4px}
-    .qbox .qt{margin:0 0 6px 0;padding:12px 12px}
-    .qcard{padding:2px 4px 6px}
-    .qc-body.qbg{margin:10px 0 0 0;padding:13px 12px}
-    .body{margin-left:0!important}
-    .card.task .body,.card .sec .body{margin-left:0}
-    .subs,.rsubs{margin-left:0!important}
-    .thead,.tnote{margin-left:0!important}
-    .ttable .trow{white-space:normal}
-    .lc,.lcard{max-width:100%}
-    .dailyside{margin-bottom:14px}
-    .daily-h{padding-bottom:8px;margin-bottom:10px}
-    pre,code{white-space:pre-wrap;word-break:break-word}
-    .scroll{word-break:break-word;overflow-wrap:anywhere}
-    /* Daily Memo の入力まわり */
-    .daily-h{flex-wrap:wrap;align-items:center;gap:8px;row-gap:8px;
-      padding-bottom:10px;margin-bottom:12px}
-    .daily-h b{font-size:17px;flex:0 0 auto}
-    .daily-h > .btn{margin-left:0!important;flex:0 0 auto}
-    .daily-h .wx{flex:1 1 100%;margin-left:0;justify-content:flex-start;flex-wrap:wrap}
-    .dailybody{min-height:120px;padding:2px 0;font-size:16px;line-height:1.95}
-    .dailymain > .qfoot{flex-wrap:wrap;gap:8px;margin-top:10px}
-    .fmtwrap{flex-wrap:wrap;gap:6px}
-    .imgadd,.fmtb{padding:7px 12px;font-size:12.5px}
-    .dailycards{margin-top:14px;padding-top:12px}
-    .dailycards .add{width:100%}
-    .dl-item{padding:9px 10px}
-    /* ボタンの文字が折り返さないように */
-    .qfoot{flex-wrap:wrap;gap:8px;align-items:center}
-    .imgadd,.fmtb,.qreg,.btn,.add,.rsubadd,.stadd{white-space:nowrap;flex:0 0 auto}
-    .qreg{margin-left:auto;padding:7px 18px}
-    .fmtwrap{display:inline-flex;flex:0 0 auto}
-    /* カレンダー → 入力欄 → これまでのメモ の順に */
-    .dailyside{display:contents}
-    .dailywrap > .cal,.dailyside > .cal{order:1;margin-bottom:12px}
-    .dailymain{order:2}
-    .dailylist{order:3;margin-top:14px;max-height:42vh;overflow-y:auto;padding:8px 5px}
-    /* 横にはみ出さない */
-    .main,.scroll{max-width:100vw;overflow-x:hidden}
-    .dailywrap > *,.dailymain,.card,.qcard,.colitem,.rwrap,.sec,.qbox{min-width:0}
-    /* No. ・日付・種類 の行 */
-    .qc-h{letter-spacing:.03em;font-size:10.5px;gap:8px;align-items:flex-start}
-    .qc-h > span:first-child{overflow-wrap:anywhere;line-height:1.6}
-    .qc-act{margin-top:-2px}
-    .qc-ttl{font-size:15.5px;margin-top:9px}
-    /* Read のチェック */
-    .rflags{gap:9px 14px;margin:9px 0 4px}
-    .rflag{font-size:13px}
-    .rflag.sq{margin-left:0;padding-right:0}
-    /* 計測ボタン */
-    .card .meta.meta2{margin-left:0;margin-top:6px}
-    .qcard,.qbox{padding-left:2px;padding-right:2px}
-    /* Time Log / Done Task の表は横スクロール */
-    .ttable{overflow-x:auto;-webkit-overflow-scrolling:touch}
-    .ttable .trow{min-width:780px}
-    .dtable{display:block;overflow-x:auto}
-    .dtable table,.dtable thead,.dtable tbody{min-width:640px}
-    /* グラフ */
-    .pie{gap:14px}
-    .pie svg{width:112px;height:112px;flex:0 0 112px}
-    .pie .lg{font-size:12px}
-    .chartbox h5,.pie h5{font-size:11.5px}
-    .sum{flex-wrap:wrap;gap:10px 16px;font-size:12.5px}
-    .sum b{font-size:17px}
-    .daysum{margin-top:-4px}
-    .ds-lb{letter-spacing:.02em}
-  }
-  @media (max-width: 520px){
-    .scroll{padding:12px 10px 120px}
-    .tools{flex-direction:column;align-items:stretch}
-    .tools .seg{width:100%;justify-content:center}
-    .daily-h{flex-wrap:wrap;gap:6px}
-    .daily-h b{font-size:17px}
-    .wx button{width:31px;height:31px}
-  }
+
 
   /* 暗証番号ロック */
   body.locked .app,body.locked #sideShow,body.locked #rsideShow{visibility:hidden}
@@ -1206,6 +1055,172 @@
   .scroll > .empty{color:var(--muted);text-align:center;padding:60px 0;font-size:13.5px}
   .bar{width:52px;height:4px;border-radius:4px;background:#e8e1df;overflow:hidden;display:inline-block;vertical-align:middle}
   .bar i{display:block;height:100%;background:#6aa571}
+  /* ===== スマホ・タブレット ===== */
+  @media (max-width: 860px){
+    /* スマホのアドレスバーぶんを差し引いた実高さで */
+    html,body{height:100%;overflow:hidden}
+    .app{height:100dvh;min-height:100dvh}
+    .side{position:fixed!important;left:0;top:0;bottom:0;z-index:120;
+      width:84vw!important;max-width:330px;flex-basis:auto!important;
+      display:flex!important;
+      transform:translateX(-102%);transition:transform .22s ease;
+      box-shadow:0 0 40px rgba(30,25,15,.28)}
+    .side.hide{display:flex!important}
+    body.mnav .side{transform:translateX(0)!important}
+    body.mnav::after{content:"";position:fixed;inset:0;z-index:110;background:rgba(30,25,15,.35)}
+    #sideShow{display:flex!important;align-items:center;justify-content:center;
+      position:fixed;left:8px;top:9px;z-index:130;width:38px;height:38px;font-size:17px}
+    body.nosidebar #sideShow{display:flex!important}
+    .side-rz,.rside,.rside-rz,#rsideShow{display:none!important}
+    .main{width:100%}
+    .topbar{height:52px;flex:0 0 52px;padding-left:54px;padding-right:12px}
+    .title{font-size:16px}
+    .scroll{padding:14px 13px calc(120px + env(safe-area-inset-bottom));
+      -webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+    /* ボードは1列ずつ縦に */
+    .cols{flex-direction:column;gap:22px}
+    .col{flex:1 1 auto!important;width:auto!important;max-width:none}
+    .col .rz,.colrz{display:none!important}
+    /* Daily / Read Log は上下に */
+    .dailywrap,.tlrow{flex-direction:column;align-items:stretch}
+    .dailyside,.readrow > .cal,.cal{width:auto!important;flex:1 1 auto!important;max-width:none}
+    .dailymain,.rdmain{max-width:none;width:auto}
+    .dailymain{padding:14px 14px 18px;border-radius:12px}
+    .dailylist{max-height:none}
+    .qrand{flex:1 1 auto!important;width:auto!important}
+    /* 表は横スクロール */
+    .ttable,.dtable{display:block;overflow-x:auto;white-space:nowrap}
+    .pie,.chartbox{flex:1 1 auto!important;width:auto!important;margin-bottom:12px}
+    /* 入力・ボタンを大きく */
+    .tools{gap:6px}
+    .search{width:100%;font-size:16px;padding:9px 12px}
+    .clsel,.gsel select{font-size:15px}
+    .seg button{padding:7px 13px;font-size:13.5px}
+    .nav{padding:11px 10px;font-size:15px}
+    .chip{height:23px;min-height:23px;max-height:23px;font-size:11.5px;padding:0 9px}
+    .card{padding:13px 14px}
+    .ctitle,.row .tt{font-size:15px}
+    .body,.log-t{font-size:15px}
+    .dailybody{font-size:16px}
+    .add,.rsubadd{padding:10px}
+    .ck{width:18px;height:18px}
+    /* ポップアップは画面内に収める */
+    /* ポップアップは下から出るシート風に。引き出しより手前へ */
+    .pop{z-index:200!important;position:fixed!important;
+      left:50%!important;right:auto!important;transform:translateX(-50%);
+      top:auto!important;bottom:14px!important;
+      width:94vw;max-width:94vw;max-height:76vh;overflow:auto;
+      box-shadow:0 -6px 40px rgba(30,25,15,.3)}
+    .dpanel{width:auto!important;max-width:none}
+    .pop button{font-size:14.5px;padding:10px 12px}
+    .pop .srow input,.pop .drow input,.pop .strow input{font-size:16px}
+    .deck{max-width:none}
+    .dcard{padding:22px 20px 20px}
+    .dcard::before,.dcard::after{display:none}
+    .side-foot{gap:6px}
+    .mini{padding:8px 11px;font-size:12.5px}
+    /* 右サイドは使わない */
+    body.norside .topbar{padding-right:12px}
+  }
+  @media (max-width: 860px){
+    /* はみ出し対策 */
+    .scroll,.scroll *{max-width:100%}
+    .scroll img{max-width:100%!important;height:auto!important}
+    .card,.colitem,.rwrap,.qcard,.qbox,.dcard,.dailymain{width:auto!important;
+      max-width:100%;box-sizing:border-box}
+    .drop,.dailycards .drop,.cols,.col{min-width:0}
+    .card,.rwrap,.sec,.subs,.rsubs,.meta,.sm,.bdrow,.tline{flex-wrap:wrap;min-width:0}
+    .row .tt{flex:1 1 100%}
+    .row .tmwrap{margin-left:0;padding-left:0;margin-top:4px}
+    .qbox{padding:0 4px}
+    .qbox .qt{margin:0 0 6px 0;padding:12px 12px}
+    .qcard{padding:2px 4px 6px}
+    .qc-body.qbg{margin:10px 0 0 0;padding:13px 12px}
+    .body{margin-left:0!important}
+    .card.task .body,.card .sec .body{margin-left:0}
+    .subs,.rsubs{margin-left:0!important}
+    .thead,.tnote{margin-left:0!important}
+    .ttable .trow{white-space:normal}
+    .lc,.lcard{max-width:100%}
+    .dailyside{margin-bottom:14px}
+    .daily-h{padding-bottom:8px;margin-bottom:10px}
+    pre,code{white-space:pre-wrap;word-break:break-word}
+    .scroll{word-break:break-word;overflow-wrap:anywhere}
+    /* Daily Memo の入力まわり */
+    .daily-h{flex-wrap:wrap;align-items:center;gap:8px;row-gap:8px;
+      padding-bottom:10px;margin-bottom:12px}
+    .daily-h b{font-size:17px;flex:0 0 auto}
+    .daily-h > .btn{margin-left:0!important;flex:0 0 auto}
+    .daily-h .wx{flex:1 1 100%;margin-left:0;justify-content:flex-start;flex-wrap:wrap}
+    .dailybody{min-height:120px;padding:2px 0;font-size:16px;line-height:1.95}
+    .dailymain > .qfoot{flex-wrap:wrap;gap:8px;margin-top:10px}
+    .fmtwrap{flex-wrap:wrap;gap:6px}
+    .imgadd,.fmtb{padding:7px 12px;font-size:12.5px}
+    .dailycards{margin-top:14px;padding-top:12px}
+    .dailycards .add{width:100%}
+    .dl-item{padding:9px 10px}
+    /* ボタンの文字が折り返さないように */
+    .qfoot{flex-wrap:wrap;gap:8px;align-items:center}
+    .imgadd,.fmtb,.qreg,.btn,.add,.rsubadd,.stadd{white-space:nowrap;flex:0 0 auto}
+    .qreg{margin-left:auto;padding:7px 18px}
+    .fmtwrap{display:inline-flex;flex:0 0 auto}
+    /* カレンダー → 入力欄 → これまでのメモ の順に */
+    .dailyside{display:contents}
+    .dailywrap > .cal,.dailyside > .cal{order:1;margin-bottom:12px}
+    .dailymain{order:2}
+    .dailylist{order:3;margin-top:14px;max-height:42vh;overflow-y:auto;padding:8px 5px}
+    /* 横にはみ出さない */
+    .main,.scroll{max-width:100vw;overflow-x:hidden!important}
+    .ttable{overflow-x:auto!important;overflow-y:hidden}
+    .dailywrap > *,.dailymain,.card,.qcard,.colitem,.rwrap,.sec,.qbox{min-width:0}
+    /* No. ・日付・種類 の行 */
+    .qc-h{letter-spacing:.03em;font-size:10.5px;gap:8px;align-items:flex-start}
+    .qc-h > span:first-child{overflow-wrap:anywhere;line-height:1.6}
+    .qc-act{margin-top:-2px}
+    .qc-ttl{font-size:15.5px;margin-top:9px}
+    /* Read のチェック */
+    .rflags{gap:9px 14px;margin:9px 0 4px}
+    .rflag{font-size:13px}
+    .rflag.sq{margin-left:0;padding-right:0}
+    /* 計測ボタン */
+    .card .meta.meta2{margin-left:0;margin-top:6px}
+    .qcard,.qbox{padding-left:2px;padding-right:2px}
+    /* 表は1件ずつのカード表示に（横スクロール不要） */
+    .ttable{overflow:visible!important;white-space:normal}
+    .ttable .trow{min-width:0!important;display:flex!important;flex-wrap:wrap;
+      gap:3px 10px;align-items:baseline;padding:11px 13px;white-space:normal}
+    .ttable .trow.head{display:none!important}
+    .ttable .trow > span:empty{display:none}
+    .ttable .trow .dt{flex:0 0 100%;font-size:11px;color:var(--muted);margin-bottom:2px}
+    .ttable .trow .nm{flex:0 1 auto;font-size:14.5px;color:var(--ink);
+      overflow:visible;text-overflow:clip}
+    .ttable .trow .bd{flex:0 0 auto;font-size:12.5px}
+    .ttable .trow .tm{font-size:12px;color:var(--muted)}
+    .ttable .trow .d{margin-left:auto;font-size:13.5px;text-align:right;flex:0 0 auto}
+    .ttable .trow .x{opacity:1;margin-left:6px}
+    .ttable .trow.sub{gap:6px 10px}
+    .ttable .trow.sub > span{grid-column:auto!important}
+    .ttable .trow.sub .bsum{margin-left:0}
+    .dtable{display:block;overflow-x:auto}
+    .dtable table,.dtable thead,.dtable tbody{min-width:640px}
+    /* グラフ */
+    .pie{gap:14px}
+    .pie svg{width:112px;height:112px;flex:0 0 112px}
+    .pie .lg{font-size:12px}
+    .chartbox h5,.pie h5{font-size:11.5px}
+    .sum{flex-wrap:wrap;gap:10px 16px;font-size:12.5px}
+    .sum b{font-size:17px}
+    .daysum{margin-top:-4px}
+    .ds-lb{letter-spacing:.02em}
+  }
+  @media (max-width: 520px){
+    .scroll{padding:12px 10px 120px}
+    .tools{flex-direction:column;align-items:stretch}
+    .tools .seg{width:100%;justify-content:center}
+    .daily-h{flex-wrap:wrap;gap:6px}
+    .daily-h b{font-size:17px}
+    .wx button{width:31px;height:31px}
+  }
 </style>
 </head>
 <body>
@@ -1288,7 +1303,7 @@
 const APP = 'note';
 const KEY = APP === 'task' ? 'boards.tasks.task.v1' : 'boards.tasks.v1';
 const APP_TITLE = APP === 'task' ? 'Tasks' : 'Notes';
-const APPVER = '20260811-1901';
+const APPVER = '20260811-1908';
 const TIMELB = APP === 'task' ? 'Time Log' : 'Read Time';
 /* Task 用は初回だけ、これまでのデータを引き継ぐ */
 if(APP === 'task' && !localStorage.getItem(KEY)){
