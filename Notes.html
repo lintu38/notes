@@ -5376,7 +5376,9 @@ function fromB64(s){
   for(let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
   return u8;
 }
+const subtleOK = () => !!(window.crypto && window.crypto.subtle);
 async function aesKey(pass){
+  if(!subtleOK()) throw new Error('この開き方では暗号化が使えません（合言葉を空にするか、https で開いてください）');
   const enc = new TextEncoder();
   const base = await crypto.subtle.importKey('raw', enc.encode(pass), 'PBKDF2', false, ['deriveKey']);
   return crypto.subtle.deriveKey(
@@ -5385,17 +5387,24 @@ async function aesKey(pass){
 }
 async function encPack(obj){
   const json = JSON.stringify(obj);
-  if(!syncCfg.pass || !(window.crypto && crypto.subtle)) return {enc:false, body:json};
+  if(!syncCfg.pass) return {enc:false, body:json};
+  if(!subtleOK()) throw new Error('この開き方では暗号化が使えません（合言葉を空にするか、https で開いてください）');
   const k = await aesKey(syncCfg.pass);
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const ct = await crypto.subtle.encrypt({name:'AES-GCM', iv}, k, new TextEncoder().encode(json));
   return {enc:true, iv:toB64(iv), body:toB64(ct)};
 }
 async function decPack(p){
-  if(!p.enc) return JSON.parse(p.body);
+  if(!p || typeof p !== 'object') throw new Error('置き場所のデータが読めません');
+  if(!p.enc) return JSON.parse(p.body || '{}');
   if(!syncCfg.pass) throw new Error('合言葉が設定されていません');
-  const k = await aesKey(syncCfg.pass);
-  const pt = await crypto.subtle.decrypt({name:'AES-GCM', iv:fromB64(p.iv)}, k, fromB64(p.body));
+  let pt;
+  try{
+    const k = await aesKey(syncCfg.pass);
+    pt = await crypto.subtle.decrypt({name:'AES-GCM', iv:fromB64(p.iv)}, k, fromB64(p.body));
+  }catch(e){
+    throw new Error(subtleOK() ? '合言葉が違います' : e.message);
+  }
   return JSON.parse(new TextDecoder().decode(pt));
 }
 
@@ -5495,7 +5504,8 @@ async function syncPush(loud){
     syncTag('✓ 同期しました');
   }catch(e){
     syncBusy = false;
-    syncTag('同期できません：' + e.message, true);
+    syncTag('同期できません：' + (e && e.message ? e.message : e), true);
+    console.error('sync', e);
     if(loud) throw e;
     return;
   }
@@ -5582,7 +5592,7 @@ function syncDialog(rect){
       const got = await syncPull(true);
       msg(got ? '取り込みました' : '取り込めませんでした（合言葉が違うかもしれません）', !got);
       if(got) render();
-    }catch(e){ msg(e.message, true); }
+    }catch(e){ msg((e && e.message) || String(e), true); console.error('pull', e); }
   };
   $('syPush').onclick = async () => {
     grab();
@@ -5592,7 +5602,7 @@ function syncDialog(rect){
       const rec = await syncGet();
       const n = rec ? JSON.stringify(rec.payload || '').length : 0;
       msg(n > 200 ? `送りました（${Math.round(n/1024)} KB）` : '送れていません。もう一度お試しください', n <= 200);
-    }catch(e){ msg(e.message, true); }
+    }catch(e){ msg((e && e.message) || String(e), true); console.error('push', e); }
   };
   $('syClose').onclick = () => { grab(); p.remove(); };
 }
