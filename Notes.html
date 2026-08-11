@@ -379,6 +379,12 @@
   #boardList.dropr{outline:2px dashed #c9bfc2;outline-offset:-2px;border-radius:9px}
   .fempty{font-size:11px;color:#b2a9ab;padding:3px 8px 5px 24px}
   .side-foot{margin-top:auto;padding-top:12px;border-top:1px solid #c4a3ac;display:flex;gap:6px;flex-wrap:wrap}
+  .updbar{position:fixed;left:50%;transform:translateX(-50%);bottom:16px;z-index:300;
+    background:#2f2c28;color:#fff;border-radius:22px;padding:9px 14px;font-size:12.5px;
+    font-family:var(--fdisp);display:flex;align-items:center;gap:10px;
+    box-shadow:0 8px 26px rgba(30,25,15,.3)}
+  .updbar button{background:#fff;color:#2f2c28;border-radius:16px;padding:5px 12px;
+    font-size:12px;font-weight:600}
   .synctag{flex:1 1 100%;font-size:10.5px;color:#6b5a4a;opacity:0;transition:opacity .2s;
     font-family:var(--fdisp);line-height:1.5}
   .synctag.on{opacity:1}
@@ -1237,6 +1243,7 @@
       <button class="mini" id="lockBtn" title="開くときの暗証番号を設定する">ロック</button>
       <button class="mini" id="syncBtn" title="スマホなどと同期する">同期</button>
       <button class="mini" id="recBtn" title="消えたデータを探して戻す">復旧</button>
+      <button class="mini" id="reloadBtn" title="最新版を読み込み直す">更新</button>
       <span id="syncTag" class="synctag"></span>
       <span id="fileTag"></span>
       <input type="file" id="impFile" accept="application/json" hidden>
@@ -1281,6 +1288,7 @@
 const APP = 'note';
 const KEY = APP === 'task' ? 'boards.tasks.task.v1' : 'boards.tasks.v1';
 const APP_TITLE = APP === 'task' ? 'Tasks' : 'Notes';
+const APPVER = '20260811-1855';
 const TIMELB = APP === 'task' ? 'Time Log' : 'Read Time';
 /* Task 用は初回だけ、これまでのデータを引き継ぐ */
 if(APP === 'task' && !localStorage.getItem(KEY)){
@@ -4603,6 +4611,7 @@ function listHTML(items, kind){
         <span style="margin-left:auto">${cardTgl(kind, k,
           kind === 'quote' ? (k.quote && k.quote.card) : (k.read && k.read.card))}</span>
       </div>
+      ${canTime(k) ? `<div class="meta meta2">${timerChip(k)}</div>` : ''}
       ${kind === 'quote' ? quoteSection(k, true) : readSection(k, true)}
     </div>`;
   }).join('')}</div>`;
@@ -5839,6 +5848,26 @@ document.getElementById('syncBtn').onclick = e =>
   syncDialog(e.currentTarget.getBoundingClientRect());
 document.getElementById('recBtn').onclick = e =>
   recoverDialog(e.currentTarget.getBoundingClientRect());
+/* 最新版を読み込み直す（スマホのキャッシュ対策） */
+const hardReload = () =>
+  location.replace(location.pathname + '?v=' + Date.now() + location.hash);
+document.getElementById('reloadBtn').onclick = hardReload;
+/* 起動して少ししたら、新しい版が出ていないか確かめる */
+async function checkUpdate(){
+  if(location.protocol === 'file:') return;
+  try{
+    const r = await fetch(location.pathname + '?_=' + Date.now(), {cache:'no-store'});
+    if(!r.ok) return;
+    const txt = await r.text();
+    const m = txt.match(/const APPVER = '([^']+)'/);
+    if(!m || m[1] === APPVER) return;
+    const b = document.createElement('div');
+    b.className = 'updbar';
+    b.innerHTML = '新しい版があります　<button>更新する</button>';
+    b.querySelector('button').onclick = hardReload;
+    document.body.appendChild(b);
+  }catch(e){}
+}
 
 load();
 const boot = () => {
@@ -5879,6 +5908,7 @@ async function rescue(){
 const boot2 = () => {
   boot();
   setTimeout(rescue, 800);
+  setTimeout(checkUpdate, 2500);
   if(syncOn()) syncPull().then(ok => { if(ok){ render(); syncTag('取り込みました'); } })
     .catch(e => syncTag('同期できません：' + e.message, true));
 };
