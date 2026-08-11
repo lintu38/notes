@@ -1303,7 +1303,7 @@
 const APP = 'note';
 const KEY = APP === 'task' ? 'boards.tasks.task.v1' : 'boards.tasks.v1';
 const APP_TITLE = APP === 'task' ? 'Tasks' : 'Notes';
-const APPVER = '20260811-1938';
+const APPVER = '20260811-1943';
 const TIMELB = APP === 'task' ? 'Time Log' : 'Read Time';
 /* Task 用は初回だけ、これまでのデータを引き継ぐ */
 if(APP === 'task' && !localStorage.getItem(KEY)){
@@ -5514,7 +5514,7 @@ document.addEventListener('click', e => {
 /* ---------------- 同期（置き場所と自動でやりとり） ---------------- */
 const SYNCK = APP === 'task' ? 'notes.sync.task.v1' : 'notes.sync.v1';
 let syncCfg = {mode:'gist', url:'', key:'', token:'', gist:'', pass:'', at:0},
-    syncT = null, syncBusy = false, syncDirty = false;
+    syncT = null, syncBusy = false, syncDirty = false, syncPaused = false;
 function loadSync(){
   try{ syncCfg = {...syncCfg, ...(JSON.parse(localStorage.getItem(SYNCK) || 'null') || {})}; }
   catch(e){}
@@ -5652,7 +5652,7 @@ async function syncPull(force){
   return true;
 }
 /* 置き場所へ送る */
-async function syncPush(loud){
+async function syncPush(loud, force){
   if(!syncOn()){ if(loud) throw new Error('トークンと Gist ID を入れてください'); return; }
   if(syncBusy) return;
   syncBusy = true;
@@ -5660,12 +5660,17 @@ async function syncPush(loud){
     const at = Date.now();
     let res = await syncPut(at, await encPack(S), syncCfg.at || 0);
     if(res === 'conflict'){
-      /* この端末に未送信の変更が無ければ、聞かずに取り込む */
-      const take = !syncDirty || confirm('ほかの端末で更新されています。\nそちらの内容を取り込みますか？\n\n' +
-        '［OK］取り込む　／　［キャンセル］この端末の内容で上書きする');
-      if(take){
+      if(!syncDirty){
+        /* こちらに未送信の変更が無いので、静かに取り込む */
         await syncPull(true);
         syncBusy = false; render(); syncTag('取り込みました');
+        return;
+      }
+      if(!loud && !force){
+        /* 自動同期では何も聞かない。次の操作まで待つ */
+        syncPaused = true;
+        syncBusy = false;
+        syncTag('ほかの端末に新しい内容があります（同期メニューで選べます）', true);
         return;
       }
       const rec = await syncGet();
@@ -5689,6 +5694,7 @@ async function syncPush(loud){
 const syncLater = () => {
   if(!syncOn()) return;
   syncDirty = true;
+  if(syncPaused) return;
   clearTimeout(syncT);
   syncT = setTimeout(() => { if(syncDirty) syncPush(); }, 4000);
 };
@@ -5724,7 +5730,7 @@ function syncDialog(rect){
     </div>
     <div class="dfoot" style="gap:6px">
       <button id="syPull">取り込む</button>
-      <button id="syPush">送る</button>
+      <button id="syPush" title="この端末の内容で置き場所を上書きします">送る</button>
       <button id="syClose">閉じる</button>
     </div>
   </div>`);
@@ -5763,6 +5769,7 @@ function syncDialog(rect){
   $('syPull').onclick = async () => {
     grab();
     try{
+      syncPaused = false;
       const rec = await syncGet();
       if(!rec) return msg('置き場所が空です。パソコン側で「送る」を先に実行してください', true);
       const got = await syncPull(true);
@@ -5774,7 +5781,8 @@ function syncDialog(rect){
     grab();
     try{
       msg('送信中…');
-      await syncPush(true);
+      syncPaused = false;
+      await syncPush(true, true);   // ボタンで押したときは、この端末の内容を優先
       const rec = await syncGet();
       const n = rec ? JSON.stringify(rec.payload || '').length : 0;
       msg(n > 200 ? `送りました（${Math.round(n/1024)} KB）` : '送れていません。もう一度お試しください', n <= 200);
