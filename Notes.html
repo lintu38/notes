@@ -1303,7 +1303,7 @@
 const APP = 'note';
 const KEY = APP === 'task' ? 'boards.tasks.task.v1' : 'boards.tasks.v1';
 const APP_TITLE = APP === 'task' ? 'Tasks' : 'Notes';
-const APPVER = '20260811-1943';
+const APPVER = '20260811-2026';
 const TIMELB = APP === 'task' ? 'Time Log' : 'Read Time';
 /* Task 用は初回だけ、これまでのデータを引き継ぐ */
 if(APP === 'task' && !localStorage.getItem(KEY)){
@@ -1721,11 +1721,7 @@ function load(){
     S.boards.forEach(b => { if(b.color === '#2f6fe0') b.color = '#6f9ad8'; });
     S.blueFix = true;
   }
-  /* WORK / Private / その他 の3フォルダを用意する（足りないものだけ） */
   S.folders ||= [];
-  ['WORK', 'Private', 'その他'].forEach(n => {
-    if(!S.folders.some(f => f.name === n)) S.folders.push({id:uid(), name:n, open:true});
-  });
   /* 中身のない Quote / Read を掃除する（Card ボタンの不具合で付いたもの）*/
   if(!S.emptyQFix2){
     /* registered が付いていても、中身が空なら消す */
@@ -5600,14 +5596,27 @@ async function ghGet(){
   if(f.truncated && f.raw_url) txt = await (await fetch(f.raw_url, {cache:'no-store'})).text();
   try{ const d = JSON.parse(txt); return d && d.payload ? d : null; }catch(e){ return null; }
 }
+async function ghMsg(r){
+  try{
+    const j = await r.json();
+    return j && j.message ? j.message : '';
+  }catch(e){ return ''; }
+}
 async function ghPut(at, payload, ifAt){
   const cur = await ghGet();
   if(typeof ifAt === 'number' && cur && cur.at && cur.at !== ifAt) return 'conflict';
   const r = await fetch(`${GH}/gists/${syncCfg.gist}`, {method:'PATCH', headers:ghHead(),
     body:JSON.stringify({files:{[GHFILE]:{content:JSON.stringify({at, payload})}}})});
+  if(r.ok) return 'ok';
+  const m = await ghMsg(r);
   if(r.status === 401) throw new Error('トークンが違います');
-  if(!r.ok) throw new Error('保存できません（' + r.status + '）');
-  return 'ok';
+  if(r.status === 403){
+    if(/rate limit/i.test(m))
+      throw new Error('GitHub の回数制限です。数分待ってからもう一度お試しください');
+    throw new Error('権限がありません。トークンに gist の権限があるか確認してください' + (m ? '（' + m + '）' : ''));
+  }
+  if(r.status === 404) throw new Error('Gist が見つかりません（ID を確認してください）');
+  throw new Error('保存できません（' + r.status + (m ? '：' + m : '') + '）');
 }
 async function ghCreate(){
   const r = await fetch(`${GH}/gists`, {method:'POST', headers:ghHead(),
@@ -5696,7 +5705,7 @@ const syncLater = () => {
   syncDirty = true;
   if(syncPaused) return;
   clearTimeout(syncT);
-  syncT = setTimeout(() => { if(syncDirty) syncPush(); }, 4000);
+  syncT = setTimeout(() => { if(syncDirty) syncPush(); }, 15000);
 };
 
 function syncDialog(rect){
