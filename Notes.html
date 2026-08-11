@@ -173,6 +173,21 @@
     .dailywrap > .cal,.dailyside > .cal{order:1;margin-bottom:12px}
     .dailymain{order:2}
     .dailylist{order:3;margin-top:14px;max-height:42vh;overflow-y:auto;padding:8px 5px}
+    /* 横にはみ出さない */
+    .main,.scroll{max-width:100vw;overflow-x:hidden}
+    .dailywrap > *,.dailymain,.card,.qcard,.colitem,.rwrap,.sec,.qbox{min-width:0}
+    /* No. ・日付・種類 の行 */
+    .qc-h{letter-spacing:.03em;font-size:10.5px;gap:8px;align-items:flex-start}
+    .qc-h > span:first-child{overflow-wrap:anywhere;line-height:1.6}
+    .qc-act{margin-top:-2px}
+    .qc-ttl{font-size:15.5px;margin-top:9px}
+    /* Read のチェック */
+    .rflags{gap:9px 14px;margin:9px 0 4px}
+    .rflag{font-size:13px}
+    .rflag.sq{margin-left:0;padding-right:0}
+    /* 計測ボタン */
+    .card .meta.meta2{margin-left:0;margin-top:6px}
+    .qcard,.qbox{padding-left:2px;padding-right:2px}
   }
   @media (max-width: 520px){
     .scroll{padding:12px 10px 120px}
@@ -1391,6 +1406,11 @@ function spanSec(e){ let d = hm2min(e.end) - hm2min(e.start); if(d < 0) d += 144
 function fmtDur(sec){
   sec = Math.max(0, Math.round(sec));
   const min = Math.floor(sec / 60);
+  if(APP === 'note'){
+    if(!min) return `${sec}s`;
+    const hh = Math.floor(min / 60), mm = min % 60;
+    return hh ? `${hh}h${mm}m` : `${mm}m`;
+  }
   if(!min) return `${sec} s`;
   const hr = Math.round(sec / 36) / 100;            // 0.01時間まで
   return `${min} m / ${hr} h`;
@@ -3835,8 +3855,12 @@ let calMonth = null;     // 'YYYY-MM'
 function byBoard(list){
   const m = [];
   list.forEach(i => {
-    let g = m.find(x => x.id === i.board.id);
-    if(!g) m.push(g = {id:i.board.id, name:i.board.name, color:i.board.color || '', sec:0});
+    /* Notes では出典（本のタイトル）ごとにまとめる */
+    const R = (APP === 'note' && i.card.read) ? i.card.read : null;
+    const id = R ? ((R.source || '').trim() || '—') : i.board.id;
+    const nm = R ? ((R.source || '').trim() || plain(i.card.title).trim() || '無題') : i.board.name;
+    let g = m.find(x => x.id === id);
+    if(!g) m.push(g = {id, name:nm, color:R ? '' : (i.board.color || ''), sec:0});
     g.sec += i.e.sec || 0;
   });
   m.forEach((g, n) => g.color = g.color || PIEC[n % PIEC.length]);
@@ -4032,7 +4056,12 @@ function renderTimes(){
   if(timeClient) all = all.filter(i => i.board.id === timeClient);
   if(q){
     const s = q.toLowerCase();
-    all = all.filter(i => (plain(i.card.title) + ' ' + i.board.name).toLowerCase().includes(s));
+    all = all.filter(i => {
+      const R = i.card.read || {};
+      return (plain(i.card.title) + ' ' + i.board.name + ' ' +
+        (R.author || '') + ' ' + (R.source || '') + ' ' + (R.media || ''))
+        .toLowerCase().includes(s);
+    });
   }
   let items = timeAll ? all.slice() : all.filter(i => i.e.date === sel);
   items.sort((a, b) => (b.e.date || '').localeCompare(a.e.date || '')
@@ -4045,17 +4074,35 @@ function renderTimes(){
   const pieTotal = pieData.reduce((a, d) => a + d.sec, 0);
   const {cols} = barCols(all, sel, pieRange);
 
-  S.timeCols ||= [104, 150, 74, 74, 96, 62, 240];
-  const W = S.timeCols;
-  if(W.length < 6) W[5] = 62;
-  if(W.length < 7) W[6] = 240;
-  const tcOf = () => `${W[0]}px ${W[1]}px ${W[6]}px ${W[2]}px ${W[3]}px ${W[4]}px ${W[5]}px 1fr 26px`;
+  const isNote = APP === 'note';
+  if(isNote){
+    S.timeColsN ||= [104, 130, 190, 84, 74, 74, 96];
+  } else {
+    S.timeCols ||= [104, 150, 74, 74, 96, 62, 240];
+  }
+  const W = isNote ? S.timeColsN : S.timeCols;
+  if(!isNote){
+    if(W.length < 6) W[5] = 62;
+    if(W.length < 7) W[6] = 240;
+  }
+  const tcOf = () => isNote
+    ? `${W[0]}px ${W[1]}px ${W[2]}px ${W[3]}px ${W[4]}px ${W[5]}px ${W[6]}px 1fr 26px`
+    : `${W[0]}px ${W[1]}px ${W[6]}px ${W[2]}px ${W[3]}px ${W[4]}px ${W[5]}px 1fr 26px`;
+  /* Read メモの情報 */
+  const rInfo = k => {
+    const R = k.read || {};
+    return {
+      author: (R.author || '').trim(),
+      source: (R.source || '').trim(),
+      media: (R.media || '').trim(),
+    };
+  };
   document.getElementById('topActions').innerHTML = '';
 
   document.getElementById('view').innerHTML = `
     <div class="tools">
-      <input class="search" id="q" placeholder="タスク名・Client 名で絞り込み…" value="${esc(q)}">
-      ${clientSelect('timeCl', timeClient)}
+      <input class="search" id="q" placeholder="${isNote ? '著者・出典で絞り込み…' : 'タスク名・Client 名で絞り込み…'}" value="${esc(q)}">
+      ${isNote ? '' : clientSelect('timeCl', timeClient)}
       <div class="seg">${[['day','日'],['week','週'],['month','月'],['year','年']]
         .map(([k, l]) => `<button data-pr="${k}" class="${pieRange===k?'on':''}">${l}</button>`).join('')}</div>
       <span style="color:var(--muted);font-size:12.5px">${rangeLabel(sel, pieRange)}</span>
@@ -4072,7 +4119,7 @@ function renderTimes(){
       <div class="pie" style="flex:0 1 330px;margin:0;flex-wrap:wrap">
         ${pieTotal ? donut(pieData, 128) : ''}
         <div style="flex:1;min-width:130px">
-          <h5>Client 別 ・ 計 ${fmtDur(pieTotal)}</h5>
+          <h5>${isNote ? '出典 別' : 'Client 別'} ・ 計 ${fmtDur(pieTotal)}</h5>
           ${pieTotal ? `<div class="lg">${pieData.map(dd => `<div>
               <i style="background:${dd.color}"></i>
               <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(dd.name)}</span>
@@ -4090,20 +4137,29 @@ function renderTimes(){
     ${(() => {
       const dayB = byBoard(all.filter(i => i.e.date === sel));
       return dayB.length ? `<div class="daysum">
-        <span class="ds-lb">${sel === today() ? '今日' : sel} の Client 別</span>
+        <span class="ds-lb">${sel === today() ? '今日' : sel} の ${isNote ? '出典' : 'Client'} 別</span>
         ${dayB.map(g => `<span class="ds-i"><i style="background:${g.color}"></i>
           ${esc(g.name)} <b>${fmtDur(g.sec)}</b></span>`).join('')}
       </div>` : '';
     })()}
     ${items.length ? `<div class="ttable" style="--tc:${tcOf()}">
-      <div class="trow head"><span>日にち<i class="rz" data-rzc="0" title="ドラッグで幅を変更"></i></span>
-        <span>Client<i class="rz" data-rzc="1" title="ドラッグで幅を変更"></i></span>
-        <span>タスク<i class="rz" data-rzc="6" title="ドラッグで幅を変更"></i></span>
-        <span>開始<i class="rz" data-rzc="2" title="ドラッグで幅を変更"></i></span>
-        <span>終了<i class="rz" data-rzc="3" title="ドラッグで幅を変更"></i></span>
-        <span style="text-align:right">合計<i class="rz" data-rzc="4" title="ドラッグで幅を変更"></i></span>
-        <span style="text-align:center">報告<i class="rz" data-rzc="5" title="ドラッグで幅を変更"></i></span>
-        <span></span><span></span></div>
+      ${isNote
+        ? `<div class="trow head"><span>日にち<i class="rz" data-rzc="0" title="ドラッグで幅を変更"></i></span>
+            <span>著者<i class="rz" data-rzc="1" title="ドラッグで幅を変更"></i></span>
+            <span>出典<i class="rz" data-rzc="2" title="ドラッグで幅を変更"></i></span>
+            <span>媒体<i class="rz" data-rzc="3" title="ドラッグで幅を変更"></i></span>
+            <span>開始<i class="rz" data-rzc="4" title="ドラッグで幅を変更"></i></span>
+            <span>終了<i class="rz" data-rzc="5" title="ドラッグで幅を変更"></i></span>
+            <span style="text-align:right">合計<i class="rz" data-rzc="6" title="ドラッグで幅を変更"></i></span>
+            <span></span><span></span></div>`
+        : `<div class="trow head"><span>日にち<i class="rz" data-rzc="0" title="ドラッグで幅を変更"></i></span>
+            <span>Client<i class="rz" data-rzc="1" title="ドラッグで幅を変更"></i></span>
+            <span>タスク<i class="rz" data-rzc="6" title="ドラッグで幅を変更"></i></span>
+            <span>開始<i class="rz" data-rzc="2" title="ドラッグで幅を変更"></i></span>
+            <span>終了<i class="rz" data-rzc="3" title="ドラッグで幅を変更"></i></span>
+            <span style="text-align:right">合計<i class="rz" data-rzc="4" title="ドラッグで幅を変更"></i></span>
+            <span style="text-align:center">報告<i class="rz" data-rzc="5" title="ドラッグで幅を変更"></i></span>
+            <span></span><span></span></div>`}
       ${items.map((i, n) => {
         const prev = items[n - 1];
         const newDay = timeAll && (!prev || prev.e.date !== i.e.date);
@@ -4114,7 +4170,22 @@ function renderTimes(){
           <span style="grid-column:2/7">${i.e.date ? i.e.date + ' ' + WD[parse(i.e.date).getDay()] + '曜' : ''}
             ${bs.map(g => `<span class="bsum"><i style="background:${g.color}"></i>${esc(g.name)} <b>${fmtDur(g.sec)}</b></span>`).join('')}</span>
           <span class="d">${fmtDur(daySec)}</span><span style="grid-column:8/10"></span></div>` : ''}
-        <div class="trow">
+        ${isNote ? (() => {
+          const r = rInfo(i.card);
+          const ttl = plain(i.card.title).trim();
+          return `<div class="trow">
+            <span class="dt">${i.e.date ? i.e.date : '—'}</span>
+            <span class="nm" title="${esc(r.author)}">${esc(r.author) || '<span style="color:#c4bcbe">—</span>'}</span>
+            <span class="nm" data-goto="${i.board.id}" title="${esc(r.source || ttl)}">${
+              r.source ? '『' + esc(r.source) + '』' : (esc(ttl) || '<span style="color:#c4bcbe">—</span>')}</span>
+            <span class="tm" style="text-align:left">${esc(r.media) || '—'}</span>
+            <span class="tm">${i.e.start || '--:--'}</span>
+            <span class="tm">${i.e.end || '--:--'}</span>
+            <span class="d">${fmtDur(i.e.sec)}</span>
+            <span></span>
+            <button class="x" data-tmdel="${i.card.id}|${i.e.id}">×</button>
+          </div>`;
+        })() : `<div class="trow">
           <span class="dt">${i.e.date ? i.e.date : '—'}</span>
           <span class="bd"><span style="${i.board.color?`color:${i.board.color}`:''}">▦</span> ${esc(i.board.name)}</span>
           <span class="nm" data-goto="${i.board.id}" title="${esc(plain(i.card.title))}">${clean(i.card.title) || '無題'}</span>
@@ -4127,7 +4198,7 @@ function renderTimes(){
             : `<span class="repnone">-</span>`}
           <span></span>
           <button class="x" data-tmdel="${i.card.id}|${i.e.id}">×</button>
-        </div>`;
+        </div>`}`;
       }).join('')}
     </div>` : `<div class="empty">${timeAll ? 'まだ計測した記録がありません' : 'この日の記録はありません'}<br>
       <span style="font-size:12px">タスクの「▶」を押すと時間の記録が始まります</span></div>`}`;
