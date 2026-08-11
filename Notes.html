@@ -1288,7 +1288,7 @@
 const APP = 'note';
 const KEY = APP === 'task' ? 'boards.tasks.task.v1' : 'boards.tasks.v1';
 const APP_TITLE = APP === 'task' ? 'Tasks' : 'Notes';
-const APPVER = '20260811-1855';
+const APPVER = '20260811-1901';
 const TIMELB = APP === 'task' ? 'Time Log' : 'Read Time';
 /* Task 用は初回だけ、これまでのデータを引き継ぐ */
 if(APP === 'task' && !localStorage.getItem(KEY)){
@@ -5251,7 +5251,9 @@ document.getElementById('impFile').onchange = e => {
     try{
       const d = JSON.parse(r.result);
       if(!d.boards) throw 0;
-      S = d; view = {type:'board', id:S.boards[0]?.id}; save(); render();
+      localStorage.setItem(KEY, JSON.stringify(d));
+      load();
+      view = {type:'board', id:S.boards[0]?.id}; save(); render();
     }catch(_){ alert('読み込めませんでした（JSON形式が違います）'); }
   };
   r.readAsText(f); e.target.value = '';
@@ -5460,6 +5462,8 @@ const syncOn = () => syncCfg.mode === 'gist'
   : !!(syncCfg.url && syncCfg.key);
 const syncURL = () => syncCfg.url.replace(/\/+$/, '');
 
+const errText = e => e ? ((e.name && e.name !== 'Error' ? e.name + '：' : '') +
+  (e.message || String(e))) : '不明なエラー';
 function syncTag(msg, err){
   const t = document.getElementById('syncTag');
   if(!t) return;
@@ -5578,8 +5582,8 @@ async function syncPull(force){
   if(!force && rec.at <= (syncCfg.at || 0)) return false;
   const data = await decPack(rec.payload);
   if(!data || !data.boards) throw new Error('データを読めません');
-  S = data;
-  localStorage.setItem(KEY, JSON.stringify(S));
+  localStorage.setItem(KEY, JSON.stringify(data));
+  load();                       // 足りない項目を補う（通常の読み込みと同じ処理）
   syncCfg.at = rec.at; saveSync();
   return true;
 }
@@ -5609,7 +5613,7 @@ async function syncPush(loud){
     syncTag('✓ 同期しました');
   }catch(e){
     syncBusy = false;
-    syncTag('同期できません：' + (e && e.message ? e.message : e), true);
+    syncTag('同期できません：' + errText(e), true);
     console.error('sync', e);
     if(loud) throw e;
     return;
@@ -5697,7 +5701,7 @@ function syncDialog(rect){
       const got = await syncPull(true);
       msg(got ? '取り込みました' : '取り込めませんでした（合言葉が違うかもしれません）', !got);
       if(got) render();
-    }catch(e){ msg((e && e.message) || String(e), true); console.error('pull', e); }
+    }catch(e){ msg(errText(e), true); console.error('pull', e); }
   };
   $('syPush').onclick = async () => {
     grab();
@@ -5707,7 +5711,7 @@ function syncDialog(rect){
       const rec = await syncGet();
       const n = rec ? JSON.stringify(rec.payload || '').length : 0;
       msg(n > 200 ? `送りました（${Math.round(n/1024)} KB）` : '送れていません。もう一度お試しください', n <= 200);
-    }catch(e){ msg((e && e.message) || String(e), true); console.error('push', e); }
+    }catch(e){ msg(errText(e), true); console.error('push', e); }
   };
   $('syClose').onclick = () => { grab(); p.remove(); };
 }
@@ -5763,9 +5767,8 @@ function recoverDialog(rect){
     try{
       localStorage.setItem(KEY + '.before-recover', localStorage.getItem(KEY) || '');
     }catch(e){}
-    const d = JSON.parse(localStorage.getItem(x.key));
-    S = d;
-    localStorage.setItem(KEY, JSON.stringify(S));
+    localStorage.setItem(KEY, localStorage.getItem(x.key));
+    load();
     p.remove();
     render();
     alert('戻しました。内容を確認して、問題なければ Export を押してください。');
