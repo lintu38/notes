@@ -1482,7 +1482,7 @@
 const APP = 'note';
 const KEY = APP === 'task' ? 'boards.tasks.task.v1' : 'boards.tasks.v1';
 const APP_TITLE = APP === 'task' ? 'Tasks' : 'Notes';
-const APPVER = '20260813-0232';
+const APPVER = '20260813-0237';
 const TIMELB = APP === 'task' ? 'Time Log' : 'Read Log';
 const TASKLB = APP === 'task' ? 'Tasks' : 'Action';
 /* Task 用は初回だけ、これまでのデータを引き継ぐ */
@@ -6603,13 +6603,31 @@ async function decPack(p){
 /* ---- GitHub Gist ---- */
 const GH = 'https://api.github.com';
 const GHFILE = 'notes-sync.json';
-const ghHead = () => ({
-  'authorization': 'Bearer ' + syncCfg.token,
-  'accept': 'application/vnd.github+json',
-  'content-type': 'application/json',
-});
+const ghHead = (json) => {
+  const hd = {
+    'authorization': 'Bearer ' + syncCfg.token,
+    'accept': 'application/vnd.github+json',
+  };
+  if(json) hd['content-type'] = 'application/json';
+  return hd;
+};
+/* 通信そのものが失敗したときは、分かる言葉にして投げ直す */
+async function ghFetch(url, opt){
+  try{
+    return await fetch(url, opt);
+  }catch(e1){
+    try{
+      const o2 = {...opt};
+      delete o2.cache;
+      return await fetch(url, o2);
+    }catch(e2){
+      throw new Error('GitHub に接続できませんでした。'
+        + '通信状態と、ブラウザの制限（コンテンツブロッカー・低データモードなど）を確認してください');
+    }
+  }
+}
 async function ghGet(){
-  const r = await fetch(`${GH}/gists/${syncCfg.gist}`, {headers:ghHead(), cache:'no-store'});
+  const r = await ghFetch(`${GH}/gists/${syncCfg.gist}`, {headers:ghHead()});
   if(r.status === 404) throw new Error('Gist が見つかりません');
   if(r.status === 401) throw new Error('トークンが違います');
   if(!r.ok) throw new Error('取得できません（' + r.status + '）');
@@ -6617,7 +6635,7 @@ async function ghGet(){
   const f = g.files && g.files[GHFILE];
   if(!f) return null;
   let txt = f.content;
-  if(f.truncated && f.raw_url) txt = await (await fetch(f.raw_url, {cache:'no-store'})).text();
+  if(f.truncated && f.raw_url) txt = await (await ghFetch(f.raw_url, {})).text();
   try{ const d = JSON.parse(txt); return d && d.payload ? d : null; }catch(e){ return null; }
 }
 async function ghMsg(r){
@@ -6629,7 +6647,7 @@ async function ghMsg(r){
 async function ghPut(at, payload, ifAt){
   const cur = await ghGet();
   if(typeof ifAt === 'number' && cur && cur.at && cur.at !== ifAt) return 'conflict';
-  const r = await fetch(`${GH}/gists/${syncCfg.gist}`, {method:'PATCH', headers:ghHead(),
+  const r = await ghFetch(`${GH}/gists/${syncCfg.gist}`, {method:'PATCH', headers:ghHead(true),
     body:JSON.stringify({files:{[GHFILE]:{content:JSON.stringify({at, payload})}}})});
   if(r.ok) return 'ok';
   const m = await ghMsg(r);
@@ -6643,7 +6661,7 @@ async function ghPut(at, payload, ifAt){
   throw new Error('保存できません（' + r.status + (m ? '：' + m : '') + '）');
 }
 async function ghCreate(){
-  const r = await fetch(`${GH}/gists`, {method:'POST', headers:ghHead(),
+  const r = await ghFetch(`${GH}/gists`, {method:'POST', headers:ghHead(true),
     body:JSON.stringify({description:'Notes sync', public:false,
       files:{[GHFILE]:{content:JSON.stringify({at:0, payload:{enc:false, body:'{}'}})}}})});
   if(r.status === 401) throw new Error('トークンが違います（gist の権限が要ります）');
