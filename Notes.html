@@ -1482,7 +1482,7 @@
 const APP = 'note';
 const KEY = APP === 'task' ? 'boards.tasks.task.v1' : 'boards.tasks.v1';
 const APP_TITLE = APP === 'task' ? 'Tasks' : 'Notes';
-const APPVER = '20260813-0223';
+const APPVER = '20260813-0232';
 const TIMELB = APP === 'task' ? 'Time Log' : 'Read Log';
 const TASKLB = APP === 'task' ? 'Tasks' : 'Action';
 /* Task 用は初回だけ、これまでのデータを引き継ぐ */
@@ -6536,8 +6536,17 @@ const syncOn = () => APP !== 'task' && (syncCfg.mode === 'gist'
   : !!(syncCfg.url && syncCfg.key));
 const syncURL = () => syncCfg.url.replace(/\/+$/, '');
 
-const errText = e => e ? ((e.name && e.name !== 'Error' ? e.name + '：' : '') +
-  (e.message || String(e))) : '不明なエラー';
+const errText = e => {
+  if(!e) return '不明なエラー';
+  const nm = (e.name && e.name !== 'Error') ? e.name + '：' : '';
+  const ms = e.message || String(e);
+  let at = '';
+  if(e.stack){
+    const m = String(e.stack).split('\n').find(l => /:\d+:\d+/.test(l));
+    if(m) at = '　[' + m.trim().slice(0, 60) + ']';
+  }
+  return nm + ms + at;
+};
 function syncTag(msg, err){
   const t = document.getElementById('syncTag');
   if(!t) return;
@@ -6797,8 +6806,14 @@ function syncDialog(rect){
       const rec = await syncGet();
       if(!rec) return msg('置き場所が空です。パソコン側で「送る」を先に実行してください', true);
       const got = await syncPull(true);
-      msg(got ? '取り込みました' : '取り込めませんでした（合言葉が違うかもしれません）', !got);
-      if(got) render();
+      if(!got) return msg('取り込めませんでした（合言葉が違うかもしれません）', true);
+      msg('取り込みました');
+      try{ render(); }
+      catch(err){
+        console.error('render after pull', err);
+        msg('取り込みましたが、画面の描き直しに失敗しました。アプリが古い可能性があります。'
+          + '左下の「更新」を押すか、開き直してください。', true);
+      }
     }catch(e){ msg(errText(e), true); console.error('pull', e); }
   };
   $('syPush').onclick = async () => {
