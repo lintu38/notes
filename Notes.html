@@ -1340,7 +1340,26 @@
     /* 表は1件ずつのカード表示に（横スクロール不要） */
     .rowgrid{grid-template-columns:1fr;gap:10px}
     .ocwrap{flex-direction:column}
+    .onecard{flex:1 1 auto!important;width:auto!important;max-width:none}
     .ocside{flex:1 1 auto!important;width:auto!important}
+    /* Bookshelf は1列に */
+    .cols.shelfcols .drop{grid-template-columns:1fr!important}
+    .cols.shelfcols .col{width:auto!important}
+    /* 上のボタンが重ならないように */
+    .topbar{height:auto;min-height:52px;flex-wrap:wrap;padding-top:6px;padding-bottom:6px;
+      align-items:center}
+    #topActions{display:flex;gap:6px;flex-wrap:wrap;width:100%;margin-top:2px}
+    #topActions .btn{padding:6px 11px;font-size:12.5px}
+    .title{flex:1 1 auto;min-width:0}
+    /* 本のカードの中身 */
+    .brow-star{flex-wrap:wrap;gap:8px}
+    .bstat-row{gap:6px}
+    .brows{flex-wrap:wrap}
+    .brows .bck{flex:0 0 auto}
+    .brows input[type=text]{flex:1 1 120px}
+    .tlog{flex-wrap:wrap;gap:6px}
+    .tlog input[type=date]{flex:1 1 120px}
+    .tlog input[type=time]{flex:0 0 84px}
     .pinwrap{flex-direction:column}
     .pincolm{width:100%}
     .ttable{overflow:visible!important;white-space:normal}
@@ -1463,7 +1482,7 @@
 const APP = 'note';
 const KEY = APP === 'task' ? 'boards.tasks.task.v1' : 'boards.tasks.v1';
 const APP_TITLE = APP === 'task' ? 'Tasks' : 'Notes';
-const APPVER = '20260813-0214';
+const APPVER = '20260813-0223';
 const TIMELB = APP === 'task' ? 'Time Log' : 'Read Log';
 const TASKLB = APP === 'task' ? 'Tasks' : 'Action';
 /* Task 用は初回だけ、これまでのデータを引き継ぐ */
