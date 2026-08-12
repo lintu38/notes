@@ -46,6 +46,7 @@
   .scroll{font-family:var(--fdisp)}
   .qc-body,.qc-memo,.dailybody,
   .dcard .qt,.dcard .mm,.rs-p,.lc-p{font-family:var(--fserif)}
+  /* 本文を出す場所（編集中も表示も）に共通の書式を効かせる */
   /* メモ本文・Message Log・セクション見出しはサイドバーと同じ書体 */
   .body,.log-t,.sec-lb{font-family:var(--fdisp)}
   .body.dailybody{font-family:var(--fserif);font-weight:500}
@@ -197,6 +198,8 @@
     border-radius:20px;padding:1px 7px;min-width:20px;text-align:center}
   .nav.on .cnt{background:#cfb6bd;color:var(--muted)}
   .tagnav{display:flex;flex-wrap:wrap;gap:5px;padding:4px 8px 0}
+  .tgear{font-style:normal;font-size:11px;opacity:.5;margin-left:2px;padding:0 1px}
+  .tagnav button:hover .tgear{opacity:1}
   .tagnav button{font-size:11.5px;padding:0 9px;height:21px;line-height:1;border-radius:20px;
     background:#cfb6bd;color:#6b655c;display:inline-flex;align-items:center;white-space:nowrap}
   .tagnav button:hover{filter:brightness(.95)}
@@ -323,22 +326,29 @@
     padding:4px 5px;border-radius:7px;word-break:break-word;min-height:26px;line-height:1.7}
   .card.task .body{margin-left:24px}
   .card.note .body{min-height:112px}
-  .body:hover{background:#fdfbfa}
-  .body:focus{background:#fdfbfa;box-shadow:0 0 0 2px var(--accent-soft)}
+  .body:hover{background:#fffefc}
+  /* Add で確定するまでは、枠線を出したままにする */
+  .qbox > .body,.qbox > .mtitle,.qbox .qm{
+    background:#fffefc;box-shadow:0 0 0 1.5px #ddd7cd}
+  .qbox > .body:focus,.qbox > .mtitle:focus,.qbox .qm:focus{
+    box-shadow:0 0 0 1.5px #b9b0a2}
+  /* 引用文はこれまでどおり（背景つき） */
+  .qbox .qt,.qbox .qt:focus{background:var(--quote-bg);box-shadow:none}
+  .qbox .qt:focus{box-shadow:0 0 0 2px #e2ded4}
   .body:empty::before{content:"メモを書く…";color:#c4bcbe}
   .body u{text-underline-offset:2px}
   /* 箇条書き・チェックリスト・引用 */
-  .body ul,.body ol{margin:4px 0;padding-left:1.35em}
-  .body li{margin:1px 0}
-  .body ul.ckl{list-style:none;padding-left:1.55em}
-  .body ul.ckl > li{position:relative}
-  .body ul.ckl > li::before{content:"";position:absolute;left:-1.5em;top:.45em;
+  .body ul,.qc-body ul,.qc-memo ul,.dailybody ul,.log-t ul,.dcard .qt ul,.dcard .mm ul,.rs-p ul,.body ol,.qc-body ol,.qc-memo ol,.dailybody ol,.log-t ol,.dcard .qt ol,.dcard .mm ol,.rs-p ol{margin:4px 0;padding-left:1.35em}
+  .body li,.qc-body li,.qc-memo li,.dailybody li,.log-t li,.dcard .qt li,.dcard .mm li,.rs-p li{margin:1px 0}
+  .body ul.ckl,.qc-body ul.ckl,.qc-memo ul.ckl,.dailybody ul.ckl,.log-t ul.ckl,.dcard .qt ul.ckl,.dcard .mm ul.ckl,.rs-p ul.ckl{list-style:none;padding-left:1.55em}
+  .body ul.ckl > li,.qc-body ul.ckl > li,.qc-memo ul.ckl > li,.dailybody ul.ckl > li,.log-t ul.ckl > li,.dcard .qt ul.ckl > li,.dcard .mm ul.ckl > li,.rs-p ul.ckl > li{position:relative}
+  .body ul.ckl > li::before,.qc-body ul.ckl > li::before,.qc-memo ul.ckl > li::before,.dailybody ul.ckl > li::before,.log-t ul.ckl > li::before,.dcard .qt ul.ckl > li::before,.dcard .mm ul.ckl > li::before,.rs-p ul.ckl > li::before{content:"";position:absolute;left:-1.5em;top:.45em;
     width:13px;height:13px;border:1.4px solid #c3b9bb;border-radius:4px;
     background:var(--panel);cursor:pointer}
-  .body ul.ckl > li.dn::before{content:"✓";border-color:var(--brown);background:var(--brown);
+  .body ul.ckl > li.dn::before,.qc-body ul.ckl > li.dn::before,.qc-memo ul.ckl > li.dn::before,.dailybody ul.ckl > li.dn::before,.log-t ul.ckl > li.dn::before,.dcard .qt ul.ckl > li.dn::before,.dcard .mm ul.ckl > li.dn::before,.rs-p ul.ckl > li.dn::before{content:"✓";border-color:var(--brown);background:var(--brown);
     color:#fff;font-size:9.5px;line-height:13px;text-align:center;font-family:var(--fdisp)}
-  .body ul.ckl > li.dn{color:#a49b9d;text-decoration:line-through;text-decoration-color:#d6cccd}
-  .body blockquote{margin:6px 0;padding:2px 0 2px 12px;border-left:2.5px solid #ddd0d2;
+  .body ul.ckl > li.dn,.qc-body ul.ckl > li.dn,.qc-memo ul.ckl > li.dn,.dailybody ul.ckl > li.dn,.log-t ul.ckl > li.dn,.dcard .qt ul.ckl > li.dn,.dcard .mm ul.ckl > li.dn,.rs-p ul.ckl > li.dn{color:#a49b9d;text-decoration:line-through;text-decoration-color:#d6cccd}
+  .body blockquote,.qc-body blockquote,.qc-memo blockquote,.dailybody blockquote,.log-t blockquote,.dcard .qt blockquote,.dcard .mm blockquote,.rs-p blockquote{margin:6px 0;padding:2px 0 2px 12px;border-left:2.5px solid #ddd0d2;
     color:#5e5658}
   /* Memo 下の書式ボタン */
   .fmtb{font-size:11.5px;color:var(--muted);padding:4px 9px;border-radius:8px;
@@ -400,8 +410,8 @@
   /* Quote */
   .body[data-ph]:empty::before{content:attr(data-ph);color:#c4bcbe}
   .qbox{margin-top:7px;display:flex;flex-direction:column;padding:0 10px}
-  .qbox > .body{margin:2px 0 0 0;padding:4px 5px}
-  .qbox > .mtitle{padding:4px 5px}
+  .qbox > .body{margin:2px 0 0 0;padding:8px 10px;border-radius:10px}
+  .qbox > .mtitle{padding:8px 10px;border-radius:10px}
   .qbox .qt{min-height:92px;border:0;border-radius:11px;padding:12px 14px 12px 15px;
     background:var(--quote-bg);margin:0 -4px 2px -10px;font-size:14.5px;line-height:1.95}
   .qbox .qt:hover{filter:brightness(.985)}
@@ -411,9 +421,9 @@
     font-size:13px;outline:none;background:none;width:100%}
   .qbox input:hover{background:#fdfbfa}
   .qbox input:focus{border-bottom-color:var(--accent);background:#fdfbfa}
-  .qbox .qm{min-height:58px;border:0;border-top:1px dashed #ded4d2;border-radius:0;
-    padding:8px 4px;background:none;margin:0;font-size:13px}
-  .qbox .qm:hover{background:#fdfbfa}
+  .qbox .qm{min-height:64px;border:0;border-radius:10px;
+    padding:10px 12px;background:none;margin:2px 0 0;font-size:13.5px}
+
   /* 登録済み Quote カード */
   .qcard{background:none;border:0;border-radius:0;box-shadow:none;padding:2px 10px 6px;margin-top:6px}
   .ndate{font-weight:400;cursor:pointer;border-radius:5px;padding:1px 3px}
@@ -433,6 +443,10 @@
   .qc-body.qbg{background:var(--quote-bg);border:0;border-radius:11px;
     margin:10px -4px 0 -10px;padding:13px 14px 13px 10px}
   .qc-cite{text-align:right;font-size:12.5px;color:#6e6668;margin-top:16px;letter-spacing:.02em}
+  .qc-foot{display:flex;justify-content:flex-end;margin-top:10px}
+  .qc-foot button{font-size:11.5px;color:#a9a0a2;padding:4px 10px;border-radius:8px;
+    border:1px solid var(--line2);font-family:var(--fdisp)}
+  .qc-foot button:hover{color:var(--brown);border-color:var(--brown)}
   .qc-memo{border-top:1px dashed #ded4d2;margin-top:16px;padding-top:11px;
     font-size:13.5px;line-height:1.95;white-space:pre-wrap;color:#2a2426}
   .qc-memo label{display:block;font-size:10.5px;letter-spacing:.12em;color:#a7a0a2;margin-bottom:5px;
@@ -442,8 +456,8 @@
   .qc-ttl:focus{background:#fdfbfa;box-shadow:0 0 0 2px var(--accent-soft)}
   .mtitle{font-size:14.5px;font-weight:600;outline:none;padding:3px 5px;border-radius:7px;
     margin-bottom:3px;word-break:break-word}
-  .mtitle:hover{background:#fdfbfa}
-  .mtitle:focus{background:#fdfbfa;box-shadow:0 0 0 2px var(--accent-soft)}
+  .mtitle:hover{background:#fffefc}
+  .mtitle:focus{background:#fffefc;box-shadow:0 0 0 1.5px #cfc8bd}
   .qc-sub{font-size:12px;color:#6e6668;margin-top:5px;letter-spacing:.02em}
   .rflags{display:flex;gap:15px;flex-wrap:wrap;align-items:center;margin:10px 0 4px}
   .rflag{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:#8b8285;cursor:pointer}
@@ -611,16 +625,17 @@
   .chartbox h5{margin:0 0 6px;font-size:12px;color:var(--muted);letter-spacing:.06em;font-weight:700}
   .chartbox g[data-barday]:hover rect{opacity:.82}
   /* Daily Memo */
-  .dailywrap{display:flex;gap:20px;align-items:flex-start}
-  .dailyside{flex:0 0 320px;width:320px}
+  .dailywrap{display:flex;gap:20px;align-items:flex-start;flex-direction:row-reverse;
+    justify-content:flex-end}
+  .dailyside{flex:0 0 352px;width:352px}
   .dailyside .cal{width:auto;flex:1 1 auto;border:1px solid var(--line);border-radius:11px;
     padding:12px 14px 10px}
-  .dailyside .cd{height:36px;font-size:13px}
+  .dailyside .cd{height:42px;font-size:13.5px}
   .dailyside .cal-w{font-size:11px}
   .dailyside .cal-h b{font-size:14px}
   /* Daily ページ：今日は丸く、くすんだピンクの背景 */
   .dailyside .cd.tdy,.readrow .cd.tdy{background:#d8b3bf;border-radius:50%;color:#fff;
-    width:36px;justify-self:center}
+    width:42px;justify-self:center}
   .dailyside .cd.tdy.sun,.readrow .cd.tdy.sun{color:#8c3a44}
   .dailyside .cd.tdy.sat,.readrow .cd.tdy.sat{color:#2f4d80}
   .dailyside .cd.tdy:hover,.readrow .cd.tdy:hover{background:#cda3b1}
@@ -644,7 +659,24 @@
   .dl-p{display:block;font-size:11.5px;color:var(--muted);overflow:hidden;
     text-overflow:ellipsis;white-space:nowrap}
   .dl-empty{font-size:11.5px;color:var(--muted);padding:8px 9px}
-  .dailymain{flex:1;min-width:0;max-width:820px;background:var(--panel);border:1px solid var(--line);
+  /* ピン留めしたメモ */
+  .pinlist{margin-top:12px;padding:0;max-height:none}
+  .pincol{flex:0 0 352px;width:352px}
+  .pincol .pinlist{margin-top:0}
+  .pinit{position:relative;padding:10px 24px 11px 12px;border-radius:10px;cursor:pointer;
+    margin-bottom:8px;border:1px solid var(--line2);background:#fffefd}
+  .pinit:hover{background:#faf7f4;border-color:var(--line)}
+  .pinit b{display:block;font-size:12.5px;color:#4a4446;font-weight:600;margin-bottom:2px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pin-p{display:block;font-size:11.5px;color:var(--muted);line-height:1.65;white-space:pre-wrap;
+    display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
+  .pin-b{position:absolute;top:6px;right:6px;font-style:normal;font-size:12px;color:#c8c0c2;
+    opacity:0;padding:0 3px;border-radius:5px}
+  .pinit:hover .pin-b{opacity:1}
+  .pin-b:hover{color:#c0392b;background:#f6efef}
+  .cardtg.pintg.on{background:none;color:#8a6a55;border-color:#8a6a55}
+  .cardtg.pintg.on:hover{background:#f7f1ea;color:#7a5c48;border-color:#7a5c48}
+  .dailymain{flex:1;min-width:0;background:var(--panel);border:1px solid var(--line);
     border-radius:14px;padding:18px 22px 22px;box-shadow:var(--shadow)}
   .daily-h{display:flex;align-items:baseline;gap:10px;padding-bottom:12px;
     border-bottom:1px dashed #ded4d2;margin-bottom:14px;font-family:var(--fdisp)}
@@ -663,7 +695,7 @@
   .wxico{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.35;
     stroke-linecap:round;stroke-linejoin:round}
   .dailybody{margin:0;padding:2px;min-height:87px;font-size:14.5px;line-height:2;background:none;color:#2a2426}
-  .dailycards{margin-top:16px;border-top:1px dashed #ded4d2;padding-top:14px}
+  .dailycards{margin-top:14px;border-top:0;padding-top:0}
   /* All（タイムライン） */
   .dayblock{padding:0 0 20px;margin-bottom:20px;border-bottom:1px dashed #e6dcda}
   .dayblock:last-child{border-bottom:0}
@@ -741,17 +773,26 @@
   mark{background:#fdf0c9;color:inherit;border-radius:3px;padding:0 2px}
   /* Quote / Read の一覧 */
   .colwrap{display:flex;flex-direction:column;gap:14px;max-width:760px}
-  .qrand{flex:0 0 450px;width:450px}
-  .qrand h5{margin:0 0 8px;font-size:11px;color:var(--muted);letter-spacing:.1em;font-weight:700;
+  .qrand{width:540px;max-width:100%;margin:0 auto 26px;box-sizing:border-box;
+    border:1px solid var(--line);border-radius:14px;padding:10px 52px 16px;background:none}
+  .qlist{clear:both}
+  .qrand h5{margin:0 0 10px;font-size:15px;color:var(--brown);letter-spacing:.08em;font-weight:600;
     font-family:var(--fdisp)}
-  .qrand .dcard{padding:30px 28px 26px}
+  .qrand .dcard{padding:26px 24px 22px}
+  .qrand h5{margin:2px 0 8px}
   .qrand .dcard .qt{font-size:14.5px!important;line-height:1.95!important}
   .qrand .dcard .at{font-size:12.5px;margin-top:18px}
   .qrand .dcard .mm{font-size:13.5px;margin-top:16px;padding-top:13px}
   .qrand .dsrc{font-size:11px}
   .qrand .dbtn .btn{padding:6px 14px;font-size:12px}
-  .colwrap.gallery{display:block;max-width:none;columns:330px;column-gap:14px}
-  .colwrap.gallery .colitem{break-inside:avoid;margin:0 0 14px;display:inline-block;width:100%}
+  .colwrap.gallery{display:grid;max-width:none;gap:14px;
+    grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));align-items:start}
+  .colwrap.gallery .colitem{margin:0;width:auto}
+  /* Pin Memo は高さのばらつきを詰めて並べる */
+  .pinwrap{display:flex;gap:14px;align-items:flex-start;max-width:none}
+  .pincolm{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:14px}
+  .pinwrap .colitem{width:auto;margin:0}
+
   .colitem{padding:12px 14px 14px}
   .col-src{font-size:11px;color:var(--muted);display:flex;gap:6px;margin-bottom:4px;
     align-items:center;white-space:nowrap}
@@ -802,6 +843,7 @@
   .card.quote{background:#fbf9f8;border-color:#eae3e1}
   .card.quote .sec{margin-left:22px;border-top:0;padding-top:2px}
   .meta.meta2{margin-top:5px}
+  .meta.meta2.right{justify-content:flex-end}
   .card.note .meta.meta2,.card.quote .meta.meta2{margin-left:22px}
   .card.note .body:hover,.card.note .body:focus{background:#fffaf8}
   .card.heading{background:none;border:0;box-shadow:none;padding:14px 4px 2px}
@@ -945,11 +987,21 @@
   .dfoot button{font-size:12px;padding:4px 9px;border-radius:7px;color:var(--muted);width:auto}
   .dfoot button:hover{background:#f5f1f0;color:var(--ink)}
   /* tag panel */
-  .tpanel{padding:9px 10px;width:222px}
+  .tpanel{padding:10px 12px;width:262px;max-width:88vw;box-sizing:border-box}
   .tlist{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
   .tlist .chip{display:flex;align-items:center;gap:5px}
   .tlist .chip b{cursor:pointer;color:#9aa2ae;font-weight:400}
-  .tinput{width:100%;border:1px solid var(--line);border-radius:7px;padding:6px 8px;font-size:12.5px;outline:none}
+  .tinput{flex:1;min-width:0;border:1px solid var(--line);border-radius:8px;padding:8px 10px;
+    font-size:14px;outline:none;background:var(--panel);color:var(--ink)}
+  .tinrow{display:flex;gap:6px;align-items:center;margin:2px 0 4px;width:100%;min-width:0}
+  .pop .tinadd{flex:0 0 auto;width:auto;border:1px solid var(--brown);color:var(--brown);
+    border-radius:8px;padding:7px 12px;font-size:12.5px;white-space:nowrap;
+    justify-content:center;text-align:center}
+  .tinadd:hover{background:var(--brown);color:#fff}
+  .swnew{width:19px;height:19px;border-radius:50%;border:1px dashed #b9b0b2;display:inline-flex;
+    align-items:center;justify-content:center;font-size:11px;color:#8b8285;cursor:pointer;
+    position:relative;overflow:hidden;flex:0 0 19px}
+  .swnew input{position:absolute;inset:0;opacity:0;cursor:pointer;padding:0;border:0}
   .tinput:focus{border-color:var(--accent)}
   .tsug{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
   .pop .tsug button{font-size:11.5px;padding:0 9px;height:21px;line-height:1;border-radius:20px;
@@ -998,6 +1050,9 @@
   .grp-h span{font-size:11.5px;color:var(--muted)}
   .rwrap{border:1px solid var(--line);border-radius:11px;background:var(--panel);
     margin-bottom:8px;box-shadow:0 1px 1px rgba(30,25,15,.03)}
+  /* Action ページはカードを2枚ずつ並べる */
+  .rowgrid{display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:12px;align-items:start}
+  .rowgrid .rwrap{margin-bottom:0}
   .rwrap:hover{border-color:#dcd8d0;box-shadow:var(--shadow)}
   .row{display:flex;align-items:flex-start;gap:9px;padding:10px 12px}
   .row .tw{flex:1;min-width:0}
@@ -1130,7 +1185,6 @@
       max-width:100%;box-sizing:border-box}
     .drop,.dailycards .drop,.cols,.col{min-width:0}
     .card,.rwrap,.sec,.subs,.rsubs,.meta,.sm,.bdrow,.tline{flex-wrap:wrap;min-width:0}
-    .row .tt{flex:1 1 100%}
     .row .tmwrap{margin-left:0;padding-left:0;margin-top:4px}
     .qbox{padding:0 4px}
     .qbox .qt{margin:0 0 6px 0;padding:12px 12px}
@@ -1186,6 +1240,9 @@
     .card .meta.meta2{margin-left:0;margin-top:6px}
     .qcard,.qbox{padding-left:2px;padding-right:2px}
     /* 表は1件ずつのカード表示に（横スクロール不要） */
+    .rowgrid{grid-template-columns:1fr;gap:10px}
+    .pinwrap{flex-direction:column}
+    .pincolm{width:100%}
     .ttable{overflow:visible!important;white-space:normal}
     .ttable .trow{min-width:0!important;display:flex!important;flex-wrap:wrap;
       gap:3px 10px;align-items:baseline;padding:11px 13px;white-space:normal}
@@ -1232,7 +1289,8 @@
     <input type="file" id="imgFile" accept="image/*" hidden>
     <div id="navList">
     <div class="nav" id="navSearch" data-nav="search" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><circle cx="7.2" cy="7.2" r="4.6"/><path d="M10.6 10.6l3.2 3.2"/></svg></span><span>Search</span></div>
-    <div class="nav" id="navTasks" data-nav="tasks" draggable="true"><span class="ico">✓</span><span>Tasks</span><span class="cnt" id="cntAll">0</span></div>
+    <div class="nav" id="navTasks" data-nav="tasks" draggable="true"><span class="ico">✓</span><span id="navTasksLb">Tasks</span><span class="cnt" id="cntAll">0</span></div>
+    <div class="nav" id="navPin" data-nav="pin" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M9.6 1.9l4.5 4.5-1.6.5-1 1-.4 3.1-4.7-4.7 3.1-.4 1-1z"/><path d="M6.4 6.3L2.2 13.8l7.5-4.2"/></svg></span><span>Pin Memo</span><span class="cnt" id="cntPin">0</span></div>
     <div class="nav" id="navTimes" data-nav="times" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 4.6V8l2.4 1.6"/></svg></span><span id="navTimesLb">Time Log</span><span class="cnt" id="cntTime"></span></div>
     <div class="nav" id="navDone" data-nav="done" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M2.6 8.4l3.3 3.3 7.5-7.6"/></svg></span><span>Done Task</span><span class="cnt" id="cntDone">0</span></div>
     <div class="nav" id="navRead" data-nav="read" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M2.6 3.1h4.1c.9 0 1.3.5 1.3 1.2v8.6c0-.6-.5-1-1.3-1H2.6z"/><path d="M13.4 3.1H9.3c-.9 0-1.3.5-1.3 1.2v8.6c0-.6.5-1 1.3-1h4.1z"/></svg></span><span>Read Log</span><span class="cnt" id="cntRead">0</span></div>
@@ -1246,7 +1304,8 @@
     <div id="boardList"></div>
     <div class="nav" id="addBoard" style="color:var(--muted)"><span class="ico">＋</span><span>New Board</span></div>
     <div class="nav" id="addFolder" style="color:var(--muted)"><span class="ico">＋</span><span>New Folder</span></div>
-    <div class="side-label" id="tagLabel" style="display:none">Tag</div>
+    <div class="side-label lbrow" id="tagLabel" style="display:none"><span>Tag</span>
+      <button id="tagEdit" title="Tag を編集">✎</button></div>
     <div class="tagnav" id="tagNav"></div>
     <div class="side-label lbrow"><span>Status</span>
       <button id="stEdit" title="Status を編集">✎</button></div>
@@ -1303,8 +1362,9 @@
 const APP = 'note';
 const KEY = APP === 'task' ? 'boards.tasks.task.v1' : 'boards.tasks.v1';
 const APP_TITLE = APP === 'task' ? 'Tasks' : 'Notes';
-const APPVER = '20260811-2036';
+const APPVER = '20260812-1604';
 const TIMELB = APP === 'task' ? 'Time Log' : 'Read Time';
+const TASKLB = APP === 'task' ? 'Tasks' : 'Action';
 /* Task 用は初回だけ、これまでのデータを引き継ぐ */
 if(APP === 'task' && !localStorage.getItem(KEY)){
   try{
@@ -1349,7 +1409,15 @@ const catChip = k => k.color && catName(k.color)
       style="background:${k.color}1f;color:${k.color}"><i style="background:${k.color}"></i>${catName(k.color)}</span>`
   : `<span class="chip cat2 ghost" data-status="${k.id}" title="Status を設定">＋ Status</span>`;
 /* タグの色（タグ名ごとに保存） */
-const TAGC = ['#5b6577', '#c0392b', '#d98324', '#c9a227', '#4f8f57', '#3d6fe0', '#7b52c0', '#c9899a'];
+const TAGC_DEF = ['#5b6577', '#c0392b', '#d98324', '#c9a227', '#4f8f57', '#3d6fe0', '#7b52c0', '#c9899a'];
+/* 自分で足した色も混ぜて使う */
+const TAGC = () => [...TAGC_DEF, ...((S && S.tagPalette) || [])];
+function addPalette(c){
+  if(!c) return;
+  S.tagPalette ||= [];
+  c = c.toLowerCase();
+  if(!TAGC_DEF.includes(c) && !S.tagPalette.includes(c)) S.tagPalette.push(c);
+}
 const tagColor = t => (S.tagColors && S.tagColors[t]) || '#5b6577';
 const tagChip = (t, cid) => {
   const c = tagColor(t);
@@ -1793,6 +1861,15 @@ function load(){
   }
 }
 let savedT;
+/* 入力欄から離れた直後の再描画で、クリックが消えないようにする */
+let clickGuard = 0;
+document.addEventListener('mousedown', e => {
+  if(e.target.closest('input.ck, .chip, button, [data-toggle], [data-cal]')) clickGuard = Date.now();
+}, true);
+function reRender(){
+  if(Date.now() - clickGuard < 400){ setTimeout(() => render(), 260); return; }
+  render();
+}
 function save(){
   try{
     const json = JSON.stringify(S);
@@ -1841,7 +1918,10 @@ function findCard(cid){
 }
 const allCards = () => S.boards.flatMap(b => (b.cols || []).flatMap(c => c.cards.map(k => ({board:b, col:c, card:k}))));
 const allTasks = () => allCards().filter(x => x.card.type === 'task');
-const allTags = () => [...new Set(allCards().flatMap(x => x.card.tags || []))].sort();
+const allTags = () => [...new Set([
+  ...allCards().flatMap(x => x.card.tags || []),
+  ...((S && S.pinnedTags) || []),
+])].sort();
 
 /* HTML本文の簡易サニタイズ */
 function clean(html){
@@ -1954,8 +2034,8 @@ function boardNav(b, inFolder){
 }
 const NAVKEYS = APP === 'task'
   ? ['search', 'tasks', 'done', 'times']
-  : ['search', 'tasks', 'read', 'times', 'quote', 'cards'];
-const NAVALL = ['search','tasks','times','done','read','quote','cards'];
+  : ['search', 'tasks', 'pin', 'read', 'times', 'quote', 'cards'];
+const NAVALL = ['search','tasks','times','done','read','quote','cards','pin'];
 let dragNav = null;
 /* サイドバー上部メニューの並び替え */
 function renderNavOrder(){
@@ -1967,7 +2047,7 @@ function renderNavOrder(){
     if(el) el.style.display = NAVKEYS.includes(k) ? '' : 'none';
   });
   /* 並びを一度だけ既定に揃える */
-  if(APP === 'note' && !S.navFix2){ S.navOrder = NAVKEYS.slice(); S.navFix2 = true; }
+  if(APP === 'note' && !S.navFix3){ S.navOrder = NAVKEYS.slice(); S.navFix3 = true; }
   S.navOrder = (S.navOrder || []).filter(k => NAVKEYS.includes(k));
   NAVKEYS.forEach(k => { if(!S.navOrder.includes(k)) S.navOrder.push(k); });
   S.navOrder.forEach(k => {
@@ -2030,7 +2110,13 @@ function renderSide(){
   document.getElementById('pinLabel').style.display =
     (pinned.length || S.pinnedTags.length) ? '' : 'none';
   pinTagBox.querySelectorAll('[data-tag]').forEach(el => {
-    el.onclick = () => selectTag(el.dataset.tag);
+    el.onclick = e => {
+      if(e.target.closest('[data-tmenu]')){
+        e.stopPropagation();
+        return tagColorMenu(e.clientX, e.clientY, el.dataset.tag);
+      }
+      selectTag(el.dataset.tag);
+    };
     el.oncontextmenu = e => { e.preventDefault(); tagColorMenu(e.clientX, e.clientY, el.dataset.tag); };
   });
 
@@ -2109,6 +2195,13 @@ function renderSide(){
   document.getElementById('navTasks').classList.toggle('on', view.type === 'tasks');
   document.getElementById('navTimes').classList.toggle('on', view.type === 'times');
   document.getElementById('navCards').classList.toggle('on', view.type === 'cards');
+  const np = document.getElementById('navPin');
+  if(np){
+    np.classList.toggle('on', view.type === 'pin');
+    const nP = pinnedCards().length;
+    const pb = document.getElementById('cntPin');
+    pb.textContent = nP; pb.style.display = nP ? '' : 'none';
+  }
   document.getElementById('navSearch').classList.toggle('on', view.type === 'search');
   document.getElementById('navQuote').classList.toggle('on', view.type === 'quote');
   document.getElementById('navRead').classList.toggle('on', view.type === 'read');
@@ -2135,7 +2228,7 @@ function renderSide(){
 
   S.pinnedTags ||= [];
   const tags = allTags();
-  document.getElementById('tagLabel').style.display = tags.length ? '' : 'none';
+  document.getElementById('tagLabel').style.display = tags.length ? 'flex' : 'none';
   const tn = document.getElementById('tagNav');
   tn.innerHTML = tags.map(t => {
     const c = tagColor(t);
@@ -2144,7 +2237,13 @@ function renderSide(){
       style="background:${c}1a;color:${c}">${pin?PINSMALL:''}#${esc(t)}</button>`;
   }).join('');
   tn.querySelectorAll('[data-tag]').forEach(el => {
-    el.onclick = () => selectTag(el.dataset.tag);
+    el.onclick = e => {
+      if(e.target.closest('[data-tmenu]')){
+        e.stopPropagation();
+        return tagColorMenu(e.clientX, e.clientY, el.dataset.tag);
+      }
+      selectTag(el.dataset.tag);
+    };
     el.oncontextmenu = e => { e.preventDefault(); tagColorMenu(e.clientX, e.clientY, el.dataset.tag); };
   });
   const bt = document.getElementById('backupTag');
@@ -2194,7 +2293,8 @@ function renderBoard(){
       <div class="col-rz" data-rz="${c.id}" title="ドラッグで幅を変更"></div>
     </div>`;
   }).join('')}
-    <div class="addcol"><button id="newCol">＋ 列を追加</button></div></div>`;
+    <div class="addcol"><button id="newCol">＋ 列を追加</button></div>
+    <div class="pincol">${pinListHTML(b.id)}</div></div>`;
 
   v.querySelectorAll('[data-ct]').forEach(el => el.oninput = e => {
     b.cols.find(c => c.id === el.dataset.ct).title = e.target.value; save(); });
@@ -2284,6 +2384,7 @@ function cardHTML(k){
     ${k.type === 'note' ? cardTgl('memo', k, k.memoCard)
       : k.type === 'quote' ? cardTgl('quote', k, k.quote && k.quote.card)
       : k.type === 'read' ? cardTgl('read', k, k.read && k.read.card) : ''}
+    ${pinTgl(k)}
     <button class="menu" data-menu="${k.id}">⋯</button></div>`;
 
   /* タイトルのすぐ下: 説明・注意事項 */
@@ -2309,7 +2410,7 @@ function cardHTML(k){
     if(k.doneAt) chips.push(`<span class="chip done" data-donedate="${k.id}" style="cursor:pointer" title="完了日">✓ ${fmtDue(k.doneAt)}</span>`);
   }
   if(chips.filter(Boolean).length) inner += `<div class="meta">${chips.join('')}</div>`;
-  if(canTime(k)) inner += `<div class="meta meta2">${timerChip(k)}</div>`;
+  if(canTime(k)) inner += `<div class="meta meta2${k.type === 'read' ? ' right' : ''}">${timerChip(k)}</div>`;
 
   if(k.type === 'quote') inner += quoteSection(k, true);
   if(k.type === 'read') inner += readSection(k, true);
@@ -2353,6 +2454,34 @@ const hasMemo = k => !!(k.hasMemo || k.body || k.bodyTitle);
 const hasLog = k => Array.isArray(k.logs);
 const hasTime = k => !!(k.timer || (k.times && k.times.length));
 const hasQuote = k => !!k.quote;
+const PINICO = `<svg class="cdico" viewBox="0 0 16 16"><path d="M9.6 1.9l4.5 4.5-1.6.5-1 1-.4 3.1-4.7-4.7 3.1-.4 1-1z"/><path d="M6.4 6.3L2.2 13.8l7.5-4.2"/></svg>`;
+const pinTgl = k =>
+  `<button class="cardtg pintg ${k.pin ? 'on' : ''}" data-pintg="${k.id}"
+    title="${k.pin ? 'ピン留めを外す' : 'ピン留めする'}">${PINICO}Pin</button>`;
+/* ピン留めしたメモ */
+const pinnedCards = () => allCards().filter(x => x.card.pin);
+function pinPreview(x){
+  const k = x.card;
+  const ttl = plain(k.title).trim() || (k.bodyTitle || '').trim()
+    || (k.read && (k.read.source || '').trim()) || '';
+  const body = plain(k.body).trim() || plain(k.quote && k.quote.text).trim()
+    || plain(k.read && k.read.memo).trim() || plain(k.note).trim();
+  return `<div class="pinit" data-pingo="${k.id}">
+    ${ttl ? `<b>${esc(ttl)}</b>` : ''}
+    ${body ? `<span class="pin-p">${esc(body)}</span>` : ''}
+    <i class="pin-b" data-pinoff="${k.id}" title="ピン留めを外す">×</i>
+  </div>`;
+}
+/* boardId を渡すと、そのボードのメモだけ */
+function pinListHTML(boardId){
+  const L = pinnedCards().filter(x => !boardId || x.board.id === boardId);
+  return `<div class="pinlist">
+    <div class="dl-h">Pin Memo</div>
+    ${L.length ? L.map(pinPreview).join('')
+      : '<div class="dl-empty">ピン留めしたメモがここに並びます</div>'}
+  </div>`;
+}
+
 const cardTgl = (which, k, on) =>
   `<button class="cardtg ${on?'on':''}" data-cardtg="${which}|${k.id}"
     title="Cards（ランダム表示）に入れる"><svg class="cdico" viewBox="0 0 16 16"><rect x="5" y="2.2" width="8.8" height="10.6" rx="1.6"/><path d="M10.6 13.8H4a1.6 1.6 0 0 1-1.6-1.6V4.8"/></svg>Card</button>`;
@@ -2394,12 +2523,13 @@ function quoteCardHTML(k){
       <span>No. ${String(Q.no || 1).padStart(3, '0')}　・　<b class="ndate" data-ndate="quote|${k.id}"
         title="クリックで日付を変更">${Q.date || today()}</b>　・　Quote</span>
       <span class="qc-act">
-        <button data-qedit="${k.id}" title="編集する">✎</button>
+        <button data-qedit="${k.id}" title="編集する">✎ 編集</button>
       </span>
     </div>
     <div class="qc-body qbg">${clean(Q.text) || '<span style="color:#c4bcbe">（本文なし）</span>'}</div>
     ${cite ? `<div class="qc-cite">— ${esc(cite)}</div>` : ''}
-    ${plain(Q.memo).trim() ? `<div class="qc-memo"><label>Memo</label>${clean(Q.memo)}</div>` : ''}
+    ${plain(Q.memo).trim() ? `<div class="qc-memo" data-ck="qmemo|${k.id}"><label>Memo</label>${clean(Q.memo)}</div>` : ''}
+    <div class="qc-foot"><button data-qedit="${k.id}" title="編集する">✎ 編集</button></div>
   </div>`;
 }
 
@@ -2469,12 +2599,13 @@ function memoCardHTML(k){
       <span>No. ${String(k.memoNo || 1).padStart(3, '0')}　・　<b class="ndate" data-ndate="memo|${k.id}"
         title="クリックで日付を変更">${k.memoDate || today()}</b>　・　Memo</span>
       <span class="qc-act">
-        <button data-medit="${k.id}" title="編集する">✎</button>
+        <button data-medit="${k.id}" title="編集する">✎ 編集</button>
       </span>
     </div>
     ${k.bodyTitle ? `<div class="qc-ttl">${esc(k.bodyTitle)}</div>` : ''}
-    <div class="qc-body" style="font-size:14.5px;line-height:1.95">${
+    <div class="qc-body" data-ck="body|${k.id}" style="font-size:14.5px;line-height:1.95">${
       clean(k.body) || '<span style="color:#c4bcbe">（本文なし）</span>'}</div>
+    <div class="qc-foot"><button data-medit="${k.id}" title="編集する">✎ 編集</button></div>
   </div>`;
 }
 function logSection(k){
@@ -2508,6 +2639,18 @@ function logSection(k){
 }
 
 /* ---------------- shared card interactions ---------------- */
+/* 編集ボタンを押した直後は、枠と背景をはっきり出す */
+function markEditing(cid){
+  setTimeout(() => {
+    const el = document.querySelector(`[data-body="${cid}"],[data-qtext="${cid}"],[data-rf^="author|${cid}"]`);
+    const box = el && el.closest('.qbox');
+    if(box){
+      box.classList.add('editing');
+      const f = box.querySelector('[data-body],[data-qtext],[data-rmemo],[data-qmemo]');
+      if(f) f.focus();
+    }
+  }, 30);
+}
 function wireCards(root){
   wireFmt(root);
   root.querySelectorAll('[data-done]').forEach(el => el.onchange = () => setDone(el.dataset.done, el.checked));
@@ -2567,7 +2710,7 @@ function wireCards(root){
   });
   root.querySelectorAll('[data-body],[data-logtext],[data-qtext],[data-qmemo],[data-rmemo],[data-note],[data-head],[data-shead],[data-snote]').forEach(el => {
     wireRich(el);
-    el.onblur = () => { saveBody(el); hideRT(); render(); };
+    el.onblur = () => { saveBody(el); hideRT(); reRender(); };
   });
   root.querySelectorAll('[data-rf]').forEach(el => {
     const [f, cid] = el.dataset.rf.split('|');
@@ -2601,6 +2744,7 @@ function wireCards(root){
   });
   root.querySelectorAll('[data-redit]').forEach(el => el.onclick = () => {
     findCard(el.dataset.redit).card.read.registered = false; save(); render();
+    markEditing(el.dataset.redit);
   });
   root.querySelectorAll('[data-qf]').forEach(el => el.oninput = () => {
     const [f, cid] = el.dataset.qf.split('|');
@@ -2617,6 +2761,7 @@ function wireCards(root){
   });
   root.querySelectorAll('[data-qedit]').forEach(el => el.onclick = () => {
     findCard(el.dataset.qedit).card.quote.registered = false; save(); render();
+    markEditing(el.dataset.qedit);
   });
   root.querySelectorAll('[data-mreg]').forEach(el => el.onclick = () => {
     const k = findCard(el.dataset.mreg).card;
@@ -2627,6 +2772,7 @@ function wireCards(root){
   });
   root.querySelectorAll('[data-medit]').forEach(el => el.onclick = () => {
     findCard(el.dataset.medit).card.memoReg = false; save(); render();
+    markEditing(el.dataset.medit);
   });
   /* メモ / Message Log セクション */
   root.querySelectorAll('[data-fold]').forEach(el => el.onclick = () => {
@@ -2637,7 +2783,7 @@ function wireCards(root){
     save(); render();
   });
   root.querySelectorAll('[data-btitle]').forEach(el => {
-    el.onblur = () => { findCard(el.dataset.btitle).card.bodyTitle = el.innerText.trim(); save(); render(); };
+    el.onblur = () => { findCard(el.dataset.btitle).card.bodyTitle = el.innerText.trim(); save(); reRender(); };
     el.onkeydown = e => { if(e.key === 'Enter'){ e.preventDefault(); el.blur(); } };
   });
   root.querySelectorAll('[data-secdel]').forEach(el => el.onclick = () => {
@@ -2798,7 +2944,7 @@ function wireCards(root){
       const k = findCard(cid).card;
       if(!el.innerText.trim()) k.subs = k.subs.filter(x => x.id !== sid);
       else saveBody(el);
-      save(); hideRT(); render();
+      save(); hideRT(); reRender();
     };
     el.onkeydown = e => { if(e.key === 'Enter'){ e.preventDefault(); el.blur(); } };
   });
@@ -2972,6 +3118,12 @@ function wireRich(el){
   let t;   // 入力中も自動保存
   el.addEventListener('focus', () => { lastRich = el; });
   el.addEventListener('input', () => { clearTimeout(t); t = setTimeout(() => saveBody(el), 400); });
+  el.addEventListener('keydown', e => {
+    if(e.key === 'Tab' && !e.shiftKey){
+      e.preventDefault();
+      document.execCommand('insertText', false, '　');   // 全角スペースで一字下げ
+    }
+  });
   el.onmouseup = () => setTimeout(() => showRT(el), 0);
   el.onkeyup = e => { if(e.shiftKey || e.key === 'Escape') setTimeout(() => showRT(el), 0); };
   el.onpaste = e => {
@@ -3078,7 +3230,7 @@ function popup(x, y, html){
   return p;
 }
 const NEWBTN = {
-  task: `<button data-t="task"><i class="ic">✓</i>Task</button>`,
+  task: `<button data-t="task"><i class="ic">✓</i>${APP === 'task' ? 'Task' : 'Action'}</button>`,
   note: `<button data-t="note"><i class="ic"><svg class="mico" viewBox="0 0 16 16"><path d="M3.4 2.4h6.3l3 3v8.2H3.4z"/><path d="M9.5 2.5v3.2h3.1"/><path d="M5.6 8.4h5M5.6 10.8h3.4"/></svg></i>Memo</button>`,
   quote: `<button data-t="quote"><i class="ic">❝</i>Quote</button>`,
   read: `<button data-t="read"><i class="ic"><svg class="mico" viewBox="0 0 16 16"><path d="M2.6 3.1h4.1c.9 0 1.3.5 1.3 1.2v8.6c0-.6-.5-1-1.3-1H2.6z"/><path d="M13.4 3.1H9.3c-.9 0-1.3.5-1.3 1.2v8.6c0-.6.5-1 1.3-1h4.1z"/></svg></i>Read</button>`,
@@ -3308,6 +3460,81 @@ function createdMenu(rect, cid){
   };
 }
 
+/* Tag をまとめて編集する */
+function tagEditor(rect){
+  S.tagColors ||= {};
+  S.pinnedTags ||= [];
+  const L = allTags();
+  const used = t => allCards().filter(x => (x.card.tags || []).includes(t)).length;
+  const p = popup(Math.max(20, rect.left - 60), Math.max(20, rect.top - 320),
+    `<div class="dpanel" style="width:300px">
+    <h4>Tag を編集</h4>
+    ${L.length ? L.map((t, i) => `<div class="strow">
+      <input type="color" value="${tagColor(t)}" data-tgc="${i}" title="色を変える">
+      <input type="text" value="${esc(t)}" data-tgn="${i}" placeholder="タグ名"
+        autocapitalize="off" autocorrect="off" spellcheck="false">
+      <button class="x" data-tgp="${i}" title="${S.pinnedTags.includes(t) ? 'ピン留めを外す' : 'ピン留めする'}"
+        style="color:${S.pinnedTags.includes(t) ? 'var(--brown)' : '#c0b8ba'}">${PINSMALL}</button>
+      <button class="x" data-tgd="${i}" title="このタグを外す">×</button>
+    </div>`).join('') : '<div class="hint">タグがありません</div>'}
+    <button class="stadd" id="tgAdd">＋ 追加</button>
+    <div class="hint" style="margin-top:8px">名前を書き換えると、使っているメモすべてで変わります。<br>
+      × を押すとメモから外れます（メモ自体は消えません）。</div>
+    <div class="dfoot"><button id="tgClose">閉じる</button></div>
+  </div>`);
+  const reopen = () => { p.remove(); tagEditor(rect); };
+  p.querySelectorAll('[data-tgc]').forEach(el => el.onchange = () => {
+    const t = L[+el.dataset.tgc];
+    addPalette(el.value);
+    S.tagColors[t] = el.value.toLowerCase();
+    save(); render();
+  });
+  p.querySelectorAll('[data-tgn]').forEach(el => {
+    el.onkeydown = e => { if(e.key === 'Enter') el.blur(); };
+    el.onchange = () => {
+      const t = L[+el.dataset.tgn];
+      const nt = el.value.trim().replace(/^#/, '');
+      if(!nt || nt === t){ el.value = t; return; }
+      allCards().forEach(x => {
+        const a2 = x.card.tags || [];
+        if(a2.includes(t)) x.card.tags = [...new Set(a2.map(z => z === t ? nt : z))];
+      });
+      if(S.tagColors[t]){ S.tagColors[nt] = S.tagColors[t]; delete S.tagColors[t]; }
+      S.pinnedTags = S.pinnedTags.map(z => z === t ? nt : z);
+      if(tagFilter === t) tagFilter = nt;
+      save(); render(); reopen();
+    };
+  });
+  p.querySelectorAll('[data-tgp]').forEach(el => el.onclick = () => {
+    const t = L[+el.dataset.tgp];
+    S.pinnedTags = S.pinnedTags.includes(t)
+      ? S.pinnedTags.filter(z => z !== t) : [...S.pinnedTags, t];
+    save(); render(); reopen();
+  });
+  p.querySelectorAll('[data-tgd]').forEach(el => el.onclick = () => {
+    const t = L[+el.dataset.tgd];
+    if(!confirm(`#${t} を ${used(t)} 件のメモから外しますか？\n（メモ自体は消えません）`)) return;
+    allCards().forEach(x => {
+      if((x.card.tags || []).includes(t)) x.card.tags = x.card.tags.filter(z => z !== t);
+    });
+    delete S.tagColors[t];
+    S.pinnedTags = S.pinnedTags.filter(z => z !== t);
+    if(tagFilter === t) tagFilter = '';
+    save(); render(); reopen();
+  });
+  p.querySelector('#tgAdd').onclick = () => {
+    const v = prompt('新しいタグ名');
+    if(v === null) return;
+    const nt = v.trim().replace(/^#/, '');
+    if(!nt) return;
+    if(L.includes(nt)){ alert('すでにあります'); return; }
+    S.tagColors[nt] ||= TAGC_DEF[L.length % TAGC_DEF.length];
+    S.pinnedTags = [...new Set([...S.pinnedTags, nt])];   // 一覧に残るようピン留めしておく
+    save(); render(); reopen();
+  };
+  p.querySelector('#tgClose').onclick = () => p.remove();
+}
+
 /* Status の項目を編集する */
 function statusEditor(rect){
   const L = catList();
@@ -3372,8 +3599,44 @@ function tagColorMenu(x, y, tag){
       #${esc(tag)}</div>
     <button data-tpin="1"><i class="ic">${PINSMALL}</i>${isPin ? 'ピン留めを外す' : 'ピン留めする'}</button>
     <hr><div style="font-size:11px;color:var(--muted);padding:3px 10px 1px">色</div>
-    <div class="swatches" style="flex-wrap:wrap;width:186px">${TAGC.map(c =>
-      `<button class="sw ${tagColor(tag)===c?'on':''}" data-tc="${c}" style="background:${c}"></button>`).join('')}</div>`);
+    <div class="swatches" style="flex-wrap:wrap;width:186px">${TAGC().map(c =>
+      `<button class="sw ${tagColor(tag)===c?'on':''}" data-tc="${c}" style="background:${c}"></button>`).join('')}
+      <label class="swnew" title="色を作って追加"><input type="color" id="tcNew" value="${tagColor(tag)}">＋</label></div>
+    <hr><button data-trename="1"><i class="ic">✎</i>名前を変える</button>
+    <button data-tdel="1" style="color:#c0392b"><i class="ic">🗑</i>このタグを外す</button>`);
+  const nc2 = p.querySelector('#tcNew');
+  if(nc2) nc2.onchange = () => {
+    addPalette(nc2.value);
+    S.tagColors[tag] = nc2.value.toLowerCase();
+    save(); p.remove(); render();
+  };
+  p.querySelector('[data-trename]').onclick = () => {
+    const v = prompt('タグ名', tag);
+    p.remove();
+    if(v === null) return;
+    const nt = v.trim().replace(/^#/, '');
+    if(!nt || nt === tag) return;
+    allCards().forEach(x => {
+      const t2 = x.card.tags || [];
+      if(t2.includes(tag)) x.card.tags = [...new Set(t2.map(z => z === tag ? nt : z))];
+    });
+    if(S.tagColors[tag]){ S.tagColors[nt] = S.tagColors[tag]; delete S.tagColors[tag]; }
+    S.pinnedTags = (S.pinnedTags || []).map(z => z === tag ? nt : z);
+    if(tagFilter === tag) tagFilter = nt;
+    save(); render();
+  };
+  p.querySelector('[data-tdel]').onclick = () => {
+    p.remove();
+    const n2 = allCards().filter(x => (x.card.tags || []).includes(tag)).length;
+    if(!confirm(`#${tag} を ${n2} 件のメモから外しますか？\n（メモ自体は消えません）`)) return;
+    allCards().forEach(x => {
+      if((x.card.tags || []).includes(tag)) x.card.tags = x.card.tags.filter(z => z !== tag);
+    });
+    delete S.tagColors[tag];
+    S.pinnedTags = (S.pinnedTags || []).filter(z => z !== tag);
+    if(tagFilter === tag) tagFilter = '';
+    save(); render();
+  };
   p.querySelector('[data-tpin]').onclick = () => {
     S.pinnedTags = isPin ? S.pinnedTags.filter(t => t !== tag) : [...S.pinnedTags, tag];
     save(); p.remove(); render();
@@ -3395,11 +3658,15 @@ function tagMenu(rect, cid, editing){
       return `<span class="chip tag" style="background:${c}1a;color:${c}">
         <i class="dot" data-col="${esc(t)}" style="background:${c}" title="色を変える"></i>#${esc(t)}<b data-rm="${esc(t)}">×</b></span>`;
     }).join('') : '<span style="font-size:12px;color:var(--muted)">まだありません</span>'}</div>
-    ${editing ? `<div class="tswatch">${TAGC.map(c =>
+    ${editing ? `<div class="tswatch">${TAGC().map(c =>
       `<button class="sw ${tagColor(editing)===c?'on':''}" data-setc="${c}" style="background:${c}"></button>`).join('')}
+      <label class="swnew" title="色を作って追加"><input type="color" id="tNewC" value="${tagColor(editing)}">＋</label>
       <span style="font-size:11px;color:var(--muted);width:100%">#${esc(editing)} の色</span></div>`
       : `<div style="font-size:10.5px;color:var(--muted);margin:-2px 0 6px 2px">左の丸をクリックすると色を変えられます</div>`}
-    <input class="tinput" id="tIn" placeholder="Tag を追加（Enter）">
+    <div class="tinrow">
+      <input class="tinput" id="tIn" placeholder="Tag を追加" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <button class="tinadd" id="tAdd">追加</button>
+    </div>
     ${sug.length ? `<div class="tsug">${sug.map(t => {
       const c = tagColor(t);
       return `<button data-add="${esc(t)}" style="background:${c}1a;color:${c}">#${esc(t)}</button>`;
@@ -3411,6 +3678,12 @@ function tagMenu(rect, cid, editing){
   p.querySelectorAll('[data-setc]').forEach(b => b.onclick = () => {
     S.tagColors[editing] = b.dataset.setc; save(); reopen(editing); render();
   });
+  const nc = p.querySelector('#tNewC');
+  if(nc) nc.onchange = () => {
+    addPalette(nc.value);
+    S.tagColors[editing] = nc.value.toLowerCase();
+    save(); reopen(editing); render();
+  };
   const add = t => {
     t = t.trim().replace(/^#/, '');
     if(t && !k.tags.includes(t)){ k.tags.push(t); touch(k); }
@@ -3488,7 +3761,7 @@ function wireDnD(root){
 /* ---------------- task page ---------------- */
 function renderTasks(){
   const t = document.getElementById('pageTitle');
-  t.value = filter === 'now' ? '今日必ず' : filter === 'today' ? '今日' : 'Tasks';
+  t.value = filter === 'now' ? '今日必ず' : filter === 'today' ? '今日' : TASKLB;
   t.disabled = true; t.oninput = null; t.style.color = '';
 
   let items = allTasks().filter(i => !i.card.done);   // 完了分は Done Task ページへ
@@ -3573,7 +3846,9 @@ function renderTasks(){
         ${g.name ? `<div class="grp-h">
           <b>${g.color ? `<i class="gdot" style="background:${g.color}"></i>` : ''}${esc(g.name.replace('▦ ',''))}</b>
           <span>${g.rows.length} 件</span></div>` : ''}
-        ${g.rows.map(it => rowHTML(it, gi)).join('')}
+        ${APP === 'note'
+          ? `<div class="rowgrid">${g.rows.map(it => rowHTML(it, gi)).join('')}</div>`
+          : g.rows.map(it => rowHTML(it, gi)).join('')}
       </div>`).join('') : `<div class="empty">${
         filter==='now' ? '「今日必ず」のタスクはありません 🎉' :
         filter==='today' ? '今日やるタスクはありません 🎉' :
@@ -3651,7 +3926,7 @@ function wireRows(v){
       const k = findCard(cid).card;
       if(!el.innerText.trim()) k.subs = k.subs.filter(x => x.id !== sid);
       else saveBody(el);
-      save(); hideRT(); render();
+      save(); hideRT(); reRender();
     };
     el.onkeydown = e => { if(e.key === 'Enter'){ e.preventDefault(); el.blur(); } };
   });
@@ -4383,15 +4658,7 @@ function renderDaily(b){
     <div class="dailywrap">
       <div class="dailyside">
         ${calendarHTML(marks, sel, dailyMonth, false, '')}
-        <div class="dailylist">
-          <div class="dl-h">これまでのメモ</div>
-          ${recent.length ? recent.map(dd => `
-            <div class="dl-item ${dd===sel?'on':''}" data-cal="${dd}">
-              <b>${dd} <span>${WD[parse(dd).getDay()]}</span></b>
-              <span class="dl-p">${esc(plain(b.days[dd] || '').trim().slice(0, 40)
-                || `カード ${col.cards.filter(k => k.day === dd).length} 件`)}</span>
-            </div>`).join('') : `<div class="dl-empty">まだありません</div>`}
-        </div>
+        ${pinListHTML(b.id)}
       </div>
       <div class="dailymain">
         ${dailyAll ? `
@@ -4421,10 +4688,6 @@ function renderDaily(b){
           <button class="btn" id="dailyAllBtn" style="margin-left:auto;padding:4px 12px;font-size:12px">All</button>
           <button class="btn" id="dailyToday" style="padding:4px 12px;font-size:12px">今日へ</button>
         </div>
-        <div class="body dailybody" contenteditable="true" data-daily="${sel}"
-          data-ph="今日のこと…">${clean(b.days[sel] || '')}</div>
-        <div class="qfoot" style="margin-top:6px">
-          <button class="imgadd" data-imgadd="daily|${sel}">＋ 画像</button>${fmtBar()}</div>
         <div class="dailycards">
           <button class="add" data-add="${col.id}" style="margin-bottom:10px">＋ New</button>
           <div class="drop" data-drop="${col.id}">${dayCards.map(cardHTML).join('')}</div>
@@ -4483,7 +4746,7 @@ function weatherHTML(b, d){
 
 /* ---------------- Read（読書メモ） ---------------- */
 const MEDIA = ['Kindle', '紙の本', 'その他'];
-const RFLAGS = ['気になる', '購入した', '読み始めた', '読んだ', '読了！'];
+const RFLAGS = ['気になる', '購入した', '読み始めた', '読んだ', '読了！', 'メモ'];
 const rflagsHTML = k => `<div class="rflags">${RFLAGS.map(f => {
   const on = (k.read.flags || []).includes(f);
   return `<span class="rflag ${on?'on':''}" data-rflag="${k.id}|${f}"><i></i>${f}</span>`;
@@ -4539,12 +4802,13 @@ function readCardHTML(k){
     <div class="qc-h">
       <span>No. ${String(R.no || 1).padStart(3, '0')}　・　<b class="ndate" data-ndate="read|${k.id}"
         title="クリックで日付を変更">${R.date || today()}</b>　・　Read</span>
-      <span class="qc-act"><button data-redit="${k.id}" title="編集する">✎</button></span>
+      <span class="qc-act"><button data-redit="${k.id}" title="編集する">✎ 編集</button></span>
     </div>
     ${(R.author || srcQ) ? `<div class="qc-ttl">${esc([R.author, srcQ].filter(Boolean).join(' '))}</div>` : ''}
     ${R.media ? `<div class="qc-sub">${esc(R.media)}</div>` : ''}
     ${rflagsHTML(k)}
-    ${plain(R.memo).trim() ? `<div class="qc-memo"><label>Memo</label>${clean(R.memo)}</div>` : ''}
+    ${plain(R.memo).trim() ? `<div class="qc-memo" data-ck="rmemo|${k.id}"><label>Memo</label>${clean(R.memo)}</div>` : ''}
+    <div class="qc-foot"><button data-redit="${k.id}" title="編集する">✎ 編集</button></div>
   </div>`;
 }
 
@@ -4609,10 +4873,8 @@ function renderCollection(kind){
     rand = `<div class="qrand">
       <h5>Random</h5>
       <div class="dcard">
-        <div class="kind">QUOTE</div>
-        <div class="qt" style="font-size:15px;line-height:2">${clean(Q.text) || '<span style="color:#c4bcbe">（本文なし）</span>'}</div>
-        ${cite ? `<div class="at">— ${esc(cite)}</div>` : ''}
-        ${plain(Q.memo).trim() ? `<div class="mm">${clean(Q.memo)}</div>` : ''}
+        <div class="dcard-h">${cardTgl('quote', cur.card, true)}</div>
+        ${quoteCardHTML(cur.card)}
       </div>
       <div class="dsrc" style="margin-top:10px">
         <span style="${cur.board.color?`color:${cur.board.color}`:''}">▦</span>
@@ -4636,8 +4898,10 @@ function renderCollection(kind){
       <span style="color:var(--muted);font-size:12.5px">${items.length} 件</span>
       ${cf.author || cf.source ? `<button class="btn" id="fClear" style="padding:4px 10px;font-size:12px">絞り込みを解除</button>` : ''}
     </div>
-    ${cal || rand ? `<div class="tlrow ${cal ? 'readrow' : ''}">${cal}${rand}
-      <div class="rdmain">${listHTML(items, kind)}</div></div>` : listHTML(items, kind)}`;
+    ${rand ? `${rand}<div class="qlist">${listHTML(items, kind)}</div>`
+      : cal ? `<div class="tlrow readrow">${cal}
+          <div class="rdmain">${listHTML(items, kind)}</div></div>`
+      : listHTML(items, kind)}`;
 
   const qi = document.getElementById('q');
   wireSearchInput(qi, (val, p) => { q = val; renderCollection(kind);
@@ -5023,6 +5287,54 @@ function linkMenu(rect, cid){
   draw();
 }
 
+/* ---------------- Pin Memo（ギャラリー） ---------------- */
+function pinCardHTML(x){
+  const k = x.card;
+  return `<div class="card ${k.type} colitem">
+    <div class="col-src">
+      <span data-goto="${x.board.id}" style="cursor:pointer">
+        <span style="${x.board.color?`color:${x.board.color}`:''}">▦</span> ${esc(x.board.name)}</span>
+      <span style="margin-left:auto">${pinTgl(k)}</span>
+    </div>
+    ${k.type === 'quote' ? quoteSection(k, true)
+      : k.type === 'read' ? readSection(k, true)
+      : k.memoReg ? memoCardHTML(k)
+      : `<div class="qbox">
+          <div class="mtitle" contenteditable="plaintext-only" data-btitle="${k.id}" data-ph="タイトル">${esc(k.bodyTitle || '')}</div>
+          <div class="body" contenteditable="true" data-body="${k.id}">${clean(k.body)}</div>
+          <div class="qfoot"><button class="imgadd" data-imgadd="body|${k.id}">＋ 画像</button>${fmtBar()}
+            <button class="qreg" data-mreg="${k.id}">Add</button></div>
+        </div>`}
+  </div>`;
+}
+function renderPins(){
+  const t = document.getElementById('pageTitle');
+  t.value = 'Pin Memo'; t.disabled = true; t.oninput = null; t.style.color = '';
+  document.getElementById('topActions').innerHTML = '';
+  let L = pinnedCards();
+  if(q){
+    const s = q.toLowerCase();
+    L = L.filter(x => cardHay(x.card).includes(s));
+  }
+  const v = document.getElementById('view');
+  v.innerHTML = `
+    <div class="tools">
+      <input class="search" id="q" placeholder="ピン留めしたメモを検索…" value="${esc(q)}">
+      <span style="color:var(--muted);font-size:12.5px">${L.length} 件</span>
+    </div>
+    ${L.length ? `<div class="pinwrap">${
+      [0, 1, 2].map(ci => `<div class="pincolm">${L.filter((_, n) => n % 3 === ci)
+        .map(pinCardHTML).join('')}</div>`).join('')}</div>`
+      : `<div class="empty">ピン留めしたメモはまだありません<br>
+        <span style="font-size:12px">メモ右上の「Pin」を押すと、こことボードの横に並びます</span></div>`}`;
+  const qi = document.getElementById('q');
+  wireSearchInput(qi, (val, pos) => { q = val; renderPins();
+    const n = document.getElementById('q'); if(n){ n.focus(); n.setSelectionRange(pos, pos); } });
+  wireCards(v);
+  v.querySelectorAll('[data-goto]').forEach(el => el.onclick = () => {
+    view = {type:'board', id:el.dataset.goto}; render(); });
+}
+
 /* ---------------- Cards（ランダム表示） ---------------- */
 let deckId = null;
 function deck(){
@@ -5109,6 +5421,7 @@ function render(){
   if(view.type === 'tasks') renderTasks();
   else if(view.type === 'times') renderTimes();
   else if(view.type === 'cards') renderCards();
+  else if(view.type === 'pin') renderPins();
   else if(view.type === 'search') renderSearch();
   else if(view.type === 'quote') renderCollection('quote');
   else if(view.type === 'read') renderCollection('read');
@@ -5116,6 +5429,10 @@ function render(){
   else renderBoard();
 }
 
+document.getElementById('tagEdit').onclick = e => {
+  e.stopPropagation();
+  tagEditor(e.currentTarget.getBoundingClientRect());
+};
 document.getElementById('stEdit').onclick = e => {
   e.stopPropagation();
   statusEditor(e.currentTarget.getBoundingClientRect());
@@ -5125,6 +5442,7 @@ document.getElementById('navSearch').onclick = () => { view = {type:'search'}; r
 document.getElementById('navQuote').onclick = () => { view = {type:'quote'}; q = ''; render(); };
 document.getElementById('navRead').onclick = () => { view = {type:'read'}; q = ''; render(); };
 document.getElementById('navCards').onclick = () => { view = {type:'cards'}; deckId = null; render(); };
+document.getElementById('navPin').onclick = () => { view = {type:'pin'}; q = ''; render(); };
 document.getElementById('navDone').onclick = () => { view = {type:'done'}; q = ''; render(); };
 document.getElementById('navTasks').onclick = () => {
   view = {type:'tasks'}; filter = 'today'; render(); };
@@ -5499,6 +5817,55 @@ document.getElementById('sideRz').onmousedown = ev => {
   };
   document.addEventListener('mousemove', move); document.addEventListener('mouseup', up);
 };
+
+/* 登録後の表示でも、チェックボックスを押せるように */
+document.addEventListener('click', e => {
+  const li = e.target.closest('ul.ckl > li');
+  if(!li) return;
+  const box = li.closest('[data-ck]');
+  if(!box) return;
+  const r = li.getBoundingClientRect();
+  if(e.clientX >= r.left) return;          // ボックス部分だけ反応
+  e.preventDefault();
+  li.classList.toggle('dn');
+  const [which, cid] = box.dataset.ck.split('|');
+  const f = findCard(cid); if(!f) return;
+  const k = f.card;
+  const html = clean(box.querySelector('label') ? box.innerHTML.replace(/^<label>.*?<\/label>/, '') : box.innerHTML);
+  if(which === 'body') k.body = html;
+  else if(which === 'rmemo') (k.read ||= {}).memo = html;
+  else if(which === 'qmemo') (k.quote ||= {}).memo = html;
+  touch(k); save();
+});
+
+/* Pin ボタン・ピン一覧 */
+document.addEventListener('click', e => {
+  const off = e.target.closest('[data-pinoff]');
+  if(off){
+    e.preventDefault(); e.stopPropagation();
+    const f = findCard(off.dataset.pinoff);
+    if(f){ delete f.card.pin; save(); render(); }
+    return;
+  }
+  const go = e.target.closest('[data-pingo]');
+  if(go){
+    const f = findCard(go.dataset.pingo);
+    if(f){ view = {type:'board', id:f.board.id}; render();
+      setTimeout(() => {
+        const el = document.querySelector(`[data-card="${go.dataset.pingo}"]`);
+        if(el){ el.scrollIntoView({block:'center'}); el.classList.add('flash'); }
+      }, 60);
+    }
+    return;
+  }
+  const tg = e.target.closest('[data-pintg]');
+  if(!tg) return;
+  e.preventDefault(); e.stopPropagation();
+  const f = findCard(tg.dataset.pintg);
+  if(!f) return;
+  if(f.card.pin) delete f.card.pin; else f.card.pin = true;
+  touch(f.card); save(); render();
+});
 
 /* Card ボタンはどのページでも押せるように（イベント委譲） */
 document.addEventListener('mousedown', e => {
@@ -5982,6 +6349,8 @@ const boot = () => {
   if(bn) bn.textContent = APP_TITLE;
   const tl = document.getElementById('navTimesLb');
   if(tl) tl.textContent = TIMELB;
+  const kl = document.getElementById('navTasksLb');
+  if(kl) kl.textContent = TASKLB;
   applySide();
   renderBanner();
   applyRight();
