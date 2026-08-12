@@ -1482,7 +1482,7 @@
 const APP = 'note';
 const KEY = APP === 'task' ? 'boards.tasks.task.v1' : 'boards.tasks.v1';
 const APP_TITLE = APP === 'task' ? 'Tasks' : 'Notes';
-const APPVER = '20260813-0237';
+const APPVER = '20260813-0252';
 const TIMELB = APP === 'task' ? 'Time Log' : 'Read Log';
 const TASKLB = APP === 'task' ? 'Tasks' : 'Action';
 /* Task 用は初回だけ、これまでのデータを引き継ぐ */
@@ -2779,7 +2779,7 @@ function timerChip(k){
 function timeSection(k){
   if(!canTime(k)) return '';
   if(!hasTime(k)) return '';
-  const open = onPage(k) ? true : !(k.fold && k.fold.time);
+  const open = !(k.fold && k.fold.time);   /* 既定は開いた状態。トグルで閉じられる */
   const times = k.times || [];
   return `<div class="sec">
     <div class="sec-h">
