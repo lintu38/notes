@@ -1172,7 +1172,7 @@
   .clsel:focus{border-color:var(--brown);box-shadow:0 0 0 2px #ece4da}
   .clsel.on{border-color:var(--brown);background:#fbf6ef}
   .seg{display:flex;background:#eae5e4;border-radius:9px;padding:2px}
-  .seg button{padding:5px 12px;border-radius:7px;font-size:12.5px;color:#6e6668}
+  .seg button{padding:5px 12px;border-radius:7px;font-size:12.5px;color:#6e6668;white-space:nowrap}
   .seg button.on{background:var(--panel);color:var(--ink);font-weight:600;box-shadow:var(--shadow)}
   .grp{margin-bottom:26px}
   .gsel{display:flex;align-items:center;gap:6px}
@@ -1286,7 +1286,8 @@
     .tools{gap:6px}
     .search{width:100%;font-size:16px;padding:9px 12px}
     .clsel,.gsel select{font-size:15px}
-    .seg button{padding:7px 13px;font-size:13.5px}
+    .seg{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%}
+    .seg button{padding:7px 9px;font-size:12.5px;white-space:nowrap;flex:0 0 auto}
     .nav{padding:11px 10px;font-size:15px}
     .chip{height:23px;min-height:23px;max-height:23px;font-size:11.5px;padding:0 9px}
     .card{padding:13px 14px}
@@ -1521,7 +1522,7 @@
 const APP = 'note';
 const KEY = APP === 'task' ? 'boards.tasks.task.v1' : 'boards.tasks.v1';
 const APP_TITLE = APP === 'task' ? 'Tasks' : 'Notes';
-const APPVER = '20260813-1620';
+const APPVER = '20260813-1631';
 const TIMELB = APP === 'task' ? 'Time Log' : 'Read Log';
 const TASKLB = APP === 'task' ? 'Tasks' : 'Action';
 /* Task 用は初回だけ、これまでのデータを引き継ぐ */
