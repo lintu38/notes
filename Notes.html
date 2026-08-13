@@ -103,8 +103,10 @@
   .side-rz{position:absolute;top:0;right:0;width:8px;height:100%;cursor:col-resize;z-index:20}
   .side-rz::after{content:"";position:absolute;right:0;top:0;bottom:0;width:2px;background:transparent}
   .side-rz:hover::after,.side-rz.act::after{background:var(--accent)}
-  .brand{font-weight:500;font-size:21px;padding:4px 4px 14px 8px;letter-spacing:.08em;
+  .brand{font-weight:500;font-size:21px;padding:4px 4px 2px 8px;letter-spacing:.08em;
     display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .brand-sub{font-size:10px;letter-spacing:.06em;color:#9e6f7d;padding:0 8px 12px;
+    font-family:var(--fdisp);line-height:1.5}
   .banner{height:82px;flex:0 0 82px;border-radius:0;margin:0 -10px 12px -1px;overflow:hidden;cursor:pointer;
     border:1px dashed #cbb0b8;border-left:0;border-right:0;display:flex;align-items:center;
     justify-content:center;color:#a08c92;font-size:11px;letter-spacing:.06em;position:relative;
@@ -302,7 +304,7 @@
   .addcol button:hover{background:var(--panel);color:var(--ink)}
 
   /* ---------- card ---------- */
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  .card{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
     box-shadow:var(--shadow);padding:11px 12px;position:relative}
   .card.drag{opacity:.4}
   .card::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;
@@ -429,7 +431,13 @@
     padding:10px 12px;background:none;margin:2px 0 0;font-size:13.5px}
 
   /* 登録済み Quote カード */
-  .qcard{background:none;border:0;border-radius:0;box-shadow:none;padding:2px 10px 6px;margin-top:6px}
+  .qcard{position:relative;background:none;border:0;border-radius:0;box-shadow:none;
+    padding:2px 10px 6px;margin-top:6px}
+  .card > .qribbon{top:-4px;right:10px}
+  .card > .qribbon.task{background:#c9a227}
+  .qribbon{position:absolute;top:-4px;right:6px;width:15px;height:18px;background:#b06a80;
+    border-radius:2px 2px 0 0;clip-path:polygon(0 0, 100% 0, 100% 100%, 50% 74%, 0 100%);
+    box-shadow:0 1px 3px rgba(30,25,15,.18)}
   .ndate{font-weight:400;cursor:pointer;border-radius:5px;padding:1px 3px}
   .ndate:hover{background:#f4f0ef;color:var(--ink)}
   .qc-h{display:flex;align-items:center;justify-content:space-between;gap:10px;
@@ -742,7 +750,32 @@
   .bsb.done.on{background:#2f4a6b;border-color:#2f4a6b;color:#fff}
   .bsb.stop.on{background:#8b8285;border-color:#8b8285;color:#fff}
   .bsb.shf.on{background:#8a6a55;border-color:#8a6a55;color:#fff}
+  .bmedia{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 4px}
+  .bsb.med.on{background:#6e6668;border-color:#6e6668;color:#fff}
   .shplus{padding:5px 14px;font-size:15px;line-height:1}
+  .pickbook{margin-left:auto;width:44px;height:44px;border-radius:12px;border:1px solid var(--line);
+    background:var(--panel);display:inline-flex;align-items:center;justify-content:center;
+    color:var(--brown);box-shadow:var(--shadow)}
+  .pickbook:hover{border-color:var(--brown);background:#faf6f0}
+  .pickbook svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.2;
+    stroke-linecap:round;stroke-linejoin:round}
+  .pkn{margin-left:auto;font-size:11px;color:var(--muted)}
+  .chsel{display:flex;flex-wrap:wrap;gap:5px;padding:2px 10px 8px;width:250px;max-width:86vw}
+  .chb{font-size:11.5px;padding:4px 10px;border-radius:20px;border:1px solid var(--line);
+    color:#6e6668;background:var(--panel);width:auto!important}
+  .chb.on{border-color:var(--brown);color:var(--brown);background:#faf6f0}
+  .pkw{display:flex;align-items:center;gap:8px;padding:4px 10px 8px;font-size:12px;
+    color:#6e6668;cursor:pointer}
+  .pkw input{width:15px;height:15px;accent-color:var(--brown)}
+  .pickwrap{position:fixed;inset:0;z-index:300;background:rgba(30,25,15,.34);
+    display:flex;align-items:center;justify-content:center;padding:20px}
+  .pickbox{background:var(--panel);border-radius:16px;padding:18px 20px 16px;width:420px;
+    max-width:92vw;max-height:88vh;overflow:auto;box-shadow:0 18px 50px rgba(30,25,15,.3)}
+  .pick-h{font-family:var(--fdisp);font-size:12px;letter-spacing:.12em;color:var(--muted);
+    font-weight:700;margin-bottom:10px;text-align:center}
+  .pickbox .card{border:0;background:none;padding:0;box-shadow:none}
+  .pick-f{display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+  .pkmute{padding:5px 10px;font-size:13px;line-height:1}
   .bstat-row{gap:8px;flex-wrap:wrap;justify-content:space-between;align-items:center}
   .bstat-right{display:inline-flex;gap:8px;align-items:center;flex-wrap:wrap}
   .bstat-row{justify-content:flex-start}
@@ -872,10 +905,10 @@
   /* Quote / Read の一覧 */
   .colwrap{display:flex;flex-direction:column;gap:14px;max-width:760px}
   .qrand{width:540px;max-width:100%;margin:0 auto 26px;box-sizing:border-box;
-    border:1px solid var(--line);border-radius:14px;padding:10px 52px 16px;background:none}
+    border:0;padding:0;background:none}
   .qlist{clear:both}
-  .qrand h5{margin:0 0 10px;font-size:15px;color:var(--brown);letter-spacing:.08em;font-weight:600;
-    font-family:var(--fdisp)}
+  .qrand h5,.deck h5{margin:0 0 10px;font-size:15px;color:var(--brown);letter-spacing:.08em;
+    font-weight:600;font-family:var(--fdisp);text-align:center}
   .qrand .dcard{padding:26px 24px 22px}
   .qrand h5{margin:2px 0 8px}
   .qrand .dcard .qt{font-size:14.5px!important;line-height:1.95!important}
@@ -1036,6 +1069,11 @@
   .cat .tick{margin-left:auto;color:var(--accent);font-size:11px}
   .chip.cat2{display:inline-flex;align-items:center;gap:4px;cursor:pointer}
   .chip.cat2 i{width:7px;height:7px;border-radius:50%;display:inline-block}
+  .tagwrap{display:inline-flex;flex-wrap:wrap;gap:5px;align-items:center}
+  .chip.tag.ghost.hov{opacity:0;transition:opacity .12s}
+  .tagwrap:hover .chip.tag.ghost.hov,
+  .card:hover .chip.tag.ghost.hov,
+  .rwrap:hover .chip.tag.ghost.hov{opacity:1}
   .chip.cat2.ghost,.chip.tag.ghost{background:#f4f0ef;color:#a7a0a2;transition:opacity .1s;
     padding:0 8px;height:20px}
   /* Status は最初から表示、Tag はカーソルを合わせたときだけ */
@@ -1346,8 +1384,8 @@
     .cols.shelfcols .drop{grid-template-columns:1fr!important}
     .cols.shelfcols .col{width:auto!important}
     /* 上のボタンが重ならないように */
-    .topbar{height:auto;min-height:52px;flex-wrap:wrap;padding-top:6px;padding-bottom:6px;
-      align-items:center}
+    .topbar{height:auto!important;min-height:52px;flex:0 0 auto!important;flex-wrap:wrap;
+      padding-top:6px;padding-bottom:8px;align-items:center;row-gap:6px}
     #topActions{display:flex;gap:6px;flex-wrap:wrap;width:100%;margin-top:2px}
     #topActions .btn{padding:6px 11px;font-size:12.5px}
     .title{flex:1 1 auto;min-width:0}
@@ -1403,6 +1441,7 @@
 <div class="app">
   <aside class="side" id="side">
     <div class="brand"><span id="brandName">Notes</span><button id="sideTgl" title="サイドバーを隠す">«</button></div>
+    <div class="brand-sub" id="brandSub"></div>
     <div class="banner" id="banner" title="クリックで画像を選ぶ"></div>
     <input type="file" id="bannerFile" accept="image/*" hidden>
     <input type="file" id="imgFile" accept="image/*" hidden>
@@ -1482,7 +1521,7 @@
 const APP = 'note';
 const KEY = APP === 'task' ? 'boards.tasks.task.v1' : 'boards.tasks.v1';
 const APP_TITLE = APP === 'task' ? 'Tasks' : 'Notes';
-const APPVER = '20260813-0252';
+const APPVER = '20260813-1620';
 const TIMELB = APP === 'task' ? 'Time Log' : 'Read Log';
 const TASKLB = APP === 'task' ? 'Tasks' : 'Action';
 /* Task 用は初回だけ、これまでのデータを引き継ぐ */
@@ -1541,11 +1580,12 @@ function addPalette(c){
 const tagColor = t => (S.tagColors && S.tagColors[t]) || '#5b6577';
 const tagChip = (t, cid) => {
   const c = tagColor(t);
-  return `<span class="chip tag" data-tagedit="${cid}" title="Tag を編集"
+  return `<span class="chip tag" data-tagc="${esc(t)}" title="#${esc(t)} の一覧を見る"
     style="background:${c}1a;color:${c}">#${esc(t)}</span>`;
 };
-const tagChips = k => `${(k.tags || []).map(t => tagChip(t, k.id)).join('')}
-  ${(k.tags || []).length ? '' : `<span class="chip tag ghost" data-tagedit="${k.id}" title="Tag を追加">＋ Tag</span>`}`;
+const tagChips = k => `<span class="tagwrap">${(k.tags || []).map(t => tagChip(t, k.id)).join('')}
+  <span class="chip tag ghost ${(k.tags || []).length ? 'hov' : ''}" data-tagedit="${k.id}"
+    title="Tag を追加">＋ Tag</span></span>`;
 /* ボード名の色 */
 const BOARDC = ['', '#c0392b', '#e08a2a', '#c9a227', '#84a05a', '#1ca5b8', '#6f9ad8',
   '#24407a', '#7b52c0', '#c9899a', '#8b8285'];
@@ -1651,8 +1691,9 @@ const runSec = k => k.timer ? (Date.now() - k.timer.t0) / 1000 : 0;
 const runningCard = () => allCards().find(x => x.card.timer);
 function toggleTimer(cid){
   const k = findCard(cid)?.card; if(!k) return;
-  if(k.timer){ stopTimer(k); }
+  if(k.timer){ stopTimer(k); if(!S.muteTick) playById(S.timerEnd || 'box'); }
   else {
+    if(!S.muteTick) playById(S.timerStart || 'temple');
     const r = runningCard();
     if(r && r.card !== k) stopTimer(r.card);   // 同時にひとつだけ計測する
     k.times ||= [];
@@ -1679,6 +1720,7 @@ setInterval(() => {
 /* 完了時: 繰り返しなら次回へ送る。なければ done にする */
 function setDone(cid, checked){
   const f = findCard(cid); if(!f) return;
+  tickPlay(checked);
   const k = f.card;
   touch(k);
 
@@ -1745,6 +1787,7 @@ const noteLike = k => ['note','quote','read'].includes(k.type) || hasMemo(k) || 
 
 /* サブタスクの完了と完了日 */
 function setSubDone(cid, sid, checked){
+  tickPlay(checked);
   const s = findCard(cid)?.card.subs?.find(x => x.id === sid); if(!s) return;
   touch(cid);
   s.done = checked;
@@ -1910,6 +1953,38 @@ function load(){
     S.blueFix = true;
   }
   S.folders ||= [];
+  /* 音の割り当てを一度だけ整える */
+  if(!S.sndFix8){
+    S.tickSound = 'harp3';    // チェック＝ド・ミ・ド
+    S.timerStart = 'temple';  // 計測開始＝深い鐘
+    S.timerEnd = 'bell';      // 計測終了＝鈴（ド・ミ・ソ・ド）
+    S.chime = 'deep';         // 本を選んだとき＝低い鐘
+    S.muteTick = false;
+    S.mutePick = false;
+    S.sndFix8 = true;
+  }
+  if(!S.sndFix7){ S.sndFix7 = true; }
+  if(!S.sndFix6){ S.sndFix6 = true; }
+  if(!S.sndFix5){ S.sndFix5 = true; }
+  if(!S.sndFix4){ S.sndFix4 = true; }
+  if(!S.sndFix3){
+    S.tickSound = S.tickSound || 'harp3';
+    S.sndFix3 = true;
+  }
+  if(!S.sndFix2){
+    S.tickSound = S.tickSound || 'piko';
+    S.timerStart = 'temple';
+    S.timerEnd = 'box';
+    S.muteTick = false;
+    S.sndFix2 = true;
+  }
+  if(!S.sndFix){
+    S.tickSound = S.tickSound || 'harp';
+    S.timerStart = 'temple';
+    S.timerEnd = 'box';
+    S.muteTick = false;
+    S.sndFix = true;
+  }
   /* メモのタイトルを本文の見出しへ移す（一度だけ） */
   if(!S.titleToH3){
     S.boards.forEach(b => (b.cols || []).forEach(c => c.cards.forEach(k => {
@@ -2398,8 +2473,8 @@ function renderSide(){
     .map(([c, n]) => `<span><i style="background:${c}"></i>${esc(n)}</span>`).join('');
 }
 function selectTag(t){
-  tagFilter = tagFilter === t ? '' : t;
-  if(tagFilter && view.type !== 'board') view = {type:'board', id:S.boards[0]?.id};
+  if(view.type === 'tag' && view.name === t){ view = {type:'tasks'}; tagFilter = ''; }
+  else { tagFilter = t; view = {type:'tag', name:t}; }
   render();
 }
 
@@ -2438,6 +2513,9 @@ function renderBoard(){
     <div class="seg">${SHELVES.map(([val, nm]) =>
       `<button data-shtab="${val}" class="${S.shelfTab===val?'on':''}">${nm}</button>`).join('')}</div>
     <button class="btn shplus" id="shAdd" title="本を追加">＋</button>
+    <button class="pickbook" id="shPick" title="次に読む本を選ぶ">
+      <svg viewBox="0 0 16 16"><path d="M2.6 3.1h4.1c.9 0 1.3.5 1.3 1.2v8.6c0-.6-.5-1-1.3-1H2.6z"/><path d="M13.4 3.1H9.3c-.9 0-1.3.5-1.3 1.2v8.6c0-.6.5-1 1.3-1h4.1z"/></svg>
+    </button>
   </div>` : ''}
   <div class="cols ${shelf ? 'shelfcols' : ''}">${b.cols.map(c => {
     const w = c.w || 288;
@@ -2453,7 +2531,7 @@ function renderBoard(){
     </div>`;
   }).join('')}
     ${shelf ? '' : `<div class="addcol"><button id="newCol">＋ 列を追加</button></div>`}
-    ${shelf ? '' : `<div class="pincol">${pinListHTML(b.id)}</div>`}</div>`;
+    ${(shelf || APP !== 'note') ? '' : `<div class="pincol">${pinListHTML(b.id)}</div>`}</div>`;
 
   v.querySelectorAll('[data-ct]').forEach(el => el.oninput = e => {
     b.cols.find(c => c.id === el.dataset.ct).title = e.target.value; save(); });
@@ -2470,6 +2548,8 @@ function renderBoard(){
   v.querySelectorAll('[data-shtab]').forEach(el => el.onclick = () => {
     S.shelfTab = el.dataset.shtab; save(); renderBoard();
   });
+  const pk = document.getElementById('shPick');
+  if(pk) pk.onclick = e => pickBookMenu(e.currentTarget.getBoundingClientRect());
   const shp = document.getElementById('shAdd');
   if(shp) shp.onclick = () => {
     const col = b.cols[0];
@@ -2551,6 +2631,8 @@ function cardHTML(k){
   const showNote = k.noteOn || plain(k.note).trim();
   let inner = (k.type === 'task' && showHead)
     ? `<div class="thead" contenteditable="true" data-head="${k.id}" data-ph="見出し…">${clean(k.head)}</div>` : '';
+  if(k.type === 'task') inner += `<span class="qribbon task" title="Action"></span>`;
+  if(k.type === 'quote') inner += `<span class="qribbon" title="Quote"></span>`;
   inner += `<div class="card-top">
     <span class="grip" draggable="true" data-grip="${k.id}">⠿</span>
     ${k.type === 'task' ? `<input type="checkbox" class="ck" data-done="${k.id}" ${k.done?'checked':''}>` : ''}
@@ -2633,7 +2715,7 @@ const hasTime = k => !!(k.timer || (k.times && k.times.length)
   || (canTime(k) && view && view.type === 'card' && Array.isArray(k.times)));
 const hasQuote = k => !!k.quote;
 const PINICO = `<svg class="cdico" viewBox="0 0 16 16"><path d="M9.6 1.9l4.5 4.5-1.6.5-1 1-.4 3.1-4.7-4.7 3.1-.4 1-1z"/><path d="M6.4 6.3L2.2 13.8l7.5-4.2"/></svg>`;
-const pinTgl = k =>
+const pinTgl = k => APP !== 'note' ? '' :
   `<button class="cardtg pintg ${k.pin ? 'on' : ''}" data-pintg="${k.id}"
     title="${k.pin ? 'ピン留めを外す' : 'ピン留めする'}">${PINICO}Pin</button>`;
 /* ピン留めしたメモ */
@@ -2676,7 +2758,7 @@ function quoteSection(k, fixed){
       ${cardTgl('quote', k, Q.card)}
       <button class="sec-x" data-secdel="quote|${k.id}" title="Quote を削除">×</button>
     </div>`}
-    ${!open ? '' : (Q.registered && !onPage(k)) ? quoteCardHTML(k) : `<div class="qbox">
+    ${!open ? '' : (Q.registered && !onPage(k)) ? quoteCardHTML(k, true) : `<div class="qbox">
       <div class="body qt" contenteditable="true" data-qtext="${k.id}"
         data-ph="引用文…">${clean(Q.text)}</div>
       ${(k.parent && !onPage(k)) ? '' : `<label>著者（任意）</label>
@@ -2733,10 +2815,11 @@ function quoteCiteText(k){
   const src = m.source ? (/^[『「《]/.test(m.source) ? m.source : `『${m.source}』`) : '';
   return [m.author, src].filter(Boolean).join('') + (m.page ? `, p.${m.page}` : '');
 }
-function quoteCardHTML(k){
+function quoteCardHTML(k, inCard){
   const Q = k.quote;
   const src = (Q.source || '').trim();
   const srcQ = src ? (/^[『「《]/.test(src) ? src : `『${src}』`) : '';
+  const ribbon = inCard ? '' : `<span class="qribbon" title="Quote"></span>`;
   const cite = k.parent
     ? (() => {
         const a2 = (Q.author || '').trim(), s2 = (Q.source || '').trim();
@@ -2745,7 +2828,7 @@ function quoteCardHTML(k){
         return c2 ? c2 + (Q.page ? `, p.${Q.page}` : '') : (Q.page ? `p.${Q.page}` : '');
       })()
     : quoteCiteText(k);
-  return `<div class="qcard">
+  return `<div class="qcard">${ribbon}
     <div class="qc-h">
       <span>No. ${String(Q.no || 1).padStart(3, '0')}　・　<b class="ndate" data-ndate="quote|${k.id}"
         title="クリックで日付を変更">${Q.date || today()}</b>　・　Quote</span>
@@ -2884,7 +2967,11 @@ function wireCards(root){
   root.querySelectorAll('[data-done]').forEach(el => el.onchange = () => setDone(el.dataset.done, el.checked));
   root.querySelectorAll('[data-date]').forEach(el =>
     el.onclick = () => dateMenu(el.getBoundingClientRect(), el.dataset.date));
-  root.querySelectorAll('[data-tagc]').forEach(el => el.onclick = () => selectTag(el.dataset.tagc));
+  root.querySelectorAll('[data-tagc]').forEach(el => el.onclick = e => {
+    const ed = e.target.closest('[data-tagedit]');
+    if(ed){ e.stopPropagation(); return tagMenu(ed.getBoundingClientRect(), ed.dataset.tagedit); }
+    selectTag(el.dataset.tagc);
+  });
   root.querySelectorAll('[data-tagedit]').forEach(el => {
     el.onclick = () => tagMenu(el.getBoundingClientRect(), el.dataset.tagedit);
     el.oncontextmenu = e => {
@@ -2957,6 +3044,7 @@ function wireCards(root){
     const k = findCard(cid).card;
     const B = (k.book ||= {});
     B[f === 'start' ? 'startOn' : 'doneOn'] = el.checked;
+    tickPlay(el.checked);
     const dk = f === 'start' ? 'startAt' : 'doneAt';
     if(el.checked && !B[dk]) B[dk] = today();
     touch(k); save(); reRender();
@@ -2974,6 +3062,7 @@ function wireCards(root){
     const B = (k.book ||= {});
     const key = f === 'start' ? 'startOn' : 'doneOn';
     B[key] = !B[key];
+    tickPlay(B[key]);
     const dk = f === 'start' ? 'startAt' : 'doneAt';
     if(B[key] && !B[dk]) B[dk] = today();
     touch(k); save(); render();
@@ -2988,6 +3077,14 @@ function wireCards(root){
     const k = findCard(el.dataset.brerm).card;
     const B = (k.book ||= {});
     B.reread = Math.max(0, (B.reread || 0) - 1);
+    touch(k); save(); render();
+  });
+  root.querySelectorAll('[data-bmed]').forEach(el => el.onclick = () => {
+    const [m, cid] = el.dataset.bmed.split('|');
+    const k = findCard(cid).card;
+    const B = (k.book ||= {});
+    const a2 = mediaArr(B);
+    B.media = (a2.includes(m) ? a2.filter(x => x !== m) : [...a2, m]).join('、');
     touch(k); save(); render();
   });
   root.querySelectorAll('[data-bshelf]').forEach(el => el.onclick = () => {
@@ -3057,7 +3154,8 @@ function wireCards(root){
     el.onclick = () => {
       const [cid, f] = el.dataset.rflag.split('|');
       const R = findCard(cid).card.read;
-      R.flags = (R.flags || []).includes(f) ? R.flags.filter(x => x !== f) : [...(R.flags || []), f];
+      const had = (R.flags || []).includes(f);
+      R.flags = had ? R.flags.filter(x => x !== f) : [...(R.flags || []), f];
       touch(cid); save(); render();
     };
   });
@@ -3462,12 +3560,6 @@ function wireRich(el){
   let t;   // 入力中も自動保存
   el.addEventListener('focus', () => { lastRich = el; });
   el.addEventListener('input', () => { clearTimeout(t); t = setTimeout(() => saveBody(el), 400); });
-  el.addEventListener('keydown', e => {
-    if(e.key === 'Tab' && !e.shiftKey){
-      e.preventDefault();
-      document.execCommand('insertText', false, '　');   // 全角スペースで一字下げ
-    }
-  });
   el.onmouseup = () => setTimeout(() => showRT(el), 0);
   el.onkeyup = e => { if(e.shiftKey || e.key === 'Escape') setTimeout(() => showRT(el), 0); };
   el.onpaste = e => {
@@ -3503,7 +3595,11 @@ function wireRich(el){
     const li = e.target.closest('ul.ckl > li');
     if(li && el.contains(li)){
       const r = li.getBoundingClientRect();
-      if(e.clientX < r.left){ e.preventDefault(); li.classList.toggle('dn'); saveBody(el); return; }
+      if(e.clientX < r.left){
+        e.preventDefault(); li.classList.toggle('dn');
+        tickPlay(li.classList.contains('dn'));
+        saveBody(el); return;
+      }
     }
     if(e.target.tagName === 'IMG' && !e.target.classList.contains('ufav')){
       e.preventDefault(); showImgHandle(e.target, el); imgMenu(e.target, el);
@@ -4121,10 +4217,13 @@ function wireDnD(root){
 /* ---------------- task page ---------------- */
 function renderTasks(){
   const t = document.getElementById('pageTitle');
-  t.value = filter === 'now' ? '今日必ず' : filter === 'today' ? '今日' : TASKLB;
+  t.value = filter === 'now' ? '今日必ず' : filter === 'today' ? '今日'
+    : filter === 'done' ? `${TASKLB}｜完了` : TASKLB;
   t.disabled = true; t.oninput = null; t.style.color = '';
 
-  let items = allTasks().filter(i => !i.card.done);   // 完了分は Done Task ページへ
+  let items = filter === 'done'
+    ? allTasks().filter(i => i.card.done)
+    : allTasks().filter(i => !i.card.done);
   if(filter === 'now') items = items.filter(i => i.card.when === 'now');
   if(filter === 'today') items = items.filter(i => isToday(i.card));
   if(filter === 'due') items = items.filter(i => i.card.due && !i.card.done);
@@ -4151,13 +4250,17 @@ function renderTasks(){
   /* 並び順：手動で入れ替えたもの → 「いつやる？」→ 日付 */
   const wrank = c => { const i = ['now', 'maybe', 'later'].indexOf(c.when || ''); return i < 0 ? 3 : i; };
   const tord = c => (typeof c.tord === 'number' ? c.tord : 1e9);
-  items.sort((a, b) => tord(a.card) - tord(b.card)
-    || wrank(a.card) - wrank(b.card)
-    || key(a.card).localeCompare(key(b.card)));
+  if(filter === 'done')
+    items.sort((a, b) => (b.card.doneAt || '').localeCompare(a.card.doneAt || ''));
+  else
+    items.sort((a, b) => tord(a.card) - tord(b.card)
+      || wrank(a.card) - wrank(b.card)
+      || key(a.card).localeCompare(key(b.card)));
 
   /* --- グループ分け（ボード / Status / いつやる / 期限） --- */
-  if(filter === 'open' || filter === 'done') filter = 'all';
-  const gb = S.groupBy || (filter === 'today' || filter === 'now' ? 'due' : 'board');
+  if(filter === 'open') filter = 'all';
+  const gb = filter === 'done' ? 'none'
+    : (S.groupBy || (filter === 'today' || filter === 'now' ? 'due' : 'board'));
   const DUE_SECT = ['⚠️ 期限切れ', '★ 今日が期限', '▶ 明日以降', '期限なし'];
   function gInfo(it){
     const k = it.card;
@@ -4191,7 +4294,7 @@ function renderTasks(){
     <div class="tools">
       <input class="search" id="q" placeholder="Task・Tag（#名前）を検索…" value="${esc(q)}">
       <div class="seg">
-        ${[['all','すべて'],['today','今日'],['now','今日必ず'],['due','期限あり']]
+        ${[['all','すべて'],['today','今日'],['now','今日必ず'],['due','期限あり'],['done','完了']]
           .map(([k, l]) => `<button data-f="${k}" class="${filter===k?'on':''}">${l}</button>`).join('')}
       </div>
       <span style="color:var(--muted);font-size:12.5px">${items.length} 件</span>
@@ -4210,6 +4313,7 @@ function renderTasks(){
           ? `<div class="rowgrid">${g.rows.map(it => rowHTML(it, gi)).join('')}</div>`
           : g.rows.map(it => rowHTML(it, gi)).join('')}
       </div>`).join('') : `<div class="empty">${
+        filter==='done' ? '完了したものはまだありません' :
         filter==='now' ? '「今日必ず」のタスクはありません 🎉' :
         filter==='today' ? '今日やるタスクはありません 🎉' :
         '該当するタスクはありません'}</div>`}`;
@@ -4275,7 +4379,11 @@ function wireRows(v){
   v.querySelectorAll('[data-tdone]').forEach(el => el.onchange = () => setDone(el.dataset.tdone, el.checked));
   v.querySelectorAll('[data-date]').forEach(el =>
     el.onclick = () => dateMenu(el.getBoundingClientRect(), el.dataset.date));
-  v.querySelectorAll('[data-tagc]').forEach(el => el.onclick = () => selectTag(el.dataset.tagc));
+  v.querySelectorAll('[data-tagc]').forEach(el => el.onclick = e => {
+    const ed = e.target.closest('[data-tagedit]');
+    if(ed){ e.stopPropagation(); return tagMenu(ed.getBoundingClientRect(), ed.dataset.tagedit); }
+    selectTag(el.dataset.tagc);
+  });
   v.querySelectorAll('[data-tsdone]').forEach(el => el.onchange = () => {
     const [cid, sid] = el.dataset.tsdone.split('|');
     setSubDone(cid, sid, el.checked); });
@@ -4995,7 +5103,34 @@ function renderTimes(){
 
 /* ---------------- Daily Memo（日付ごとのメモ） ---------------- */
 let dailySel = null, dailyMonth = null;
-let dailyAll = false;
+let dailyAll = false, dailyBack = 'today';
+/* 何日前を見るか */
+const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+/* 2026-08-13 → Aug 13（年が違えば Aug 13, 2025） */
+function enDate(d){
+  if(!d) return '';
+  const [y, m, dd] = d.split('-').map(Number);
+  const now = new Date().getFullYear();
+  return `${MON[m - 1]} ${dd}${y !== now ? ', ' + y : ''}`;
+}
+const BACKS = () => [
+  ['today', (dailySel || today()) === today() ? 'Today' : enDate(dailySel || today())],
+  ['w','Last week'], ['m','Last month'], ['y','Last year'],
+];
+function backDate(base, kind){
+  const d = parse(base);
+  if(kind === 'w') d.setDate(d.getDate() - 7);
+  else if(kind === 'm') d.setMonth(d.getMonth() - 1);
+  else if(kind === 'y') d.setFullYear(d.getFullYear() - 1);
+  return iso(d);
+}
+/* その日に書いたメモを、すべてのボードから集める */
+const cardsOn = day => allCards().filter(x => {
+  const k = x.card;
+  if(k.type === 'heading') return false;
+  const d = k.day || noteDate(k) || k.created || '';
+  return d === day;
+});
 function renderDaily(b){
   b.days ||= {};
   const sel = dailySel || today();
@@ -5026,6 +5161,10 @@ function renderDaily(b){
         ${pinListHTML(b.id)}
       </div>
       <div class="dailymain">
+        ${dailyAll ? '' : `<div class="tools" style="margin-bottom:12px">
+          <div class="seg">${BACKS().map(([v, n]) =>
+            `<button data-back="${v}" class="${dailyBack===v?'on':''}">${n}</button>`).join('')}</div>
+        </div>`}
         ${dailyAll ? `
         <div class="daily-h">
           <b>All</b><span>すべての記録</span>
@@ -5045,7 +5184,19 @@ function renderDaily(b){
                   .filter(k => (k.day || '') === dd && !(k.type === 'task' && k.done))
                   .map(cardHTML).join('')}</div></div>` : ''}
           </div>`).join('') : `<div class="empty">まだ記録がありません</div>`}
-        ` : `
+        ` : dailyBack !== 'today' ? (() => {
+          const bd = backDate(sel, dailyBack);
+          const L = cardsOn(bd);
+          return `
+        <div class="daily-h">
+          <b>${bd}</b><span>${WD[parse(bd).getDay()]}曜</span>
+          ${weatherHTML(b, bd)}
+          <button class="btn" id="dailyToday" style="margin-left:auto;padding:4px 12px;font-size:12px">今日へ</button>
+        </div>
+        ${L.length ? `<div class="dailycards"><div class="drop">${
+          L.map(x => cardHTML(x.card)).join('')}</div></div>`
+          : `<div class="empty">この日に書いたメモはありません</div>`}`;
+        })() : `
         <div class="daily-h">
           <b>${sel}</b><span>${WD[parse(sel).getDay()]}曜</span>
           ${sel === today() ? '<span class="dl-today">今日</span>' : ''}
@@ -5063,7 +5214,8 @@ function renderDaily(b){
 
   const v = document.getElementById('view');
   v.querySelectorAll('[data-cal]').forEach(el => el.onclick = () => {
-    dailySel = el.dataset.cal; dailyMonth = dailySel.slice(0, 7); dailyAll = false; renderDaily(b); });
+    dailySel = el.dataset.cal; dailyMonth = dailySel.slice(0, 7);
+    dailyAll = false; dailyBack = 'today'; renderDaily(b); });
   v.querySelectorAll('[data-cm]').forEach(el => el.onclick = () => {
     const [y, m] = dailyMonth.split('-').map(Number);
     const dd = new Date(y, m - 1 + (+el.dataset.cm), 1);
@@ -5077,7 +5229,12 @@ function renderDaily(b){
     save(); el.classList.toggle('on', i < 0);
   });
   const dt = document.getElementById('dailyToday');
-  if(dt) dt.onclick = () => { dailySel = today(); dailyMonth = dailySel.slice(0, 7); renderDaily(b); };
+  if(dt) dt.onclick = () => {
+    dailySel = today(); dailyMonth = dailySel.slice(0, 7); dailyBack = 'today'; renderDaily(b);
+  };
+  v.querySelectorAll('[data-back]').forEach(el => el.onclick = () => {
+    dailyBack = el.dataset.back; renderDaily(b);
+  });
   const da = document.getElementById('dailyAllBtn');
   if(da) da.onclick = () => { dailyAll = true; renderDaily(b); };
   const d1 = document.getElementById('dailyOne');
@@ -5136,7 +5293,7 @@ function bookSection(k, fixed){
   if(!hasBook(k)) return '';
   const B = k.book;
   const open = fixed || !(k.fold && k.fold.book);
-  if(B.registered && !onPage(k)) return bookCardHTML(k);
+  if(B.registered) return bookCardHTML(k);
   return `<div class="sec ${fixed?'bare':''}">
     ${fixed ? '' : `<div class="sec-h">
       <button class="fold ${open?'open':''}" data-fold="book|${k.id}">▶</button>
@@ -5173,11 +5330,9 @@ function bookSection(k, fixed){
       <input data-bf="pub|${k.id}" value="${esc(B.pub || '')}" placeholder="例）CCCメディアハウス">
       <label>購入日</label>
       <input type="date" data-bf="buy|${k.id}" value="${esc(B.buy || '')}">
-      <label>媒体</label>
-      <select data-bf="media|${k.id}">
-        <option value="">—</option>
-        ${BMEDIA.map(m => `<option ${B.media===m?'selected':''}>${m}</option>`).join('')}
-      </select>
+      <label>媒体（いくつでも選べます）</label>
+      <div class="bmedia">${BMEDIA.map(m =>
+        `<button class="bsb med ${mediaHas(B, m) ? 'on' : ''}" data-bmed="${esc(m)}|${k.id}">${m}</button>`).join('')}</div>
       <div class="brows" style="margin-top:10px">
         <label class="bck"><input type="checkbox" data-bck="start|${k.id}" ${B.startOn?'checked':''}>
           <span>初読開始</span></label>
@@ -5193,13 +5348,18 @@ function bookSection(k, fixed){
         <button class="dmini" data-bunk="doneAt|${k.id}" title="不明にする">不明</button>
       </div>
       <div class="brow-star">${starsHTML(k)}${rereadHTML(k)}</div>
+      ${onPage(k) ? `<label>Memo</label>
+      <div class="body qm" contenteditable="true" data-bmemo="${k.id}" data-ph="感想・覚え書き">${clean(B.memo)}</div>` : ''}
       <div class="qfoot">
-        <button class="qreg" data-breg="${k.id}" ${onPage(k) ? 'data-back="1"' : ''}>${
-          onPage(k) ? '確定して戻る' : 'Add'}</button></div>
+        ${onPage(k) ? `<button class="imgadd" data-imgadd="bmemo|${k.id}">＋ 画像</button>${fmtBar()}` : ''}
+        <button class="qreg" data-breg="${k.id}">Add</button></div>
     </div>`}
   </div>`;
 }
 const bookStatus = k => (k.book && k.book.status) || '';
+/* 媒体は複数持てる（保存は「Kindle, 文庫」のような文字列）*/
+const mediaArr = B => ((B && B.media) || '').split(/[,、]/).map(s => s.trim()).filter(Boolean);
+const mediaHas = (B, m) => mediaArr(B).includes(m);
 const SHELVES = [['reading','読書中'], ['stack','積読中'], ['want','気になる']];
 const bookShelf = k => (k.book && k.book.shelf) || '';
 function shelfBtns(k){
@@ -5242,9 +5402,13 @@ function bookCardHTML(k){
     <div class="brow bck-r"><i class="bx ${B.startOn?'on':''}" data-bckr="start|${k.id}"></i>初読開始 ${esc(B.startAt || '')}</div>
     <div class="brow bck-r"><i class="bx ${B.doneOn?'on':''}" data-bckr="done|${k.id}"></i>初読了日 ${esc(B.doneAt || '')}</div>
     <div class="brow-star" style="margin-top:8px">${starsHTML(k)}${rereadHTML(k)}</div>
+    ${(onPage(k) && plain(B.memo).trim()) ? `<div class="qc-memo plain">
+      <div class="body live" contenteditable="true" data-bmemo="${k.id}" data-ph="感想・覚え書き">${clean(B.memo)}</div></div>` : ''}
 
     <div class="qc-foot"><span class="qc-tags">${tagChips(k)}</span>
-      <button data-openpage="${k.id}" title="ページで開いて編集">⤢ 開く</button></div>
+      ${onPage(k)
+        ? `<button data-bedit="${k.id}" title="編集する">✎ 編集</button>`
+        : `<button data-openpage="${k.id}" title="ページで開く">⤢ 開く</button>`}</div>
   </div>`;
 }
 
@@ -5322,7 +5486,7 @@ function readCardHTML(k){
   return `<div class="qcard">
     <div class="qc-h">
       <span>No. ${String(R.no || 1).padStart(3, '0')}　・　<b class="ndate" data-ndate="read|${k.id}"
-        title="クリックで日付を変更">${R.date || today()}</b>　・　Read</span>
+        title="クリックで日付を変更">${R.date || today()}</b>　・　${k.parent ? 'Memo' : 'Read'}</span>
       <span class="qc-act"><button data-openpage="${k.id}" title="ページで開いて編集">⤢</button></span>
     </div>
     ${(M.author || srcQ) ? `<div class="qc-ttl">${esc([M.author, srcQ].filter(Boolean).join(' '))}</div>` : ''}
@@ -5392,7 +5556,7 @@ function renderCollection(kind){
     let cur = items.find(x => x.card.id === qRandId);
     if(!cur){ cur = items[Math.floor(Math.random() * items.length)]; qRandId = cur.card.id; }
     rand = `<div class="qrand">
-      <h5>Random</h5>
+      <h5>This one for you</h5>
       <div class="dcard">
         <div class="dcard-h">${cardTgl('quote', cur.card, cur.card.quote && cur.card.quote.card)}</div>
         ${quoteCardHTML(cur.card)}
@@ -5855,6 +6019,309 @@ function renderCard(){
   v.querySelectorAll('[data-kidadd]').forEach(el => el.onclick = e => addMenu(e, f.col.id, k.id));
 }
 
+/* ---------------- 次に読む本を選ぶ ---------------- */
+function pickBookMenu(rect){
+  const pool = st => allCards().filter(x => x.card.type === 'book'
+    && !bookStatus(x.card)
+    && (!st ? ['reading', 'stack', 'want'].includes(bookShelf(x.card)) : bookShelf(x.card) === st));
+  const p = popup(Math.max(20, rect.left - 150), rect.bottom + 8, `
+    <div style="font-size:11px;color:var(--muted);padding:5px 10px 3px;letter-spacing:.06em;font-weight:700">
+      どこから選ぶ？</div>
+    <button data-pick=""><i class="ic">✦</i>ぜんぶから<span class="pkn">${pool('').length}</span></button>
+    ${SHELVES.map(([v, n]) =>
+      `<button data-pick="${v}"><i class="ic">▦</i>${n}<span class="pkn">${pool(v).length}</span></button>`).join('')}
+`);
+  p.querySelectorAll('[data-pick]').forEach(b => b.onclick = () => {
+    const st = b.dataset.pick;
+    p.remove();
+    const L = pool(st);
+    if(!L.length){ alert('その中に本がありません'); return; }
+    showPicked(L[Math.floor(Math.random() * L.length)].card.id, st);
+  });
+}
+
+/* 音（ファイル不要・その場で合成）*/
+const CHIMES = [
+  {id:'bell',  name:'鈴',      type:'sine',     notes:[1046.5, 1318.5, 1568.0, 2093.0], gap:0.09, dec:1.6, wet:0.55, vol:0.15},
+  {id:'glass', name:'グラス',  type:'sine',     notes:[1568.0, 2093.0, 2637.0, 3136.0], gap:0.07, dec:1.3, wet:0.7,  vol:0.10},
+  {id:'koto',  name:'琴',      type:'triangle', notes:[523.3, 659.3, 784.0, 1046.5],    gap:0.11, dec:1.9, wet:0.5,  vol:0.14},
+  {id:'wood',  name:'木琴',    type:'triangle', notes:[1046.5, 1318.5, 1568.0, 2093.0], gap:0.075, dec:0.5, wet:0.2, vol:0.18},
+  {id:'harp',  name:'ハープ',  type:'sine',     notes:[784.0, 1046.5, 1318.5, 1568.0, 2093.0], gap:0.06, dec:2.2, wet:0.75, vol:0.12},
+  {id:'box',   name:'オルゴール', type:'sine',  notes:[1046.5, 1567.9, 1975.5, 2093.0], gap:0.13, dec:2.6, wet:0.85, vol:0.10},
+  {id:'piano', name:'ピアノ風', type:'triangle', notes:[523.3, 659.3, 784.0, 1046.5], gap:0.055, dec:1.1, wet:0.35, vol:0.16},
+  {id:'synth', name:'シンセ',   type:'square',   notes:[523.3, 784.0, 1046.5, 1568.0], gap:0.05, dec:0.9, wet:0.4, vol:0.07},
+  {id:'blip',  name:'電子音',   type:'square',   notes:[880.0, 1174.7, 1760.0], gap:0.045, dec:0.14, wet:0.15, vol:0.08},
+  {id:'deep',  name:'低い鐘',   type:'sine',     notes:[261.6, 329.6, 392.0, 523.3], gap:0.12, dec:2.8, wet:0.7, vol:0.18},
+  {id:'furin', name:'風鈴',    kind:'furin'},
+  {id:'drop',  name:'水滴',    kind:'drop'},
+  {id:'cat',   name:'ねこ',    anim:'cat'},
+  {id:'dog',   name:'いぬ',    anim:'dog'},
+];
+/* 特別な鳴り方 */
+function specialSound(kind){
+  const t0 = audioCtx.currentTime;
+  if(chime.rev) chime.wet.gain.value = kind === 'drop' ? 0.7 : 0.8;
+  const ping = (start, f, dec, vol, type) => {
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = type || 'sine'; o.frequency.value = f;
+    g.gain.setValueAtTime(0.0001, t0 + start);
+    g.gain.exponentialRampToValueAtTime(vol, t0 + start + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + start + dec);
+    o.connect(g); g.connect(audioCtx.destination);
+    if(chime.rev) g.connect(chime.rev);
+    o.start(t0 + start); o.stop(t0 + start + dec + 0.05);
+  };
+  if(kind === 'furin'){
+    const sc = [1568.0, 1760.0, 2093.0, 2349.3, 2637.0];
+    for(let i = 0; i < 7; i++)
+      ping(Math.random() * 0.9, sc[Math.floor(Math.random() * sc.length)],
+        1.4 + Math.random(), 0.06 + Math.random() * 0.05);
+    return;
+  }
+  /* 水滴：すっと下がる */
+  for(let i = 0; i < 2; i++){
+    const st = i * 0.28;
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(2400 - i * 400, t0 + st);
+    o.frequency.exponentialRampToValueAtTime(700 - i * 120, t0 + st + 0.11);
+    g.gain.setValueAtTime(0.0001, t0 + st);
+    g.gain.exponentialRampToValueAtTime(0.18, t0 + st + 0.006);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + st + 0.5);
+    o.connect(g); g.connect(audioCtx.destination);
+    if(chime.rev) g.connect(chime.rev);
+    o.start(t0 + st); o.stop(t0 + st + 0.55);
+  }
+}
+/* 動物の声（本物ではなく、それらしく合成したもの）*/
+function animalSound(kind){
+  const t0 = audioCtx.currentTime;
+  const out = audioCtx.createGain();
+  out.gain.value = 0.9;
+  out.connect(audioCtx.destination);
+  if(chime.rev){ chime.wet.gain.value = 0.18; out.connect(chime.rev); }
+  const voice = (start, len, f0, f1, f2, forms, vol, vib) => {
+    const o = audioCtx.createOscillator();
+    o.type = 'sawtooth';
+    o.frequency.setValueAtTime(f0, t0 + start);
+    o.frequency.linearRampToValueAtTime(f1, t0 + start + len * 0.35);
+    o.frequency.linearRampToValueAtTime(f2, t0 + start + len);
+    if(vib){
+      const lfo = audioCtx.createOscillator(), lg = audioCtx.createGain();
+      lfo.frequency.value = 16; lg.gain.value = 14;
+      lfo.connect(lg); lg.connect(o.frequency);
+      lfo.start(t0 + start); lfo.stop(t0 + start + len);
+    }
+    const g = audioCtx.createGain();
+    g.gain.setValueAtTime(0.0001, t0 + start);
+    g.gain.exponentialRampToValueAtTime(vol, t0 + start + len * 0.12);
+    g.gain.setValueAtTime(vol, t0 + start + len * 0.6);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + start + len);
+    let node = o;
+    forms.forEach(([fq, q, gain]) => {
+      const bp = audioCtx.createBiquadFilter();
+      bp.type = 'bandpass'; bp.frequency.value = fq; bp.Q.value = q;
+      const bg = audioCtx.createGain(); bg.gain.value = gain;
+      node.connect(bp); bp.connect(bg); bg.connect(g);
+    });
+    g.connect(out);
+    o.start(t0 + start); o.stop(t0 + start + len + 0.02);
+  };
+  if(kind === 'cat'){
+    voice(0, 0.62, 620, 880, 520, [[900, 6, 1], [2400, 8, 0.5], [3400, 9, 0.25]], 0.22, true);
+  } else {
+    voice(0, 0.20, 260, 180, 120, [[420, 4, 1], [1100, 5, 0.5]], 0.28, false);
+    voice(0.30, 0.24, 240, 170, 110, [[400, 4, 1], [1000, 5, 0.5]], 0.24, false);
+  }
+}
+const chimeOf = () => CHIMES.find(c => c.id === (S.chime || 'deep')) || CHIMES[0];
+let audioCtx = null;
+function chime(preset){
+  const C = preset || chimeOf();
+  if(!preset && S.mutePick) return;
+  try{
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC) return;
+    audioCtx = audioCtx || new AC();
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    const t0 = audioCtx.currentTime;
+    if(!chime.rev){
+      const sec = 2.6, sr = audioCtx.sampleRate;
+      const buf = audioCtx.createBuffer(2, Math.floor(sr * sec), sr);
+      for(let ch = 0; ch < 2; ch++){
+        const dat = buf.getChannelData(ch);
+        for(let i = 0; i < dat.length; i++)
+          dat[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / dat.length, 2.6);
+      }
+      chime.rev = audioCtx.createConvolver();
+      chime.rev.buffer = buf;
+      chime.wet = audioCtx.createGain();
+      chime.rev.connect(chime.wet);
+      chime.wet.connect(audioCtx.destination);
+    }
+    if(C.anim){ animalSound(C.anim); return; }
+    if(C.kind){ specialSound(C.kind); return; }
+    chime.wet.gain.value = C.wet;
+    C.notes.forEach((f, i) => {
+      const d = i * C.gap;
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = C.type; o.frequency.value = f;
+      const vol = C.vol * (1 - i * 0.05);
+      g.gain.setValueAtTime(0.0001, t0 + d);
+      g.gain.exponentialRampToValueAtTime(vol, t0 + d + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + d + C.dec);
+      o.connect(g);
+      g.connect(audioCtx.destination);
+      g.connect(chime.rev);
+      o.start(t0 + d); o.stop(t0 + d + C.dec + 0.1);
+    });
+  }catch(e){}
+}
+
+/* チェックしたときの音（候補） */
+const TICKS = [
+  {id:'soft',  name:'やわらか', type:'sine',     on:[[1318.5, 0], [1975.5, 0.07]], off:[[659.3, 0]],  dec:0.7,  vol:0.11, wet:0.4},
+  {id:'ding',  name:'ディン',   type:'sine',     on:[[2093.0, 0]],                 off:[[1046.5, 0]], dec:1.1,  vol:0.10, wet:0.55},
+  {id:'chord', name:'和音',     type:'sine',     on:[[1046.5, 0], [1318.5, 0], [1568.0, 0]], off:[[784.0, 0]], dec:0.9, vol:0.07, wet:0.5},
+  {id:'wood2', name:'木の音',   type:'triangle', on:[[880.0, 0], [1318.5, 0.06]],  off:[[587.3, 0]],  dec:0.55, vol:0.13, wet:0.25},
+  {id:'bell2', name:'鈴',       type:'sine',     on:[[1568.0, 0], [2349.3, 0.05]], off:[[1046.5, 0]], dec:1.4,  vol:0.09, wet:0.7},
+  {id:'low',   name:'低め',     type:'sine',     on:[[523.3, 0], [784.0, 0.07]],   off:[[392.0, 0]],  dec:1.0,  vol:0.13, wet:0.45},
+  {id:'longbell', name:'余韻',  type:'sine',     on:[[1046.5, 0], [1568.0, 0.06]], off:[[784.0, 0]],  dec:2.2,  vol:0.10, wet:0.8},
+  {id:'temple', name:'深い鐘',  type:'sine',     on:[[392.0, 0], [523.3, 0.05], [784.0, 0.1]], off:[[329.6, 0]], dec:2.9, vol:0.13, wet:0.85},
+  {id:'shimmer', name:'きらめき', type:'sine',   on:[[1568.0, 0], [2093.0, 0.08], [2637.0, 0.16]], off:[[1046.5, 0]], dec:2.4, vol:0.07, wet:0.9},
+  {id:'crystal', name:'クリスタル', type:'sine', on:[[2093.0, 0], [3136.0, 0.05]], off:[[1568.0, 0]], dec:1.9, vol:0.06, wet:0.85},
+  {id:'piko',  name:'ピコーン', type:'sine',
+    on:[[1975.5, 0, 0.16], [2637.0, 0.07, 2.0]], off:[[1318.5, 0, 0.4]], dec:2.0, vol:0.10, wet:0.85},
+  {id:'harp3', name:'ハープ3音', type:'sine',
+    on:[[1046.5, 0], [1318.5, 0.07], [2093.0, 0.14]], off:[[784.0, 0, 0.6]],
+    dec:2.1, vol:0.12, wet:0.75},
+];
+const tickOf = () => TICKS.find(t => t.id === (S.tickSound || 'harp')) || TICKS[0];
+/* id で音を鳴らす（本を選ぶ音・チェック音のどちらの一覧からも探す）*/
+function playById(id){
+  const c = CHIMES.find(x => x.id === id);
+  if(c) return chime(c);
+  const t = TICKS.find(x => x.id === id);
+  if(t) return tick(true, t);
+}
+/* チェックしたとき／外したとき */
+function tickPlay(on){
+  if(S.muteTick) return;
+  if(!on) return tick(false, TICKS.find(t => t.id === 'low'));
+  playById(S.tickSound || 'harp');
+}
+function tick(on, preset){
+  if(!preset && S.muteTick) return;
+  const T = preset || tickOf();
+  try{
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC) return;
+    audioCtx = audioCtx || new AC();
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+
+    const t0 = audioCtx.currentTime;
+    if(chime.rev) chime.wet.gain.value = T.wet;
+    (on ? T.on : T.off).forEach(([f, d, dc], i) => {
+      const dec = dc || T.dec;
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = T.type; o.frequency.value = f;
+      const vol = T.vol * (on ? 1 : 0.7);
+      g.gain.setValueAtTime(0.0001, t0 + d);
+      g.gain.exponentialRampToValueAtTime(vol, t0 + d + 0.008);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + d + dec);
+      o.connect(g); g.connect(audioCtx.destination);
+      if(chime.rev) g.connect(chime.rev);
+      o.start(t0 + d); o.stop(t0 + d + dec + 0.05);
+    });
+  }catch(e){}
+}
+/* 音の設定 */
+function soundMenu(rect){
+  const p = popup(Math.max(20, rect.left - 120), 20,
+    `<div class="dpanel" style="width:270px;max-height:80vh;overflow:auto">
+    <h4>音</h4>
+    <div style="font-size:11px;color:var(--muted);margin:2px 0 5px">チェックしたとき（押すと試せます）</div>
+    <div class="chsel" style="width:auto;padding:0 0 8px">${[...TICKS, ...CHIMES].map(t =>
+      `<button class="chb ${((S.tickSound||'harp')===t.id)?'on':''}" data-tk="${t.id}">${t.name}</button>`).join('')}
+      <button class="chb ${S.muteTick?'on':''}" data-tk="off">なし</button></div>
+    <div style="font-size:11px;color:var(--muted);margin:6px 0 5px">計測を始めたとき</div>
+    <div class="chsel" style="width:auto;padding:0 0 8px">${[...CHIMES, ...TICKS].map(c =>
+      `<button class="chb ${((S.timerStart||'temple')===c.id)?'on':''}" data-ts="${c.id}">${c.name}</button>`).join('')}</div>
+    <div style="font-size:11px;color:var(--muted);margin:6px 0 5px">計測を終えたとき</div>
+    <div class="chsel" style="width:auto;padding:0 0 8px">${[...CHIMES, ...TICKS].map(c =>
+      `<button class="chb ${((S.timerEnd||'bell')===c.id)?'on':''}" data-te="${c.id}">${c.name}</button>`).join('')}</div>
+    <div style="font-size:11px;color:var(--muted);margin:6px 0 5px">本を選んだとき</div>
+    <div class="chsel" style="width:auto;padding:0 0 4px">${CHIMES.map(c =>
+      `<button class="chb ${((S.chime||'deep')===c.id)?'on':''}" data-ch="${c.id}">${c.name}</button>`).join('')}
+      <button class="chb ${S.mutePick?'on':''}" data-ch="off">なし</button></div>
+    <div class="dfoot"><button id="sndClose">閉じる</button></div>
+  </div>`);
+  const mark = () => {
+    p.querySelectorAll('[data-tk]').forEach(x => x.classList.toggle('on',
+      x.dataset.tk === (S.muteTick ? 'off' : (S.tickSound || 'harp'))));
+    p.querySelectorAll('[data-ch]').forEach(x => x.classList.toggle('on',
+      x.dataset.ch === (S.mutePick ? 'off' : (S.chime || 'deep'))));
+  };
+  p.querySelectorAll('[data-tk]').forEach(b => b.onclick = () => {
+    const v = b.dataset.tk;
+    if(v === 'off') S.muteTick = true;
+    else { S.muteTick = false; S.tickSound = v; playById(v); }
+    save(); mark();
+  });
+  p.querySelectorAll('[data-ch]').forEach(b => b.onclick = () => {
+    const v = b.dataset.ch;
+    if(v === 'off') S.mutePick = true;
+    else { S.mutePick = false; S.chime = v; chime(CHIMES.find(c => c.id === v)); }
+    save(); mark();
+  });
+  p.querySelectorAll('[data-ts]').forEach(b => b.onclick = () => {
+    S.timerStart = b.dataset.ts; save(); playById(S.timerStart);
+    p.querySelectorAll('[data-ts]').forEach(x => x.classList.toggle('on', x.dataset.ts === S.timerStart));
+  });
+  p.querySelectorAll('[data-te]').forEach(b => b.onclick = () => {
+    S.timerEnd = b.dataset.te; save(); playById(S.timerEnd);
+    p.querySelectorAll('[data-te]').forEach(x => x.classList.toggle('on', x.dataset.te === S.timerEnd));
+  });
+  p.querySelector('#sndClose').onclick = () => p.remove();
+}
+
+/* 選ばれた1冊を、そのままの姿で見せる */
+function showPicked(cid, st){
+  document.querySelectorAll('.pickwrap').forEach(n => n.remove());
+  const k = findCard(cid)?.card; if(!k) return;
+  const w = document.createElement('div');
+  w.className = 'pickwrap';
+  w.innerHTML = `<div class="pickbox">
+    <div class="pick-h">This one for you</div>
+    <div class="card book">${bookCardHTML(k)}</div>
+    <div class="pick-f">
+      <button class="btn" data-again="1">もう一度</button>
+      <button class="btn" data-open="1">開く</button>
+      <button class="btn" data-close="1">閉じる</button>
+      <button class="btn pkmute" data-mute="1" title="音のオン／オフ">${S.mutePick ? '🔇' : '🔔'}</button>
+    </div>
+  </div>`;
+  document.body.appendChild(w);
+  chime();
+  const close = () => w.remove();
+  w.onclick = e => { if(e.target === w) close(); };
+  w.querySelector('[data-close]').onclick = close;
+  w.querySelector('[data-mute]').onclick = e => {
+    S.mutePick = !S.mutePick; save();
+    e.currentTarget.textContent = S.mutePick ? '🔇' : '🔔';
+    if(!S.mutePick) chime();
+  };
+  w.querySelector('[data-open]').onclick = () => { close(); view = {type:'card', id:cid}; render(); };
+  w.querySelector('[data-again]').onclick = () => {
+    const pool2 = allCards().filter(x => x.card.type === 'book' && !bookStatus(x.card)
+      && (!st ? ['reading', 'stack', 'want'].includes(bookShelf(x.card)) : bookShelf(x.card) === st));
+    if(pool2.length < 2) return;
+    let n2;
+    do { n2 = pool2[Math.floor(Math.random() * pool2.length)]; } while(n2.card.id === cid);
+    close(); showPicked(n2.card.id, st);
+  };
+}
+
 /* ---------------- 読んだ本 / 途中終了 ---------------- */
 function renderShelf(){
   const st = ['stop', 'all'].includes(view.st) ? view.st : 'done';
@@ -5890,6 +6357,42 @@ function renderShelf(){
   document.getElementById('shBack').onclick = () => {
     view = shelf ? {type:'board', id:shelf.id} : {type:'tasks'}; q = ''; render(); };
   wireCards(v);
+}
+
+/* ---------------- タグの一覧 ---------------- */
+function renderTagPage(){
+  const t = document.getElementById('pageTitle');
+  const name = view.name || '';
+  t.value = '#' + name; t.disabled = true; t.oninput = null;
+  t.style.color = tagColor(name);
+  document.getElementById('topActions').innerHTML =
+    `<button class="btn" id="tagClr">🏷 解除</button>`;
+  let L = allCards().filter(x => (x.card.tags || []).includes(name));
+  if(q){
+    const s = q.toLowerCase();
+    L = L.filter(x => cardHay(x.card).includes(s));
+  }
+  L.sort((a, b) => ((b.card.updated || b.card.created || '') + '')
+    .localeCompare((a.card.updated || a.card.created || '') + ''));
+  const v = document.getElementById('view');
+  v.innerHTML = `
+    <div class="tools">
+      <input class="search" id="q" placeholder="この中から検索…" value="${esc(q)}">
+      <span style="color:var(--muted);font-size:12.5px">${L.length} 件</span>
+    </div>
+    ${L.length ? `<div class="pinwrap">${[0,1,2].map(ci =>
+      `<div class="pincolm">${L.filter((_, n) => n % 3 === ci)
+        .map(pinCardHTML).join('')}</div>`).join('')}</div>`
+      : `<div class="empty">#${esc(name)} の付いたメモはありません</div>`}`;
+  const qi = document.getElementById('q');
+  wireSearchInput(qi, (val, pos) => { q = val; renderTagPage();
+    const n = document.getElementById('q'); if(n){ n.focus(); n.setSelectionRange(pos, pos); } });
+  document.getElementById('tagClr').onclick = () => {
+    tagFilter = ''; view = {type:'tasks'}; q = ''; render();
+  };
+  wireCards(v);
+  v.querySelectorAll('[data-goto]').forEach(el => el.onclick = () => {
+    view = {type:'board', id:el.dataset.goto}; render(); });
 }
 
 /* ---------------- Pin Memo（ギャラリー） ---------------- */
@@ -5978,6 +6481,7 @@ function renderCards(){
   const k = cur.card;
 
   document.getElementById('view').innerHTML = `<div class="deck">
+    <h5>This one for you</h5>
     <div class="dcard">
       <div class="dcard-h">${cardTgl(cur.kind, k, true)}</div>
       ${cur.kind === 'read'
@@ -6028,6 +6532,7 @@ function render(){
   else if(view.type === 'pin') renderPins();
   else if(view.type === 'card') renderCard();
   else if(view.type === 'shelf') renderShelf();
+  else if(view.type === 'tag') renderTagPage();
   else if(view.type === 'search') renderSearch();
   else if(view.type === 'quote') renderCollection('quote');
   else if(view.type === 'read') renderCollection('read');
@@ -6455,6 +6960,7 @@ document.addEventListener('click', e => {
   if(e.clientX >= r.left) return;          // ボックス部分だけ反応
   e.preventDefault();
   li.classList.toggle('dn');
+  tickPlay(li.classList.contains('dn'));
   const [which, cid] = box.dataset.ck.split('|');
   const f = findCard(cid); if(!f) return;
   const k = f.card;
@@ -6503,6 +7009,30 @@ document.addEventListener('click', e => {
   view = {type:'card', id:el.dataset.openpage};
   render();
 });
+
+/* Tab で字下げ（入力中のときだけ）*/
+document.addEventListener('keydown', e => {
+  if(e.key !== 'Tab' || e.altKey || e.ctrlKey || e.metaKey) return;
+  const el = document.activeElement;
+  if(!el || !el.isContentEditable) return;
+  e.preventDefault();
+  if(e.shiftKey){
+    /* Shift＋Tab は、直前の全角スペースを1つ消す */
+    const sel = window.getSelection();
+    if(sel.rangeCount && sel.isCollapsed){
+      const r = sel.getRangeAt(0);
+      const n = r.startContainer;
+      if(n.nodeType === 3 && r.startOffset > 0 && n.data[r.startOffset - 1] === '　'){
+        n.deleteData(r.startOffset - 1, 1);
+      }
+    }
+  } else {
+    document.execCommand('insertText', false, '　');
+  }
+  const box = el.closest('[data-body],[data-qtext],[data-qmemo],[data-rmemo],[data-bmemo],[data-daily],[data-note],[data-head]')
+    || el;
+  if(typeof saveBody === 'function' && box.dataset) saveBody(box);
+}, true);
 
 /* Card ボタンはどのページでも押せるように（イベント委譲） */
 document.addEventListener('mousedown', e => {
@@ -6989,6 +7519,7 @@ document.getElementById('recBtn').onclick = e =>
 const hardReload = () =>
   location.replace(location.pathname + '?v=' + Date.now() + location.hash);
 document.getElementById('reloadBtn').onclick = hardReload;
+
 /* 起動して少ししたら、新しい版が出ていないか確かめる */
 async function checkUpdate(){
   if(location.protocol === 'file:') return;
@@ -7017,6 +7548,10 @@ const boot = () => {
   document.title = APP_TITLE;
   const bn = document.getElementById('brandName');
   if(bn) bn.textContent = APP_TITLE;
+  const bs = document.getElementById('brandSub');
+  if(bs) bs.textContent = APP === 'task'
+    ? 'Grow your work, grow your life.'
+    : 'Grow your notes, grow your mind.';
   const tl = document.getElementById('navTimesLb');
   if(tl) tl.textContent = TIMELB;
   const kl = document.getElementById('navTasksLb');
@@ -7024,6 +7559,12 @@ const boot = () => {
   applySide();
   renderBanner();
   applyRight();
+  const mHash = (location.hash || '').match(/card=([A-Za-z0-9_-]+)/);
+  if(mHash && findCard(mHash[1])){
+    view = {type:'card', id:mHash[1]};
+    render();
+    return;
+  }
   if(APP === 'task'){
     view = {type:'tasks'}; filter = 'all';
   } else {
