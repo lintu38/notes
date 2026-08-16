@@ -276,8 +276,9 @@
   .cols{display:flex;gap:16px;align-items:flex-start;min-height:200px}
   .cols.shelfcols .col-head{display:none}
   .cols.shelfcols .col{width:auto!important;flex:1 1 auto!important}
-  .cols.shelfcols .drop{display:grid;grid-template-columns:repeat(4, minmax(0, 1fr));
-    gap:14px;align-items:start}
+  .cols.shelfcols .drop{display:block;columns:4;column-gap:14px}
+  .cols.shelfcols .drop > *{break-inside:avoid;-webkit-column-break-inside:avoid;
+    page-break-inside:avoid;width:100%;margin:0 0 14px}
   .col{flex:0 0 288px;width:288px;display:flex;flex-direction:column;gap:10px;position:relative}
   .col-head{display:flex;align-items:center;gap:5px;padding:5px 8px;cursor:grab;border-radius:9px;
     background:#ece8e1;border:0}
@@ -843,7 +844,8 @@
   .dailybody:focus{background:none;box-shadow:none}
   /* 本文中の画像と URL カード */
   .body img,.qc-body img,.qc-memo img,.dailybody img,.log-t img{
-    max-width:100%;height:auto;border-radius:8px;display:block;margin:7px 0;cursor:pointer}
+    max-width:100%;height:auto;border-radius:8px;display:block;margin:7px 0;cursor:grab}
+  .body img:active,.dailybody img:active,.qc-body img:active,.qc-memo img:active{cursor:grabbing}
   .body img:hover,.dailybody img:hover{outline:2px solid #e8ded3;outline-offset:2px}
   #imgHandle{display:none;position:fixed;width:16px;height:16px;border-radius:4px;
     background:var(--panel);border:1.5px solid var(--brown);cursor:nwse-resize;z-index:70;
@@ -1079,7 +1081,8 @@
   /* Status は最初から表示、Tag はカーソルを合わせたときだけ */
   .chip.tag.ghost{opacity:0}
   .card:hover .chip.tag.ghost,.rwrap:hover .chip.tag.ghost{opacity:1}
-  .chip.cat2.ghost:hover,.chip.tag.ghost:hover{background:var(--accent-soft);color:var(--accent)}
+  .chip.cat2.ghost:hover{background:var(--accent-soft);color:var(--accent)}
+  .chip.tag.ghost:hover{background:#e6e1e0;color:#5c5457}
   /* ボードの色 */
   .bdot{width:11px;height:11px;border-radius:3.5px;border:1px solid rgba(0,0,0,.1);
     flex:0 0 11px;cursor:pointer;background:#cdb4bb}
@@ -1184,8 +1187,10 @@
   .grp-h{display:flex;align-items:baseline;gap:9px;padding:0 0 9px;border-bottom:1px solid var(--line);margin-bottom:6px}
   .grp-h b{font-size:14px;font-weight:600}
   .grp-h span{font-size:11.5px;color:var(--muted)}
-  .rwrap{border:1px solid var(--line);border-radius:11px;background:var(--panel);
+  .rwrap{position:relative;border:1px solid var(--line);border-radius:11px;background:var(--panel);
     margin-bottom:8px;box-shadow:0 1px 1px rgba(30,25,15,.03)}
+  .rwrap > .qribbon{top:-4px;right:14px}
+  .rwrap > .qribbon.task{background:#c9a227}
   /* Action ページはカードを2枚ずつ並べる */
   .rowgrid{display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:12px;align-items:start}
   .rowgrid .rwrap{margin-bottom:0}
@@ -1203,6 +1208,11 @@
   .row .bdrow > .chip{flex:0 0 auto}
   /* 計測ボタンと合計時間はタイトル行の右端に */
   .row .tmwrap{margin-left:auto;padding-left:24px;display:flex;align-items:center;gap:7px;flex:0 0 auto}
+  .row .rdel{margin-left:auto;flex:0 0 auto;width:22px;height:20px;line-height:1;font-size:15px;
+    color:#b6aeb0;border-radius:6px;opacity:0;transition:opacity .15s}
+  .row .tmwrap + .rdel{margin-left:10px}
+  .rwrap:hover .rdel{opacity:1}
+  .row .rdel:hover{color:#a5555f;background:#f2eae9}
   .row.done .tt,.row.done .tt *{text-decoration:line-through;color:var(--muted)}
   .row .sm{font-size:11.5px;color:var(--muted);margin-top:5px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
   .row .sm + .row-note{margin-top:7px}
@@ -1236,6 +1246,9 @@
   .rwrap:hover .radds{opacity:1}
   .radds button{font-size:12.5px;color:var(--muted);padding:2px 5px;border-radius:6px}
   .radds button:hover{color:var(--accent);background:var(--accent-soft)}
+  .ocadds{flex-wrap:wrap;align-items:center;gap:8px}
+  .ocadds .raddlb{font-size:11px;color:#b0a7a9;letter-spacing:.04em}
+  .ocadds button{border:1px dashed #ddd4d5;padding:3px 10px;border-radius:20px}
   /* タスク一覧の中のメモ / Message Log */
   .rwrap .sec{margin:6px 0 0 26px;max-width:620px}
   .rwrap .sec .body{margin:5px 0 0 0;min-height:44px}
@@ -1286,6 +1299,17 @@
     .tools{gap:6px}
     .search{width:100%;font-size:16px;padding:9px 12px}
     .clsel,.gsel select{font-size:15px}
+    .tlog{flex-wrap:wrap;gap:4px 6px;padding:6px 8px}
+    .tlog input[type=date]{flex:1 1 100%;width:100%;font-size:12px}
+    .tlog input[type=time]{flex:0 0 auto;width:auto}
+    .tlog .dur{margin-left:auto}
+    .tlog .x{opacity:1;flex:0 0 auto}
+    .rtbar{max-width:calc(100vw - 12px);flex-wrap:wrap;justify-content:center}
+    .rtbar button{width:30px;height:30px}
+    .rtbar button.w{width:auto;padding:0 9px}
+    .pop{max-width:calc(100vw - 16px);box-sizing:border-box}
+    .tpanel{max-width:100%}
+    .tpanel .tinput{min-width:0}
     .seg{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%}
     .seg button{padding:7px 9px;font-size:12.5px;white-space:nowrap;flex:0 0 auto}
     .nav{padding:11px 10px;font-size:15px}
@@ -1323,6 +1347,7 @@
     .drop,.dailycards .drop,.cols,.col{min-width:0}
     .card,.rwrap,.sec,.subs,.rsubs,.meta,.sm,.bdrow,.tline{flex-wrap:wrap;min-width:0}
     .row .tmwrap{margin-left:0;padding-left:0;margin-top:4px}
+    .row .rdel{opacity:1}
     .qbox{padding:0 4px}
     .qbox .qt{margin:0 0 6px 0;padding:12px 12px}
     .qcard{padding:2px 4px 6px}
@@ -1382,7 +1407,7 @@
     .onecard{flex:1 1 auto!important;width:auto!important;max-width:none}
     .ocside{flex:1 1 auto!important;width:auto!important}
     /* Bookshelf は1列に */
-    .cols.shelfcols .drop{grid-template-columns:1fr!important}
+    .cols.shelfcols .drop{columns:1!important}
     .cols.shelfcols .col{width:auto!important}
     /* 上のボタンが重ならないように */
     .topbar{height:auto!important;min-height:52px;flex:0 0 auto!important;flex-wrap:wrap;
@@ -1522,7 +1547,7 @@
 const APP = 'note';
 const KEY = APP === 'task' ? 'boards.tasks.task.v1' : 'boards.tasks.v1';
 const APP_TITLE = APP === 'task' ? 'Tasks' : 'Notes';
-const APPVER = '20260813-1631';
+const APPVER = '20260816-1535';
 const TIMELB = APP === 'task' ? 'Time Log' : 'Read Log';
 const TASKLB = APP === 'task' ? 'Tasks' : 'Action';
 /* Task 用は初回だけ、これまでのデータを引き継ぐ */
@@ -1582,7 +1607,7 @@ const tagColor = t => (S.tagColors && S.tagColors[t]) || '#5b6577';
 const tagChip = (t, cid) => {
   const c = tagColor(t);
   return `<span class="chip tag" data-tagc="${esc(t)}" title="#${esc(t)} の一覧を見る"
-    style="background:${c}1a;color:${c}">#${esc(t)}</span>`;
+    style="background:${c};color:#fff">#${esc(t)}</span>`;
 };
 const tagChips = k => `<span class="tagwrap">${(k.tags || []).map(t => tagChip(t, k.id)).join('')}
   <span class="chip tag ghost ${(k.tags || []).length ? 'hov' : ''}" data-tagedit="${k.id}"
@@ -1711,8 +1736,22 @@ function stopTimer(k){
 }
 const allTimes = () => allCards().flatMap(x => (x.card.times || []).map(e => ({...x, e})));
 /* 計測中の表示を毎秒更新（再描画はしない） */
+const NOTIFY_MIN = 15;      /* 何分で知らせるか（Notes のみ） */
 setInterval(() => {
   const r = runningCard(); if(!r) return;
+  if(APP === 'note'){
+    const mins = Math.floor(runSec(r.card) / 60);
+    if(mins >= NOTIFY_MIN && !r.card.timer.notified){
+      r.card.timer.notified = 1;
+      if(!S.muteTick) playById('furin');
+      const tag = document.getElementById('savedTag');
+      if(tag){
+        tag.textContent = `⏱ ${NOTIFY_MIN} 分たちました`;
+        tag.classList.add('on');
+        setTimeout(() => tag.classList.remove('on'), 4000);
+      }
+    }
+  }
   document.querySelectorAll(`[data-elapsed="${r.card.id}"]`).forEach(el => el.textContent = fmtClock(runSec(r.card)));
   document.querySelectorAll(`[data-runtot="${r.card.id}"]`).forEach(el =>
     el.textContent = fmtDur(totalSec(r.card) + runSec(r.card)));
@@ -2080,9 +2119,13 @@ function load(){
 let savedT;
 /* 入力欄から離れた直後の再描画で、クリックが消えないようにする */
 let clickGuard = 0;
+const guardSel = 'input.ck, .chip, button, label, select, [data-toggle], [data-cal], [data-menu]';
 document.addEventListener('mousedown', e => {
-  if(e.target.closest('input.ck, .chip, button, [data-toggle], [data-cal]')) clickGuard = Date.now();
+  if(e.target.closest(guardSel)) clickGuard = Date.now();
 }, true);
+document.addEventListener('touchstart', e => {
+  if(e.target.closest(guardSel)) clickGuard = Date.now();
+}, {capture:true, passive:true});
 function reRender(){
   if(Date.now() - clickGuard < 400){ setTimeout(() => render(), 260); return; }
   render();
@@ -2322,7 +2365,7 @@ function renderSide(){
   pinTagBox.innerHTML = S.pinnedTags.map(t => {
     const c = tagColor(t);
     return `<button data-tag="${esc(t)}" class="${tagFilter===t?'on':''} pin"
-      style="background:${c}1a;color:${c}">${PINSMALL}#${esc(t)}</button>`;
+      style="background:${c};color:#fff">${PINSMALL}#${esc(t)}</button>`;
   }).join('');
   document.getElementById('pinLabel').style.display =
     (pinned.length || S.pinnedTags.length) ? '' : 'none';
@@ -2451,7 +2494,7 @@ function renderSide(){
     const c = tagColor(t);
     const pin = S.pinnedTags.includes(t);
     return `<button data-tag="${esc(t)}" class="${tagFilter===t?'on':''} ${pin?'pin':''}"
-      style="background:${c}1a;color:${c}">${pin?PINSMALL:''}#${esc(t)}</button>`;
+      style="background:${c};color:#fff">${pin?PINSMALL:''}#${esc(t)}</button>`;
   }).join('');
   tn.querySelectorAll('[data-tag]').forEach(el => {
     el.onclick = e => {
@@ -2557,7 +2600,7 @@ function renderBoard(){
     const k = {id:uid(), type:'book', title:'', body:'', color:'', start:'', due:'',
       repeat:{unit:'', n:1, days:[]}, done:false, subs:[], tags:[],
       created:today(), updated:today(),
-      book:{cover:'', url:'', title:'', author:'', trans:'', pub:'', buy:'', media:'',
+      book:{cover:'', url:'', title:'', author:'', trans:'', pub:'', met:'', buy:'', media:'',
         startOn:false, startAt:'', doneOn:false, doneAt:'', stars:0, memo:'',
         shelf:S.shelfTab || 'reading'}};
     col.cards.unshift(k);
@@ -2632,7 +2675,10 @@ function cardHTML(k){
   const showNote = k.noteOn || plain(k.note).trim();
   let inner = (k.type === 'task' && showHead)
     ? `<div class="thead" contenteditable="true" data-head="${k.id}" data-ph="見出し…">${clean(k.head)}</div>` : '';
-  if(k.type === 'task') inner += `<span class="qribbon task" title="Action"></span>`;
+  if(k.type === 'task'){
+    const bc = APP === 'task' ? ((findCard(k.id) || {}).board || {}).color : '';
+    inner += `<span class="qribbon task" title="Action"${bc ? ` style="background:${bc}"` : ''}></span>`;
+  }
   if(k.type === 'quote') inner += `<span class="qribbon" title="Quote"></span>`;
   inner += `<div class="card-top">
     <span class="grip" draggable="true" data-grip="${k.id}">⠿</span>
@@ -2780,6 +2826,15 @@ function quoteSection(k, fixed){
 /* 登録済みの表示 */
 const nextQuoteNo = () => Math.max(0, ...allCards().map(x => +(x.card.quote?.no || 0))) + 1;
 /* ぶら下がっている親（Book / Read）の著者・出典 */
+/* Read メモから、その本（Book メモ）のページを探す */
+function bookIdFor(k, src){
+  if(k.parent && findCard(k.parent)) return k.parent;
+  const s = ((src || (k.read && k.read.source) || '')).trim();
+  if(!s) return '';
+  const f = allCards().find(x => x.card.type === 'book'
+    && (((x.card.book || {}).title) || '').trim() === s);
+  return f ? f.card.id : '';
+}
 function citeLine(k){
   if(!k.parent) return '';
   const P = parentMeta(k);
@@ -3049,6 +3104,13 @@ function wireCards(root){
     const dk = f === 'start' ? 'startAt' : 'doneAt';
     if(el.checked && !B[dk]) B[dk] = today();
     touch(k); save(); reRender();
+  });
+  root.querySelectorAll('[data-btoday]').forEach(el => el.onclick = () => {
+    const [f, cid] = el.dataset.btoday.split('|');
+    const k = findCard(cid).card;
+    const B = (k.book ||= {});
+    B[f] = B[f] === today() ? '' : today();
+    touch(k); save(); render();
   });
   root.querySelectorAll('[data-bunk]').forEach(el => el.onclick = () => {
     const [f, cid] = el.dataset.bunk.split('|');
@@ -3558,10 +3620,12 @@ function wireFmt(root){
 }
 let lastRich = null;   // 直前に編集していたリッチテキスト欄
 function wireRich(el){
+  el.dataset.rich = '1';
   let t;   // 入力中も自動保存
   el.addEventListener('focus', () => { lastRich = el; });
   el.addEventListener('input', () => { clearTimeout(t); t = setTimeout(() => saveBody(el), 400); });
   el.onmouseup = () => setTimeout(() => showRT(el), 0);
+  el.addEventListener('touchend', () => setTimeout(() => showRT(el), 80));
   el.onkeyup = e => { if(e.shiftKey || e.key === 'Escape') setTimeout(() => showRT(el), 0); };
   el.onpaste = e => {
     const dt = e.clipboardData || window.clipboardData;
@@ -3581,11 +3645,42 @@ function wireRich(el){
     e.preventDefault();                          // それ以外は書式なしテキスト
     document.execCommand('insertText', false, (dt.getData('text/plain') || ''));
   };
-  el.ondragover = e => { if(e.dataTransfer.types.includes('Files')) e.preventDefault(); };
+  el.ondragover = e => {
+    if(dragImg && dragImgEl === el){
+      e.preventDefault(); e.stopPropagation();
+      try{ e.dataTransfer.dropEffect = 'move'; }catch(_){}
+      return;
+    }
+    if(e.dataTransfer.types.includes('Files')) e.preventDefault();
+  };
   el.ondrop = e => {
+    if(dragImg && dragImgEl === el){
+      e.preventDefault(); e.stopPropagation();
+      const im = dragImg; dragImg = dragImgEl = null;
+      const r = caretFromPoint(e.clientX, e.clientY);
+      if(r && el.contains(r.startContainer)){
+        const mk = document.createElement('span');
+        r.insertNode(mk);
+        mk.parentNode.insertBefore(im, mk);
+        mk.remove();
+        el.normalize();
+        saveBody(el); hideImgHandle(); render();
+      }
+      return;
+    }
     const file = [...(e.dataTransfer.files || [])].find(f => f.type.startsWith('image/'));
     if(file){ e.preventDefault(); insertImage(file, el); }
   };
+  el.addEventListener('dragstart', e => {
+    const im = e.target;
+    if(im && im.tagName === 'IMG' && !im.classList.contains('ufav') && el.contains(im)){
+      dragImg = im; dragImgEl = el;
+      try{ e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', ''); }catch(_){}
+      e.stopPropagation();
+      ihDrag = false; hideImgHandle();
+    }
+  });
+  el.addEventListener('dragend', () => { dragImg = dragImgEl = null; });
   el.addEventListener('mouseover', e => {
     if(e.target.tagName === 'IMG' && !e.target.classList.contains('ufav')) showImgHandle(e.target, el);
   });
@@ -3634,6 +3729,7 @@ function showRT(el){
       <span class="sep"></span>
       <button data-cmd="removeFormat" title="書式をクリア">✕</button>`;
     bar.onmousedown = e => e.preventDefault(); // 選択を保持
+    bar.addEventListener('pointerdown', e => e.preventDefault());
     bar.querySelectorAll('[data-cmd]').forEach(b => b.onclick = () => {
       document.execCommand('styleWithCSS', false, true);
       document.execCommand(b.dataset.cmd);
@@ -3656,6 +3752,19 @@ function showRT(el){
 }
 document.addEventListener('mousedown', e => {
   if(!e.target.closest('.rtbar') && !e.target.closest('[data-body]')) hideRT();
+});
+/* 選択が変わったら出す（スマホの長押し選択・ハンドル操作にも対応） */
+let rtSelT = null;
+document.addEventListener('selectionchange', () => {
+  clearTimeout(rtSelT);
+  rtSelT = setTimeout(() => {
+    const sel = window.getSelection();
+    if(!sel || !sel.rangeCount || sel.isCollapsed) return;
+    let n = sel.anchorNode;
+    n = n && (n.nodeType === 1 ? n : n.parentElement);
+    const el = n && n.closest && n.closest('[data-rich]');
+    if(el) showRT(el);
+  }, 200);
 });
 
 /* ---------------- popovers ---------------- */
@@ -3698,11 +3807,12 @@ function addMenu(e, colId, parentId){
     if(!bd) return;
     const col = bd.cols.find(c => c.id === colId);
     const k = {id:uid(), type:btn.dataset.t, title:'', body:'', color:'', start:'', due:'',
-      repeat:{unit:'', n:1, days:[]}, done:false, subs:[], tags: tagFilter ? [tagFilter] : []};
+      repeat:{unit:'', n:1, days:[]}, done:false, subs:[],
+      tags: (tagFilter && view.type === 'tag') ? [tagFilter] : []};
     if(k.type === 'quote') k.quote = {text:'', author:'', source:'', page:'', memo:'', card:false};
     if(k.type === 'read') k.read = {author:'', source:'', media:'', memo:'', card:false};
     if(k.type === 'book') k.book = {cover:'', url:'', title:'', author:'', trans:'', pub:'',
-      buy:'', media:'', startOn:false, startAt:'', doneOn:false, doneAt:'', stars:0, memo:''};
+      met:'', buy:'', media:'', startOn:false, startAt:'', doneOn:false, doneAt:'', stars:0, memo:''};
     if(bd.daily) k.day = dailySel || today();
     if(parentId) k.parent = parentId;
     k.created = today(); k.updated = today();
@@ -4112,8 +4222,8 @@ function tagMenu(rect, cid, editing){
     <h4 style="margin:0 0 8px;font-size:12px;color:var(--muted);letter-spacing:.06em">Tag</h4>
     <div class="tlist">${k.tags.length ? k.tags.map(t => {
       const c = tagColor(t);
-      return `<span class="chip tag" style="background:${c}1a;color:${c}">
-        <i class="dot" data-col="${esc(t)}" style="background:${c}" title="色を変える"></i>#${esc(t)}<b data-rm="${esc(t)}">×</b></span>`;
+      return `<span class="chip tag" style="background:${c};color:#fff">
+        <i class="dot" data-col="${esc(t)}" style="background:#fff;box-shadow:0 0 0 1px rgba(255,255,255,.7)" title="色を変える"></i>#${esc(t)}<b data-rm="${esc(t)}">×</b></span>`;
     }).join('') : '<span style="font-size:12px;color:var(--muted)">まだありません</span>'}</div>
     ${editing ? `<div class="tswatch">${TAGC().map(c =>
       `<button class="sw ${tagColor(editing)===c?'on':''}" data-setc="${c}" style="background:${c}"></button>`).join('')}
@@ -4126,7 +4236,7 @@ function tagMenu(rect, cid, editing){
     </div>
     ${sug.length ? `<div class="tsug">${sug.map(t => {
       const c = tagColor(t);
-      return `<button data-add="${esc(t)}" style="background:${c}1a;color:${c}">#${esc(t)}</button>`;
+      return `<button data-add="${esc(t)}" style="background:${c};color:#fff">#${esc(t)}</button>`;
     }).join('')}</div>` : ''}
   </div>`);
   const reopen = (ed) => { p.remove(); tagMenu(rect, cid, ed); };
@@ -4151,6 +4261,8 @@ function tagMenu(rect, cid, editing){
     if(e.key === 'Enter'){ e.preventDefault(); add(e.target.value); }
     if(e.key === 'Escape') p.remove();
   };
+  const tAdd = p.querySelector('#tAdd');
+  if(tAdd) tAdd.onclick = () => add(p.querySelector('#tIn').value);
   p.querySelector('#tIn').focus();
   p.querySelectorAll('[data-add]').forEach(b => b.onclick = () => add(b.dataset.add));
   p.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => {
@@ -4399,6 +4511,7 @@ function wireRows(v){
     };
     el.onkeydown = e => { if(e.key === 'Enter'){ e.preventDefault(); el.blur(); } };
   });
+  v.querySelectorAll('[data-menu]').forEach(el => el.onclick = e => cardMenu(e, el.dataset.menu));
   v.querySelectorAll('[data-tsdel]').forEach(el => el.onclick = () => {
     const [cid, sid] = el.dataset.tsdel.split('|');
     const k = findCard(cid).card;
@@ -4432,7 +4545,9 @@ function rowHTML({board:b, col:c, card:k}, gi){
   const subs = k.subs || [];
   const isOpen = !folded[k.id];               // 既定は展開
   const doneN = subs.filter(s => s.done).length;
+  const rbc = APP === 'task' ? (b.color || '#c9a227') : '';
   return `<div class="rwrap" ${gi === undefined ? '' : `data-rowid="${k.id}" data-grp="${gi}"`}>
+    <span class="qribbon task" title="${TASKLB}"${rbc ? ` style="background:${rbc}"` : ''}></span>
     <div class="row ${k.done?'done':''}">
       ${gi === undefined ? '' : `<span class="rgrip" draggable="true" data-rgrip="${k.id}|${gi}"
         title="ドラッグで並び替え">⠿</span>`}
@@ -4453,6 +4568,7 @@ function rowHTML({board:b, col:c, card:k}, gi){
           <input type="checkbox" class="ck" data-tdone="${k.id}" ${k.done?'checked':''}>
           <div class="tt">${clean(k.title) || '<span style="color:#c4bcbe">無題</span>'}</div>
           ${canTime(k) ? `<span class="tmwrap">${timerChip(k)}</span>` : ''}
+          ${gi === undefined ? '' : `<button class="rdel" data-menu="${k.id}" title="メニュー">⋯</button>`}
         </div>
         ${!isOpen ? '' : `<div class="sm">
           ${catChip(k)}
@@ -4948,7 +5064,7 @@ function renderTimes(){
 
   document.getElementById('view').innerHTML = `
     <div class="tools">
-      <input class="search" id="q" placeholder="${isNote ? '著者・出典で絞り込み…' : 'タスク名・Client 名で絞り込み…'}" value="${esc(q)}">
+      <input class="search" id="q" placeholder="${isNote ? '著者・タイトルで絞り込み…' : 'タスク名・Client 名で絞り込み…'}" value="${esc(q)}">
       ${isNote ? '' : clientSelect('timeCl', timeClient)}
       <div class="seg">${[['day','日'],['week','週'],['month','月'],['year','年']]
         .map(([k, l]) => `<button data-pr="${k}" class="${pieRange===k?'on':''}">${l}</button>`).join('')}</div>
@@ -4966,7 +5082,7 @@ function renderTimes(){
       <div class="pie" style="flex:0 1 330px;margin:0;flex-wrap:wrap">
         ${pieTotal ? donut(pieData, 128) : ''}
         <div style="flex:1;min-width:130px">
-          <h5>${isNote ? '出典 別' : 'Client 別'} ・ 計 ${fmtDur(pieTotal)}</h5>
+          <h5>${isNote ? 'タイトル 別' : 'Client 別'} ・ 計 ${fmtDur(pieTotal)}</h5>
           ${pieTotal ? `<div class="lg">${pieData.map(dd => `<div>
               <i style="background:${dd.color}"></i>
               <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(dd.name)}</span>
@@ -4984,7 +5100,7 @@ function renderTimes(){
     ${(() => {
       const dayB = byBoard(all.filter(i => i.e.date === sel));
       return dayB.length ? `<div class="daysum">
-        <span class="ds-lb">${sel === today() ? '今日' : sel} の ${isNote ? '出典' : 'Client'} 別</span>
+        <span class="ds-lb">${sel === today() ? '今日' : sel} の ${isNote ? 'タイトル' : 'Client'} 別</span>
         ${dayB.map(g => `<span class="ds-i"><i style="background:${g.color}"></i>
           ${esc(g.name)} <b>${fmtDur(g.sec)}</b></span>`).join('')}
       </div>` : '';
@@ -4993,7 +5109,7 @@ function renderTimes(){
       ${isNote
         ? `<div class="trow head"><span>日にち<i class="rz" data-rzc="0" title="ドラッグで幅を変更"></i></span>
             <span>著者<i class="rz" data-rzc="1" title="ドラッグで幅を変更"></i></span>
-            <span>出典<i class="rz" data-rzc="2" title="ドラッグで幅を変更"></i></span>
+            <span>タイトル<i class="rz" data-rzc="2" title="ドラッグで幅を変更"></i></span>
             <span>媒体<i class="rz" data-rzc="3" title="ドラッグで幅を変更"></i></span>
             <span>開始<i class="rz" data-rzc="4" title="ドラッグで幅を変更"></i></span>
             <span>終了<i class="rz" data-rzc="5" title="ドラッグで幅を変更"></i></span>
@@ -5020,10 +5136,12 @@ function renderTimes(){
         ${isNote ? (() => {
           const r = rInfo(i.card);
           const ttl = plain(i.card.title).trim();
+          const bid = bookIdFor(i.card, r.source);
           return `<div class="trow">
             <span class="dt">${i.e.date ? i.e.date : '—'}</span>
             <span class="nm" title="${esc(r.author)}">${esc(r.author) || '<span style="color:#c4bcbe">—</span>'}</span>
-            <span class="nm" data-goto="${i.board.id}" title="${esc(r.source || ttl)}">${
+            <span class="nm" ${bid ? `data-openpage="${bid}" style="cursor:pointer;text-decoration:underline;text-decoration-color:#ded4d6;text-underline-offset:3px"`
+              : `data-goto="${i.board.id}"`} title="${bid ? 'この本のページを開く' : esc(r.source || ttl)}">${
               r.source ? '『' + esc(r.source) + '』' : (esc(ttl) || '<span style="color:#c4bcbe">—</span>')}</span>
             <span class="tm" style="text-align:left">${esc(r.media) || '—'}</span>
             <span class="tm" data-tmedit="${i.card.id}|${i.e.id}" style="cursor:pointer">${i.e.start || '--:--'}</span>
@@ -5192,7 +5310,8 @@ function renderDaily(b){
         <div class="daily-h">
           <b>${bd}</b><span>${WD[parse(bd).getDay()]}曜</span>
           ${weatherHTML(b, bd)}
-          <button class="btn" id="dailyToday" style="margin-left:auto;padding:4px 12px;font-size:12px">今日へ</button>
+          <button class="btn" id="dailyAllBtn" style="margin-left:auto;padding:4px 12px;font-size:12px">All</button>
+          <button class="btn" id="dailyToday" style="padding:4px 12px;font-size:12px">今日へ</button>
         </div>
         ${L.length ? `<div class="dailycards"><div class="drop">${
           L.map(x => cardHTML(x.card)).join('')}</div></div>`
@@ -5277,6 +5396,7 @@ const BICO = {
   trans:  '<svg class="bico" viewBox="0 0 16 16"><path d="M2.4 3.4h11.2v7.4H8.6L5.4 13.4v-2.6H2.4z"/></svg>',
   pub:    '<svg class="bico" viewBox="0 0 16 16"><path d="M2.6 13.6V4.2l5-1.8v11.2"/><path d="M7.6 13.6V6.4l5.8 1.2v6"/><path d="M4.6 6.6h.9M4.6 9h.9M9.6 9.4h1M9.6 11.4h1"/></svg>',
   buy:    '<svg class="bico" viewBox="0 0 16 16"><path d="M2.6 4.4h10.8l-1 7.2H3.6z"/><path d="M5.8 4.4a2.2 2.2 0 0 1 4.4 0"/></svg>',
+  met:    '<svg class="bico" viewBox="0 0 16 16"><path d="M6 2.4c.5 1.9 1.2 2.6 3.1 3.1-1.9.5-2.6 1.2-3.1 3.1-.5-1.9-1.2-2.6-3.1-3.1 1.9-.5 2.6-1.2 3.1-3.1z"/><path d="M11.6 8.6c.3 1.2.7 1.6 1.9 1.9-1.2.3-1.6.7-1.9 1.9-.3-1.2-.7-1.6-1.9-1.9 1.2-.3 1.6-.7 1.9-1.9z"/></svg>',
   media:  '<svg class="bico" viewBox="0 0 16 16"><rect x="2.6" y="2.6" width="10.8" height="10.8" rx="1.6"/><path d="M5.4 5.6h5.2M5.4 8h5.2M5.4 10.4h3.4"/></svg>',
 };
 /* Amazon の URL から画像を推測する（取れなければ手動登録） */
@@ -5329,8 +5449,16 @@ function bookSection(k, fixed){
       <input data-bf="trans|${k.id}" value="${esc(B.trans || '')}" placeholder="（いれば）">
       <label>出版社</label>
       <input data-bf="pub|${k.id}" value="${esc(B.pub || '')}" placeholder="例）CCCメディアハウス">
+      <label>出会った日</label>
+      <div class="brows"><input type="text" data-bf="met|${k.id}" value="${esc(B.met || '')}"
+        placeholder="2023 / 2023-12 / 2023-12-27" autocapitalize="off" autocorrect="off" spellcheck="false">
+        <button class="dmini" data-btoday="met|${k.id}" title="今日の日付にする">今日</button>
+        <button class="dmini" data-bunk="met|${k.id}" title="不明にする">不明</button></div>
       <label>購入日</label>
-      <input type="date" data-bf="buy|${k.id}" value="${esc(B.buy || '')}">
+      <div class="brows"><input type="text" data-bf="buy|${k.id}" value="${esc(B.buy || '')}"
+        placeholder="2023 / 2023-12 / 2023-12-27" autocapitalize="off" autocorrect="off" spellcheck="false">
+        <button class="dmini" data-btoday="buy|${k.id}" title="今日の日付にする">今日</button>
+        <button class="dmini" data-bunk="buy|${k.id}" title="不明にする">不明</button></div>
       <label>媒体（いくつでも選べます）</label>
       <div class="bmedia">${BMEDIA.map(m =>
         `<button class="bsb med ${mediaHas(B, m) ? 'on' : ''}" data-bmed="${esc(m)}|${k.id}">${m}</button>`).join('')}</div>
@@ -5398,6 +5526,7 @@ function bookCardHTML(k){
     ${B.url ? `<div class="brow"><svg class="bico" viewBox="0 0 16 16"><path d="M6.6 9.4a2.6 2.6 0 0 0 3.9.3l2-2a2.6 2.6 0 0 0-3.7-3.7l-1.1 1.1"/><path d="M9.4 6.6a2.6 2.6 0 0 0-3.9-.3l-2 2a2.6 2.6 0 0 0 3.7 3.7l1.1-1.1"/></svg>
       <a class="ulink" href="${esc(B.url)}" target="_blank" rel="noopener">Amazon で見る</a></div>` : ''}
     <div class="bsep"></div>
+    ${B.met ? `<div class="brow">${BICO.met}${esc(B.met)}</div>` : ''}
     ${B.buy ? `<div class="brow">${BICO.buy}${esc(B.buy)}</div>` : ''}
     ${B.media ? `<div class="brow">${BICO.media}${esc(B.media)}</div>` : ''}
     <div class="brow bck-r"><i class="bx ${B.startOn?'on':''}" data-bckr="start|${k.id}"></i>初読開始 ${esc(B.startAt || '')}</div>
@@ -5822,6 +5951,21 @@ document.getElementById('imgFile').onchange = e => {
 
 /* 画像の右下をドラッグしてサイズ変更 */
 let ihImg = null, ihEl = null, ihDrag = false;
+/* 本文中の画像をドラッグで移動 */
+let dragImg = null, dragImgEl = null;
+function caretFromPoint(x, y){
+  if(document.caretRangeFromPoint) return document.caretRangeFromPoint(x, y);
+  if(document.caretPositionFromPoint){
+    const q = document.caretPositionFromPoint(x, y);
+    if(q){ const r = document.createRange(); r.setStart(q.offsetNode, q.offset); r.collapse(true); return r; }
+  }
+  return null;
+}
+function moveImgStep(img, dir){
+  const prev = img.previousSibling, next = img.nextSibling;
+  if(dir < 0 && prev) img.parentNode.insertBefore(img, prev);
+  else if(dir > 0 && next) img.parentNode.insertBefore(next, img);
+}
 function imgHandle(){
   let hd = document.getElementById('imgHandle');
   if(hd) return hd;
@@ -5877,12 +6021,17 @@ function imgMenu(img, el){
     </div>
     <div class="drow" style="margin-bottom:4px"><label>幅</label>
       <input type="range" id="iw" min="10" max="100" value="${cur}" style="flex:1"></div>
+    <div class="drow" style="margin-bottom:4px"><label>位置</label>
+      <span class="quick" style="margin-left:0"><button id="iup">↑ 上へ</button>
+      <button id="idown">↓ 下へ</button></span></div>
     <div class="dfoot"><button id="idel" style="color:#c0392b">画像を削除</button>
       <button id="iclose">閉じる</button></div>
   </div>`);
   const apply = v => { img.style.width = v + '%'; saveBody(el); };
   p.querySelectorAll('[data-iw]').forEach(b => b.onclick = () => { apply(+b.dataset.iw); p.remove(); render(); });
   p.querySelector('#iw').oninput = e => apply(+e.target.value);
+  p.querySelector('#iup').onclick = () => { moveImgStep(img, -1); saveBody(el); };
+  p.querySelector('#idown').onclick = () => { moveImgStep(img, 1); saveBody(el); };
   p.querySelector('#idel').onclick = () => { img.remove(); saveBody(el); p.remove(); render(); };
   p.querySelector('#iclose').onclick = () => p.remove();
 }
@@ -5988,7 +6137,8 @@ function renderCard(){
   const v = document.getElementById('view');
   v.innerHTML = `<div class="ocwrap"><div class="onecard">
     ${cardHTML(k)}
-    <div class="radds" style="margin:12px 0 0 0;opacity:1">
+    <div class="radds ocadds" style="margin:12px 0 0 0;opacity:1">
+      <span class="raddlb">このメモに追加</span>
       ${!hasMemo(k) ? `<button data-secadd="memo|${k.id}">＋ Memo</button>` : ''}
       ${!hasQuote(k) ? `<button data-secadd="quote|${k.id}">＋ Quote</button>` : ''}
       ${!hasRead(k) ? `<button data-secadd="read|${k.id}">＋ Read</button>` : ''}
