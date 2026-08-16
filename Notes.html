@@ -1547,7 +1547,7 @@
 const APP = 'note';
 const KEY = APP === 'task' ? 'boards.tasks.task.v1' : 'boards.tasks.v1';
 const APP_TITLE = APP === 'task' ? 'Tasks' : 'Notes';
-const APPVER = '20260816-1535';
+const APPVER = '20260816-1550';
 const TIMELB = APP === 'task' ? 'Time Log' : 'Read Log';
 const TASKLB = APP === 'task' ? 'Tasks' : 'Action';
 /* Task 用は初回だけ、これまでのデータを引き継ぐ */
@@ -1719,6 +1719,7 @@ function toggleTimer(cid){
   const k = findCard(cid)?.card; if(!k) return;
   if(k.timer){ stopTimer(k); if(!S.muteTick) playById(S.timerEnd || 'box'); }
   else {
+    notifyAsk(); keepAliveStart();
     if(!S.muteTick) playById(S.timerStart || 'temple');
     const r = runningCard();
     if(r && r.card !== k) stopTimer(r.card);   // 同時にひとつだけ計測する
@@ -1730,6 +1731,7 @@ function toggleTimer(cid){
 }
 function stopTimer(k){
   if(!k.timer) return;
+  keepAliveStop();
   const sec = Math.max(1, Math.round(runSec(k)));
   (k.times ||= []).push({id:uid(), date:k.timer.date, start:k.timer.start, end:nowHM(), sec});
   delete k.timer;
@@ -1737,13 +1739,95 @@ function stopTimer(k){
 const allTimes = () => allCards().flatMap(x => (x.card.times || []).map(e => ({...x, e})));
 /* 計測中の表示を毎秒更新（再描画はしない） */
 const NOTIFY_MIN = 15;      /* 何分で知らせるか（Notes のみ） */
+/* ---- スマホでも 15 分のお知らせを鳴らすための仕掛け ----
+   計測中は「ほぼ無音の音」を鳴らし続けて、他のアプリに切り替えても
+   ページが止まらないようにする。お知らせ音は別の <audio> で鳴らす。 */
+let kaLoop = null, kaBell = null, kaSilent = '', kaChime = '';
+function wavURL(sm, sr){
+  const n = sm.length, buf = new ArrayBuffer(44 + n * 2), d = new DataView(buf);
+  const w = (o, s) => { for(let i = 0; i < s.length; i++) d.setUint8(o + i, s.charCodeAt(i)); };
+  w(0, 'RIFF'); d.setUint32(4, 36 + n * 2, true); w(8, 'WAVEfmt ');
+  d.setUint32(16, 16, true); d.setUint16(20, 1, true); d.setUint16(22, 1, true);
+  d.setUint32(24, sr, true); d.setUint32(28, sr * 2, true);
+  d.setUint16(32, 2, true); d.setUint16(34, 16, true);
+  w(36, 'data'); d.setUint32(40, n * 2, true);
+  for(let i = 0; i < n; i++){
+    const v = Math.max(-1, Math.min(1, sm[i]));
+    d.setInt16(44 + i * 2, v * 32767, true);
+  }
+  return URL.createObjectURL(new Blob([buf], {type:'audio/wav'}));
+}
+function makeSilent(){
+  const sr = 22050, n = sr, sm = new Float32Array(n);
+  for(let i = 0; i < n; i++) sm[i] = Math.sin(i / sr * 2 * Math.PI * 40) * 0.0004;
+  return wavURL(sm, sr);
+}
+/* 風鈴っぽい音を WAV にしておく */
+function makeChime(){
+  const sr = 22050, sec = 3.0, n = Math.floor(sr * sec), sm = new Float32Array(n);
+  const sc = [1568.0, 1760.0, 2093.0, 2349.3, 2637.0];
+  for(let k = 0; k < 7; k++){
+    const f = sc[Math.floor(Math.random() * sc.length)];
+    const st = Math.floor(Math.random() * 0.9 * sr);
+    const dec = 1.4 + Math.random(), vol = 0.16 + Math.random() * 0.1;
+    for(let i = st; i < n; i++){
+      const t = (i - st) / sr;
+      sm[i] += Math.sin(2 * Math.PI * f * t) * vol * Math.exp(-t / (dec / 3));
+    }
+  }
+  let mx = 0;
+  for(let i = 0; i < n; i++) mx = Math.max(mx, Math.abs(sm[i]));
+  if(mx > 0) for(let i = 0; i < n; i++) sm[i] = sm[i] / mx * 0.85;
+  return wavURL(sm, sr);
+}
+function keepAliveStart(){
+  if(APP !== 'note' || S.bgKeep === false) return;
+  try{
+    if(!kaLoop){
+      kaSilent = kaSilent || makeSilent();
+      kaChime  = kaChime  || makeChime();
+      kaLoop = new Audio(kaSilent); kaLoop.loop = true; kaLoop.preload = 'auto';
+      kaBell = new Audio(kaChime);  kaBell.preload = 'auto';
+    }
+    kaLoop.currentTime = 0;
+    kaLoop.play().catch(() => {});
+    /* お知らせ用も一度だけ「触って」おく（あとで自動再生できるように） */
+    kaBell.muted = true;
+    const pr = kaBell.play();
+    if(pr && pr.then) pr.then(() => {
+      kaBell.pause(); kaBell.currentTime = 0; kaBell.muted = false;
+    }).catch(() => { kaBell.muted = false; });
+  }catch(_){}
+}
+function keepAliveStop(){
+  try{ if(kaLoop){ kaLoop.pause(); kaLoop.currentTime = 0; } }catch(_){}
+}
+function keepAliveBell(){
+  try{ if(kaBell){ kaBell.currentTime = 0; kaBell.play().catch(() => {}); } }catch(_){}
+}
+
+/* デスクトップ通知 */
+function notifyAsk(){
+  if(APP !== 'note' || !('Notification' in window)) return;
+  if(Notification.permission !== 'default' || S.notifyAsked) return;
+  S.notifyAsked = true; save();
+  try{ Notification.requestPermission(); }catch(_){}
+}
+function notifyShow(title, body){
+  try{
+    if('Notification' in window && Notification.permission === 'granted')
+      new Notification(title, {body:body || '', tag:'nt-timer'});
+  }catch(_){}
+}
 setInterval(() => {
   const r = runningCard(); if(!r) return;
   if(APP === 'note'){
     const mins = Math.floor(runSec(r.card) / 60);
     if(mins >= NOTIFY_MIN && !r.card.timer.notified){
       r.card.timer.notified = 1;
-      if(!S.muteTick) playById('furin');
+      if(!S.muteTick){ playById('furin'); keepAliveBell(); }
+      notifyShow(`${NOTIFY_MIN} 分たちました`,
+        plain(r.card.title).trim() || rInfo(r.card).source || '計測中のメモ');
       const tag = document.getElementById('savedTag');
       if(tag){
         tag.textContent = `⏱ ${NOTIFY_MIN} 分たちました`;
