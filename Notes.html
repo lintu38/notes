@@ -761,6 +761,16 @@
   .pickbook svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.2;
     stroke-linecap:round;stroke-linejoin:round}
   .pkn{margin-left:auto;font-size:11px;color:var(--muted)}
+  .pkmini{width:24px;height:22px;padding:0;margin-left:2px;border-radius:6px;
+    display:inline-flex;align-items:center;justify-content:center;color:#cdc5c7;flex:0 0 auto}
+  .pkmini svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.3;
+    stroke-linejoin:round;stroke-linecap:round}
+  .pkmini.on{color:#b06a80}
+  .pkmini:hover{background:rgba(0,0,0,.05)}
+  .pkck{display:flex;align-items:center;gap:9px;padding:6px 10px;border-radius:8px;
+    font-size:12.5px;color:#5f585a;cursor:pointer}
+  .pkck:hover{background:var(--accent-soft)}
+  .pkck input{width:15px;height:15px;accent-color:var(--brown);flex:0 0 auto}
   .chsel{display:flex;flex-wrap:wrap;gap:5px;padding:2px 10px 8px;width:250px;max-width:86vw}
   .chb{font-size:11.5px;padding:4px 10px;border-radius:20px;border:1px solid var(--line);
     color:#6e6668;background:var(--panel);width:auto!important}
@@ -1260,6 +1270,13 @@
   .bar{width:52px;height:4px;border-radius:4px;background:#e8e1df;overflow:hidden;display:inline-block;vertical-align:middle}
   .bar i{display:block;height:100%;background:#6aa571}
   /* ===== スマホ・タブレット ===== */
+  /* Tasks は明朝を使わず、全体と同じ書体で */
+  body.app-task, body.app-task .qc-body, body.app-task .qc-memo, body.app-task .dailybody,
+  body.app-task .body.dailybody, body.app-task .kidcite,
+  body.app-task .dcard .qt, body.app-task .dcard .mm, body.app-task .rs-p, body.app-task .lc-p,
+  body.app-task .qbox, body.app-task .qbox *, body.app-task .qcard, body.app-task .qcard *,
+  body.app-task #view.serifpage, body.app-task #view.serifpage *{font-family:var(--fdisp)}
+  body.app-task .body.dailybody{font-weight:400}
   @media (max-width: 860px){
     /* スマホのアドレスバーぶんを差し引いた実高さで */
     html,body{height:100%;overflow:hidden}
@@ -1547,7 +1564,7 @@
 const APP = 'note';
 const KEY = APP === 'task' ? 'boards.tasks.task.v1' : 'boards.tasks.v1';
 const APP_TITLE = APP === 'task' ? 'Tasks' : 'Notes';
-const APPVER = '20260816-1553';
+const APPVER = '20260817-1357';
 const TIMELB = APP === 'task' ? 'Time Log' : 'Read Log';
 const TASKLB = APP === 'task' ? 'Tasks' : 'Action';
 /* Task 用は初回だけ、これまでのデータを引き継ぐ */
@@ -2079,6 +2096,15 @@ function load(){
   }
   S.folders ||= [];
   /* 音の割り当てを一度だけ整える */
+  /* 一時的にあった「気になる（care）」棚を戻す */
+  if(!S.shelfFix1){
+    (S.boards || []).forEach(b2 => (b2.cols || []).forEach(c =>
+      (c.cards || []).forEach(k => {
+        if(k.book && k.book.shelf === 'care') k.book.shelf = 'want';
+      })));
+    if(S.shelfTab === 'care') S.shelfTab = 'want';
+    S.shelfFix1 = true;
+  }
   if(!S.sndFix8){
     S.tickSound = 'harp3';    // チェック＝ド・ミ・ド
     S.timerStart = 'temple';  // 計測開始＝深い鐘
@@ -2635,7 +2661,7 @@ function renderBoard(){
   /* 完了したタスクは Done Task ページだけに表示する */
   const match = k => (!tagFilter || (k.tags || []).includes(tagFilter))
     && !(k.type === 'task' && k.done) && !k.parent
-    && !(k.type === 'book' && bookStatus(k))
+    && !(k.type === 'book' && bookStatus(k) && bookShelf(k) !== 'again')
     && !(shelf && k.type === 'book' && S.shelfTab !== 'all' && bookShelf(k) !== S.shelfTab);
   const v = document.getElementById('view');
   v.innerHTML = `${shelf ? `<div class="tools">
@@ -2678,7 +2704,7 @@ function renderBoard(){
     S.shelfTab = el.dataset.shtab; save(); renderBoard();
   });
   const pk = document.getElementById('shPick');
-  if(pk) pk.onclick = e => pickBookMenu(e.currentTarget.getBoundingClientRect());
+  if(pk) pk.onclick = () => pickBookMenu();
   const shp = document.getElementById('shAdd');
   if(shp) shp.onclick = () => {
     const col = b.cols[0];
@@ -2773,7 +2799,8 @@ function cardHTML(k){
     ${(k.type === 'note' || k.type === 'task') ? cardTgl('memo', k, k.memoCard)
       : k.type === 'quote' ? cardTgl('quote', k, k.quote && k.quote.card)
       : k.type === 'read' ? cardTgl('read', k, k.read && k.read.card) : ''}
-    ${k.type === 'book' ? '' : pinTgl(k)}
+    ${k.type === 'book' ? `<button class="pkmini ${pickOn(k)?'on':''}" data-bpick="${k.id}"
+      title="ランダム選書">${PICKICO}</button>` : pinTgl(k)}
     <button class="menu" data-menu="${k.id}">⋯</button></div>`;
 
   /* タイトルのすぐ下: 説明・注意事項 */
@@ -3235,11 +3262,18 @@ function wireCards(root){
     B.media = (a2.includes(m) ? a2.filter(x => x !== m) : [...a2, m]).join('、');
     touch(k); save(); render();
   });
+  root.querySelectorAll('[data-bpick]').forEach(el => el.onclick = e => {
+    e.stopPropagation();
+    const k = findCard(el.dataset.bpick).card;
+    (k.book ||= {}).pick = !pickOn(k);
+    touch(k); save(); render();
+  });
   root.querySelectorAll('[data-bshelf]').forEach(el => el.onclick = () => {
     const [v, cid] = el.dataset.bshelf.split('|');
     const k = findCard(cid).card;
     const B = (k.book ||= {});
     B.shelf = B.shelf === v ? '' : v;
+    if(B.shelf === 'stack') B.pick = false;      /* 休憩中はランダム選書から外す */
     touch(k); save(); render();
   });
   root.querySelectorAll('[data-bstat]').forEach(el => el.onclick = () => {
@@ -5574,8 +5608,13 @@ const bookStatus = k => (k.book && k.book.status) || '';
 /* 媒体は複数持てる（保存は「Kindle, 文庫」のような文字列）*/
 const mediaArr = B => ((B && B.media) || '').split(/[,、]/).map(s => s.trim()).filter(Boolean);
 const mediaHas = (B, m) => mediaArr(B).includes(m);
-const SHELVES = [['reading','読書中'], ['stack','積読中'], ['want','気になる']];
+const SHELVES = [['reading','読んでる'], ['want','気になる'], ['stack','休憩中'], ['again','再読したい']];
+const SHELFV = SHELVES.map(s => s[0]);
 const bookShelf = k => (k.book && k.book.shelf) || '';
+const PICKICO = '<svg viewBox="0 0 16 16"><path d="M2.6 3.1h4.1c.9 0 1.3.5 1.3 1.2v8.6c0-.6-.5-1-1.3-1H2.6z"/><path d="M13.4 3.1H9.3c-.9 0-1.3.5-1.3 1.2v8.6c0-.6.5-1 1.3-1h4.1z"/></svg>';
+/* ランダム選書に入れるか（未設定なら「読んでる」だけ ON）*/
+const pickOn = k => (k.book && k.book.pick !== undefined)
+  ? !!k.book.pick : bookShelf(k) === 'reading';
 function shelfBtns(k){
   const s = bookShelf(k);
   return `<span class="bstat">${SHELVES.map(([v, n]) =>
@@ -6256,24 +6295,12 @@ function renderCard(){
 }
 
 /* ---------------- 次に読む本を選ぶ ---------------- */
-function pickBookMenu(rect){
-  const pool = st => allCards().filter(x => x.card.type === 'book'
-    && !bookStatus(x.card)
-    && (!st ? ['reading', 'stack', 'want'].includes(bookShelf(x.card)) : bookShelf(x.card) === st));
-  const p = popup(Math.max(20, rect.left - 150), rect.bottom + 8, `
-    <div style="font-size:11px;color:var(--muted);padding:5px 10px 3px;letter-spacing:.06em;font-weight:700">
-      どこから選ぶ？</div>
-    <button data-pick=""><i class="ic">✦</i>ぜんぶから<span class="pkn">${pool('').length}</span></button>
-    ${SHELVES.map(([v, n]) =>
-      `<button data-pick="${v}"><i class="ic">▦</i>${n}<span class="pkn">${pool(v).length}</span></button>`).join('')}
-`);
-  p.querySelectorAll('[data-pick]').forEach(b => b.onclick = () => {
-    const st = b.dataset.pick;
-    p.remove();
-    const L = pool(st);
-    if(!L.length){ alert('その中に本がありません'); return; }
-    showPicked(L[Math.floor(Math.random() * L.length)].card.id, st);
-  });
+const pickPool = () => allCards().filter(x => x.card.type === 'book'
+  && (!bookStatus(x.card) || bookShelf(x.card) === 'again') && pickOn(x.card));
+function pickBookMenu(){
+  const L = pickPool();
+  if(!L.length){ alert('本のカードの本アイコンを押して、選んでほしい本を選んでください'); return; }
+  showPicked(L[Math.floor(Math.random() * L.length)].card.id, '');
 }
 
 /* 音（ファイル不要・その場で合成）*/
@@ -6549,8 +6576,7 @@ function showPicked(cid, st){
   };
   w.querySelector('[data-open]').onclick = () => { close(); view = {type:'card', id:cid}; render(); };
   w.querySelector('[data-again]').onclick = () => {
-    const pool2 = allCards().filter(x => x.card.type === 'book' && !bookStatus(x.card)
-      && (!st ? ['reading', 'stack', 'want'].includes(bookShelf(x.card)) : bookShelf(x.card) === st));
+    const pool2 = pickPool();
     if(pool2.length < 2) return;
     let n2;
     do { n2 = pool2[Math.floor(Math.random() * pool2.length)]; } while(n2.card.id === cid);
@@ -6567,14 +6593,17 @@ function renderShelf(){
   const shelf = S.boards.find(b => b.name === 'Bookshelf');
   document.getElementById('topActions').innerHTML =
     `<button class="btn" id="shBack">▦ Bookshelf へ戻る</button>`;
+  /* 読んだ本＝「読了」か「再読したい」棚か「再読」が付いている本 */
+  const isRead = k => bookStatus(k) === 'done' || bookShelf(k) === 'again'
+    || ((k.book && k.book.reread) || 0) > 0;
   let L = allCards().filter(x => x.card.type === 'book'
-    && (st === 'all' || bookStatus(x.card) === st));
+    && (st === 'all' ? true : st === 'done' ? isRead(x.card) : bookStatus(x.card) === st));
   if(q){
     const s = q.toLowerCase();
     L = L.filter(x => cardHay(x.card).includes(s));
   }
   L.sort((a, b2) => ((b2.card.book.doneAt || '') + '').localeCompare((a.card.book.doneAt || '') + ''));
-  const shLabel = {reading:'読書中', want:'気になる', stack:'積読中'};
+  const shLabel = {reading:'読んでる', want:'気になる', stack:'休憩中', again:'再読したい'};
   const v = document.getElementById('view');
   v.innerHTML = `
     <div class="tools">
@@ -7801,6 +7830,7 @@ const boot = () => {
     S.sideHidden = true; S.rsideHidden = true;
   }
   document.title = APP_TITLE;
+  if(APP === 'task') document.body.classList.add('app-task');
   const bn = document.getElementById('brandName');
   if(bn) bn.textContent = APP_TITLE;
   const bs = document.getElementById('brandSub');
