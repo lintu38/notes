@@ -761,12 +761,13 @@
   .pickbook svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.2;
     stroke-linecap:round;stroke-linejoin:round}
   .pkn{margin-left:auto;font-size:11px;color:var(--muted)}
-  .pkmini{width:24px;height:22px;padding:0;margin-left:2px;border-radius:6px;
-    display:inline-flex;align-items:center;justify-content:center;color:#cdc5c7;flex:0 0 auto}
-  .pkmini svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.3;
+  .pkmini{width:24px;height:24px;padding:0;margin-left:2px;border-radius:7px;
+    display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;
+    color:#cdc5c7;background:none;border:0;transition:.12s}
+  .pkmini svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.4;
     stroke-linejoin:round;stroke-linecap:round}
-  .pkmini.on{color:#b06a80}
-  .pkmini:hover{background:rgba(0,0,0,.05)}
+  .pkmini.on{color:#b06a80;background:#f6e9ed}
+  .pkmini:hover{color:#b06a80;background:#f6e9ed}
   .pkck{display:flex;align-items:center;gap:9px;padding:6px 10px;border-radius:8px;
     font-size:12.5px;color:#5f585a;cursor:pointer}
   .pkck:hover{background:var(--accent-soft)}
@@ -1564,7 +1565,7 @@
 const APP = 'note';
 const KEY = APP === 'task' ? 'boards.tasks.task.v1' : 'boards.tasks.v1';
 const APP_TITLE = APP === 'task' ? 'Tasks' : 'Notes';
-const APPVER = '20260817-1357';
+const APPVER = '20260817-1403';
 const TIMELB = APP === 'task' ? 'Time Log' : 'Read Log';
 const TASKLB = APP === 'task' ? 'Tasks' : 'Action';
 /* Task 用は初回だけ、これまでのデータを引き継ぐ */
@@ -5608,7 +5609,7 @@ const bookStatus = k => (k.book && k.book.status) || '';
 /* 媒体は複数持てる（保存は「Kindle, 文庫」のような文字列）*/
 const mediaArr = B => ((B && B.media) || '').split(/[,、]/).map(s => s.trim()).filter(Boolean);
 const mediaHas = (B, m) => mediaArr(B).includes(m);
-const SHELVES = [['reading','読んでる'], ['want','気になる'], ['stack','休憩中'], ['again','再読したい']];
+const SHELVES = [['reading','読んでる'], ['want','気になる'], ['stack','休憩中'], ['again','もう一度']];
 const SHELFV = SHELVES.map(s => s[0]);
 const bookShelf = k => (k.book && k.book.shelf) || '';
 const PICKICO = '<svg viewBox="0 0 16 16"><path d="M2.6 3.1h4.1c.9 0 1.3.5 1.3 1.2v8.6c0-.6-.5-1-1.3-1H2.6z"/><path d="M13.4 3.1H9.3c-.9 0-1.3.5-1.3 1.2v8.6c0-.6.5-1 1.3-1h4.1z"/></svg>';
@@ -6603,7 +6604,7 @@ function renderShelf(){
     L = L.filter(x => cardHay(x.card).includes(s));
   }
   L.sort((a, b2) => ((b2.card.book.doneAt || '') + '').localeCompare((a.card.book.doneAt || '') + ''));
-  const shLabel = {reading:'読んでる', want:'気になる', stack:'休憩中', again:'再読したい'};
+  const shLabel = {reading:'読んでる', want:'気になる', stack:'休憩中', again:'もう一度'};
   const v = document.getElementById('view');
   v.innerHTML = `
     <div class="tools">
