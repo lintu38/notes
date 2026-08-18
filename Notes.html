@@ -405,6 +405,18 @@
   .log-h input[type=date]:hover,.log-h select:hover{background:#f4f0ef}
   .log-h select{border:0;background:none;font-size:11.5px;color:#4a4446;outline:none;
     padding:1px 3px;border-radius:5px;max-width:46%}
+  .log-lb{font-size:10.5px;color:#a9a0a2;letter-spacing:.06em;flex:0 0 auto}
+  .log-ar{font-size:9px;color:#c3bbbd;flex:0 0 auto;padding:0 1px}
+  .log-to{display:inline-flex;gap:4px;flex-wrap:wrap;align-items:center;cursor:pointer;
+    padding:1px 4px;border-radius:6px;min-width:0;max-width:42%}
+  .log-to:hover{background:#f4f0ef}
+  .toc{font-size:11px;color:#4a4446;background:#efeae4;border-radius:20px;padding:1px 8px;white-space:nowrap}
+  .toc.other{background:#dceef2;color:#3c6873}
+  .log-h select.other{background:#dceef2;color:#3c6873}
+  .log-h select.other:hover{background:#cfe6ec}
+  .toadd{font-size:11px;color:#bdb4b6}
+  .log-h select{max-width:19%;background:#f2ede7;border-radius:0;padding:2px 4px}
+  .log-h select:hover{background:#eae4dc;border-radius:0}
   .log-x{margin-left:auto;opacity:0;color:#c0b8ba;font-size:13px;padding:0 3px}
   .log:hover .log-x{opacity:1}
   .log-t{font-size:13px;line-height:1.7;white-space:pre-wrap;outline:none;padding:3px 4px;
@@ -779,6 +791,11 @@
     stroke-linejoin:round;stroke-linecap:round}
   .pkmini.on{color:#b06a80;background:#f6e9ed}
   .pkmini:hover{color:#b06a80;background:#f6e9ed}
+  .dpanel .pkck{gap:8px;padding:5px 6px}
+  .dpanel .pkck > span{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;
+    white-space:nowrap;font-size:12.5px;color:#4a4446}
+  .dpanel .pkck .dmini{width:auto!important;flex:0 0 auto;padding:2px 7px;display:inline-flex;
+    align-items:center;justify-content:center}
   .pkck{display:flex;align-items:center;gap:9px;padding:6px 10px;border-radius:8px;
     font-size:12.5px;color:#5f585a;cursor:pointer}
   .pkck:hover{background:var(--accent-soft)}
@@ -1597,7 +1614,7 @@
 const APP = 'note';
 const KEY = APP === 'task' ? 'boards.tasks.task.v1' : 'boards.tasks.v1';
 const APP_TITLE = APP === 'task' ? 'Tasks' : 'Notes';
-const APPVER = '20260818-1602';
+const APPVER = '20260818-1657';
 const TIMELB = APP === 'task' ? 'Time Log' : 'Read Log';
 const TASKLB = APP === 'task' ? 'Tasks' : 'Action';
 /* Task 用は初回だけ、これまでのデータを引き継ぐ */
@@ -2245,6 +2262,13 @@ function load(){
       })));
     if(S.shelfTab === 'care') S.shelfTab = 'want';
     S.shelfFix1 = true;
+  }
+  if(!S.logFT1){
+    (S.boards || []).forEach(b2 => (b2.cols || []).forEach(c =>
+      (c.cards || []).forEach(k => (k.logs || []).forEach(g => {
+        if(g.who && !g.from){ g.from = g.who; }
+      }))));
+    S.logFT1 = true;
   }
   if(!S.sndFix8){
     S.tickSound = 'harp3';    // チェック＝ド・ミ・ド
@@ -3263,12 +3287,13 @@ function logSection(k){
       <div class="log">
         <div class="log-h">
           <input type="date" value="${g.date || ''}" data-logdate="${k.id}|${g.id}">
-          <select data-logwho="${k.id}|${g.id}">
-            <option value="">（相手）</option>
-            ${(S.contacts || []).map(c => `<option ${c===g.who?'selected':''}>${esc(c)}</option>`).join('')}
-            ${g.who && !(S.contacts||[]).includes(g.who) ? `<option selected>${esc(g.who)}</option>` : ''}
-            <option value="__new">＋ 新しい相手…</option>
-          </select>
+          <span class="log-lb">From</span>
+          ${whoSelect(k.id, g.id, 'from', g.from)}
+          <span class="log-ar">▶</span>
+          <span class="log-lb">To</span>
+          <span class="log-to" data-logto="${k.id}|${g.id}" title="クリックで選ぶ（複数可）">${
+            toArr(g).length ? toArr(g).map(n2 => `<span class="toc ${n2.trim() === 'M' ? '' : 'other'}">${esc(n2)}</span>`).join('')
+              : '<span class="toadd">選ぶ</span>'}</span>
           <button class="log-x" data-logdel="${k.id}|${g.id}">×</button>
         </div>
         <div class="log-t" contenteditable="true" data-logtext="${k.id}|${g.id}">${clean(g.text)}</div>
@@ -3277,6 +3302,68 @@ function logSection(k){
   </div>`;
 }
 
+/* 名前を変えたら、すべてのログの From / To も付け替える */
+function renameContact(oldName, newName){
+  if(!oldName) return;
+  allCards().forEach(x => (x.card.logs || []).forEach(g => {
+    if(g.from === oldName) g.from = newName;
+    if(Array.isArray(g.to)) g.to = newName
+      ? g.to.map(x => x === oldName ? newName : x) : g.to.filter(x => x !== oldName);
+    else if(g.to === oldName) g.to = newName;
+    if(g.who === oldName) g.who = newName;
+  }));
+}
+const toArr = g => Array.isArray(g.to) ? g.to : (g.to ? [g.to] : []);
+function toMenu(rect, cid, lid){
+  const k = findCard(cid)?.card; if(!k) return;
+  const g = (k.logs || []).find(x => x.id === lid); if(!g) return;
+  S.contacts ||= [];
+  const cur = toArr(g);
+  const p = popup(Math.max(12, rect.left - 30), rect.bottom + 6, `<div class="dpanel" style="width:210px">
+    <h4>To（いくつでも）</h4>
+    ${S.contacts.length ? S.contacts.map(c => `<label class="pkck">
+      <input type="checkbox" data-to="${esc(c)}" ${cur.includes(c) ? 'checked' : ''}>
+      <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis">${esc(c)}</span>
+      <button class="dmini" data-toed="${esc(c)}" title="名前を直す">✎</button></label>`).join('')
+      : '<div class="hint">まだ名前がありません</div>'}
+    <div class="dfoot"><button id="toNew">＋ 名前を追加</button><button id="toOk">OK</button></div>
+  </div>`);
+  const sync = () => {
+    g.to = [...p.querySelectorAll('[data-to]')].filter(c => c.checked).map(c => c.dataset.to);
+    touch(k); save();
+  };
+  p.querySelectorAll('[data-to]').forEach(c => c.onchange = sync);
+  p.querySelectorAll('[data-toed]').forEach(b => b.onclick = ev => {
+    ev.preventDefault(); ev.stopPropagation();
+    const old = b.dataset.toed;
+    const n = (prompt('名前を修正（空にすると一覧から削除）', old) || '').trim();
+    if(n === old) return;
+    const i = S.contacts.indexOf(old);
+    if(!n){ if(i >= 0) S.contacts.splice(i, 1); renameContact(old, ''); }
+    else { if(i >= 0) S.contacts[i] = n; renameContact(old, n); }
+    save(); p.remove(); render();
+  });
+  p.querySelector('#toNew').onclick = () => {
+    const n = (prompt('名前') || '').trim();
+    if(!n) return;
+    if(!S.contacts.includes(n)) S.contacts.push(n);
+    g.to = [...toArr(g), n];
+    touch(k); save(); p.remove(); render();
+  };
+  p.querySelector('#toOk').onclick = () => { p.remove(); render(); };
+}
+/* Message Log の From / To */
+function whoSelect(cid, lid, key, val){
+  const list = S.contacts || [];
+  const me = (val || '').trim() === 'M';
+  return `<select class="${val && !me ? 'other' : ''}" data-logwho="${cid}|${lid}|${key}">
+    <option value=""></option>
+    ${list.map(c => `<option ${c === val ? 'selected' : ''}>${esc(c)}</option>`).join('')}
+    ${val && !list.includes(val) ? `<option selected>${esc(val)}</option>` : ''}
+    <option value="__new">＋ 名前を追加…</option>
+    <option value="__edit">✎ 名前を編集…</option>
+  </select>`;
+}
 /* ---------------- shared card interactions ---------------- */
 /* 編集ボタンを押した直後は、枠と背景をはっきり出す */
 function markEditing(cid){
@@ -3596,13 +3683,31 @@ function wireCards(root){
     const [cid, lid] = el.dataset.logdate.split('|');
     findCard(cid).card.logs.find(g => g.id === lid).date = el.value; save();
   });
+  root.querySelectorAll('[data-logto]').forEach(el => el.onclick = () => {
+    const [cid, lid] = el.dataset.logto.split('|');
+    toMenu(el.getBoundingClientRect(), cid, lid);
+  });
   root.querySelectorAll('[data-logwho]').forEach(el => el.onchange = () => {
-    const [cid, lid] = el.dataset.logwho.split('|');
+    const [cid, lid, key] = el.dataset.logwho.split('|');
     const g = findCard(cid).card.logs.find(x => x.id === lid);
+    S.contacts ||= [];
     if(el.value === '__new'){
-      const n = (prompt('相手の名前') || '').trim();
-      if(n){ if(!S.contacts.includes(n)) S.contacts.push(n); g.who = n; }
-    } else g.who = el.value;
+      const n = (prompt('名前') || '').trim();
+      if(n){ if(!S.contacts.includes(n)) S.contacts.push(n); g[key] = n; }
+    } else if(el.value === '__edit'){
+      const cur = g[key] || '';
+      const n = (prompt('名前を修正（空にすると一覧から削除）', cur) || '').trim();
+      if(n !== cur){
+        const i = S.contacts.indexOf(cur);
+        if(!n){
+          if(i >= 0) S.contacts.splice(i, 1);
+          renameContact(cur, '');
+        } else {
+          if(i >= 0) S.contacts[i] = n; else if(!S.contacts.includes(n)) S.contacts.push(n);
+          renameContact(cur, n);
+        }
+      }
+    } else g[key] = el.value;
     save(); render();
   });
   /* 時間計測 */
@@ -4629,7 +4734,8 @@ function renderTasks(){
       const hay = [plain(k.title), k.bodyTitle, plain(k.body), plain(k.note), plain(k.head), plain(Q.text), Q.author, Q.source, plain(Q.memo),
         R.author, R.source, R.media, (R.flags || []).join(' '), plain(R.memo),
         ...(k.subs || []).map(x => [plain(x.title), plain(x.head), plain(x.note)].join(' ')),
-        ...(k.logs || []).map(g => (g.who || '') + ' ' + plain(g.text)),
+        ...(k.logs || []).map(g => [g.from, ...(Array.isArray(g.to) ? g.to : [g.to]), g.who]
+          .filter(Boolean).join(' ') + ' ' + plain(g.text)),
         ...(k.tags || []).map(x => '#' + x)].join(' ').toLowerCase();
       return hay.includes(s);
     });
@@ -6100,7 +6206,8 @@ function cardHay(k){
     ...(k.tags || []).map(t => '#' + t),
     plain(Q.text), Q.author, Q.source, plain(Q.memo),
     R.author, R.source, R.media, plain(R.memo), (R.flags || []).join(' '),
-    ...(k.logs || []).map(g => (g.who || '') + ' ' + plain(g.text)),
+    ...(k.logs || []).map(g => [g.from, ...(Array.isArray(g.to) ? g.to : [g.to]), g.who]
+          .filter(Boolean).join(' ') + ' ' + plain(g.text)),
   ].filter(Boolean).join(' ').toLowerCase();
 }
 function excerpt(text, s, len){
@@ -7014,7 +7121,7 @@ document.getElementById('navCards').onclick = () => { view = {type:'cards'}; dec
 document.getElementById('navPin').onclick = () => { view = {type:'pin'}; q = ''; render(); };
 document.getElementById('navDone').onclick = () => { view = {type:'done'}; q = ''; render(); };
 document.getElementById('navTasks').onclick = () => {
-  view = {type:'tasks'}; filter = 'all'; render(); };
+  view = {type:'tasks'}; filter = APP === 'task' ? 'today' : 'all'; render(); };
 document.getElementById('addFolder').onclick = () => {
   const n = (prompt('フォルダ名', '新しいフォルダ') || '').trim();
   if(!n) return;
@@ -8065,7 +8172,7 @@ const boot = () => {
     return;
   }
   if(APP === 'task'){
-    view = {type:'tasks'}; filter = 'all';
+    view = {type:'tasks'}; filter = 'today';
   } else {
     /* 起動時は Daily Memo を開く */
     const startB = S.boards.find(b2 => b2.daily) || S.boards.find(b2 => b2.name === 'Daily Memo') || S.boards[0];
