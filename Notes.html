@@ -562,6 +562,13 @@
     padding:1px 2px;border-radius:5px;width:auto;font-family:inherit}
   .tlog input:hover{background:#f4f0ef}
   .tlog .dur{margin-left:auto;font-weight:700;color:#4a4446;white-space:nowrap}
+  .acts{display:inline-flex;gap:4px;flex-wrap:wrap;align-items:center;cursor:pointer;
+    min-width:0;padding:1px 2px;border-radius:6px}
+  .acts:hover{background:#f4f0ef}
+  .actc{font-size:10.5px;padding:1px 7px;border-radius:20px;background:#efe7ea;color:#8a6472;
+    white-space:nowrap}
+  .actadd{font-size:10.5px;color:#c3bbbd}
+  .trow .acts{overflow:hidden;padding-left:10px}
   .tlog .x{opacity:0;color:#c0b8ba;padding:0 2px;font-size:13px}
   .tlog:hover .x{opacity:1}
   .tlog.run{background:#fff6f6;border-color:#f3d9d9}
@@ -593,6 +600,8 @@
   .bsum i{width:7px;height:7px;border-radius:50%;display:inline-block}
   .trow:first-child{border-top:0}
   .trow:hover{background:#fdfbfa}
+  .trow.wrow{background:#eef4f9}
+  .trow.wrow:hover{background:#e7eff7}
   .trow.head{background:#f6f2f1;border-top:0;font-size:11px;color:var(--muted);
     letter-spacing:.06em;font-weight:700;padding:7px 12px}
   .trow .nm{min-width:0;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -898,6 +907,15 @@
     word-break:break-word;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
   .lc-b{font-size:9.5px;color:#b0a7a9;margin-top:5px;overflow:hidden;
     text-overflow:ellipsis;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .worknav{padding:2px 8px 6px;display:none}
+  .worknav button{width:100%;display:flex;align-items:center;gap:8px;padding:7px 9px;
+    border-radius:9px;background:#e7e2da;color:#24407a;font-size:12.5px;letter-spacing:.04em;
+    font-family:var(--fdisp)}
+  .worknav button:hover{background:#e0dad1}
+  .worknav .nico{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.3;
+    stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
+  .worknav .wt{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:700}
+  .worknav button.on{background:#f0dede;color:#a04a52}
   /* Search */
   .searchbox{max-width:760px;margin-bottom:20px}
   .bigsearch{width:100%;border:1px solid var(--line);border-radius:10px;padding:8px 13px;
@@ -1058,6 +1076,9 @@
   .chip.when:hover{filter:brightness(.96)}
   .chip.when.none{font-weight:400;background:#f5f1f0;color:#b0aba2}
   .card.pending{opacity:.62}
+  /* 「すべて折りたたむ」：タイトルの行だけ見せる */
+  .cols.foldall .card > *:not(.card-top):not(.qribbon){display:none}
+  .cols.foldall .card{padding-top:8px;padding-bottom:8px}
   .add{width:100%;padding:9px;border:1px dashed #dbd3d4;border-radius:11px;color:var(--muted);font-size:13px}
   .add:hover{background:var(--panel);color:var(--ink);border-color:#c8bec0}
 
@@ -1490,6 +1511,10 @@
     <input type="file" id="bannerFile" accept="image/*" hidden>
     <input type="file" id="imgFile" accept="image/*" hidden>
     <input type="file" id="bcovFile" accept="image/*" hidden>
+    <div class="worknav" id="workNav" title="Work の時間を計る">
+      <button class="workbtn" id="workBtn"><svg class="nico" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 4.6V8l2.4 1.6"/></svg>
+        <span class="wl" id="workLb">Work</span><span class="wt" id="workEl"></span></button>
+    </div>
     <div id="navList">
     <div class="nav" id="navSearch" data-nav="search" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><circle cx="7.2" cy="7.2" r="4.6"/><path d="M10.6 10.6l3.2 3.2"/></svg></span><span>Search</span></div>
     <div class="nav" id="navTasks" data-nav="tasks" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><circle cx="10.2" cy="2.9" r="1.5"/><path d="M4.2 14.2l2.1-3.4 1.6-1.1-1-3.1-2.4 1.5-1 2.1"/><path d="M6.9 6.6l2.6-1.3 1.6 2.4 2.4.9"/><path d="M11.6 13.9l-1.4-3.1-2.3-1.3"/></svg></span><span id="navTasksLb">Tasks</span><span class="cnt" id="cntAll">0</span></div>
@@ -1565,7 +1590,7 @@
 const APP = 'note';
 const KEY = APP === 'task' ? 'boards.tasks.task.v1' : 'boards.tasks.v1';
 const APP_TITLE = APP === 'task' ? 'Tasks' : 'Notes';
-const APPVER = '20260817-1408';
+const APPVER = '20260818-1437';
 const TIMELB = APP === 'task' ? 'Time Log' : 'Read Log';
 const TASKLB = APP === 'task' ? 'Tasks' : 'Action';
 /* Task 用は初回だけ、これまでのデータを引き継ぐ */
@@ -1654,6 +1679,13 @@ let S, view = {type:'board', id:null}, filter = 'all', q = '', folded = {}, tagF
 /* ---------------- dates & repeat ---------------- */
 const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 const today = () => iso(new Date());
+/* 記録上の1日は朝5時から。5時より前は前の日として扱う */
+const DAYSTART = 5;
+const bizToday = () => {
+  const d = new Date();
+  if(d.getHours() < DAYSTART) d.setDate(d.getDate() - 1);
+  return iso(d);
+};
 function todayPlus(n){ const d = new Date(); d.setDate(d.getDate()+n); return iso(d); }
 const parse = s => new Date(s + 'T00:00:00');
 function addDays(s, n){ const d = parse(s); d.setDate(d.getDate()+n); return iso(d); }
@@ -1733,28 +1765,97 @@ function fmtClock(sec){
 const totalSec = k => (k.times || []).reduce((a, e) => a + (e.sec || 0), 0);
 const runSec = k => k.timer ? (Date.now() - k.timer.t0) / 1000 : 0;
 const runningCard = () => allCards().find(x => x.card.timer);
-function toggleTimer(cid){
+/* 計測のあとに残す「したこと」（Notes のみ） */
+const ACTS = ['読んだ', 'メモした', '調べた'];
+const actArr = e => (e && Array.isArray(e.acts)) ? e.acts : [];
+const actChips = (cid, eid, arr) =>
+  `<span class="acts" data-actopen="${cid}|${eid}" title="クリックで変更">${
+    arr.length ? arr.map(a => `<span class="actc">${esc(a)}</span>`).join('')
+      : '<span class="actadd">＋ したこと</span>'}</span>`;
+function actMenu(rect, cid, eid){
   const k = findCard(cid)?.card; if(!k) return;
-  if(k.timer){ stopTimer(k); if(!S.muteTick) playById(S.timerEnd || 'box'); }
+  const e = (k.times || []).find(x => x.id === eid); if(!e) return;
+  const cur = actArr(e);
+  const p = popup(Math.max(12, rect.left - 40), rect.bottom + 6, `<div class="dpanel" style="width:190px">
+    <h4>したこと</h4>
+    <div class="quick" style="margin-left:0">${ACTS.map(a =>
+      `<button data-act="${esc(a)}" ${cur.includes(a)
+        ? 'style="background:var(--accent-soft);color:var(--accent);font-weight:700"' : ''}>${esc(a)}</button>`).join('')}</div>
+    <div class="dfoot"><button id="actOk">OK</button></div>
+  </div>`);
+  p.querySelectorAll('[data-act]').forEach(b => b.onclick = () => {
+    const a = b.dataset.act;
+    const now = actArr(e);
+    e.acts = now.includes(a) ? now.filter(x => x !== a) : [...now, a];
+    touch(k); save(); p.remove(); actMenu(rect, cid, eid); render();
+  });
+  p.querySelector('#actOk').onclick = () => { p.remove(); render(); };
+}
+function toggleTimer(cid, rect){
+  const k = findCard(cid)?.card; if(!k) return;
+  if(k.timer){
+    const done = stopTimer(k);
+    if(!S.muteTick) playById(S.timerEnd || 'box');
+    if(APP === 'note' && done && rect){
+      save(); render();
+      setTimeout(() => actMenu(rect, cid, done.id), 60);
+      return;
+    }
+  }
   else {
     notifyAsk(); keepAliveStart();
     if(!S.muteTick) playById(S.timerStart || 'temple');
     const r = runningCard();
     if(r && r.card !== k) stopTimer(r.card);   // 同時にひとつだけ計測する
     k.times ||= [];
-    k.timer = {date:today(), start:nowHM(), t0:Date.now()};
+    k.timer = {date:bizToday(), start:nowHM(), t0:Date.now()};
     if(k.fold) k.fold.time = false;
   }
   save(); render();
 }
 function stopTimer(k){
-  if(!k.timer) return;
+  if(!k.timer) return null;
   keepAliveStop();
   const sec = Math.max(1, Math.round(runSec(k)));
-  (k.times ||= []).push({id:uid(), date:k.timer.date, start:k.timer.start, end:nowHM(), sec});
+  const e = {id:uid(), date:k.timer.date, start:k.timer.start, end:nowHM(), sec};
+  (k.times ||= []).push(e);
   delete k.timer;
+  return e;
 }
-const allTimes = () => allCards().flatMap(x => (x.card.times || []).map(e => ({...x, e})));
+const WORKBD = {id:'work', name:'Work', color:'#7fa3c4'};
+const WORKCARD = {id:'work', type:'task', title:'Work', times:[]};
+const workRunSec = () => S.workTimer ? (Date.now() - S.workTimer.t0) / 1000 : 0;
+function toggleWork(){
+  S.workTimes ||= [];
+  if(S.workTimer){
+    const sec = Math.max(1, Math.round(workRunSec()));
+    S.workTimes.push({id:uid(), date:S.workTimer.date, start:S.workTimer.start, end:nowHM(), sec});
+    S.workTimer = null;
+    if(!S.muteTick) playById(S.timerEnd || 'box');
+  } else {
+    S.workTimer = {date:bizToday(), start:nowHM(), t0:Date.now()};
+    if(!S.muteTick) playById(S.timerStart || 'temple');
+  }
+  save(); render();
+}
+function paintWork(){
+  const box = document.getElementById('workNav');
+  if(!box) return;
+  box.style.display = APP === 'task' ? 'block' : 'none';
+  if(APP !== 'task') return;
+  const b = document.getElementById('workBtn');
+  const run = !!S.workTimer;
+  b.classList.toggle('on', run);
+  document.getElementById('workLb').textContent = run ? 'Work 計測中' : 'Work';
+  document.getElementById('workEl').textContent = run ? fmtClock(workRunSec()) : '';
+  b.title = run ? '計測を止める' : 'Work の時間を計る';
+}
+const allTimes = () => {
+  const L = allCards().flatMap(x => (x.card.times || []).map(e => ({...x, e})));
+  if(APP === 'task')
+    (S.workTimes || []).forEach(e => L.push({board:WORKBD, col:null, card:WORKCARD, e}));
+  return L;
+};
 /* 計測中の表示を毎秒更新（再描画はしない） */
 const NOTIFY_MIN = 15;      /* 何分で知らせるか（Notes のみ） */
 /* ---- スマホでも 15 分のお知らせを鳴らすための仕掛け ----
@@ -1838,6 +1939,11 @@ function notifyShow(title, body){
   }catch(_){}
 }
 setInterval(() => {
+  if(APP === 'task' && S.workTimer){
+    const el = document.getElementById('workEl');
+    if(el) el.textContent = fmtClock(workRunSec());
+    document.querySelectorAll('[data-workel]').forEach(n => n.textContent = fmtClock(workRunSec()));
+  }
   const r = runningCard(); if(!r) return;
   if(APP === 'note'){
     const mins = Math.floor(runSec(r.card) / 60);
@@ -2574,6 +2680,7 @@ function renderSide(){
     const pb = document.getElementById('cntPin');
     pb.textContent = nP; pb.style.display = nP ? '' : 'none';
   }
+  paintWork();
   document.getElementById('navSearch').classList.toggle('on', view.type === 'search');
   document.getElementById('navQuote').classList.toggle('on', view.type === 'quote');
   document.getElementById('navRead').classList.toggle('on', view.type === 'read');
@@ -2644,11 +2751,25 @@ function renderBoard(){
   t.oninput = e => { b.name = e.target.value; save(); renderSide(); };
   const shelf = b.name === 'Bookshelf';
   S.shelfTab ||= 'reading';
+  S.boardFold ||= {};
+  const bFold = !!S.boardFold[b.id];
+  const logCards = (b.cols || []).flatMap(c => c.cards || []).filter(hasLog);
+  const logAnyOpen = logCards.some(k => k.fold && k.fold.log === false);
   document.getElementById('topActions').innerHTML =
     (shelf ? `<button class="btn" id="shAll">ALL</button>
       <button class="btn" id="shDone">読んだ本</button>
       <button class="btn" id="shStop">途中終了</button>` : '') +
+    (APP === 'task' && !shelf
+      ? `<button class="btn" id="bFold">${bFold ? 'すべて展開' : 'すべて折りたたむ'}</button>
+         ${logCards.length ? `<button class="btn" id="bFoldLog">Message Log を${logAnyOpen ? 'たたむ' : '開く'}</button>` : ''}` : '') +
     (tagFilter ? `<button class="btn" id="clrTag">🏷 #${esc(tagFilter)} を解除</button>` : '');
+  const bf = document.getElementById('bFold');
+  if(bf) bf.onclick = () => { S.boardFold[b.id] = !bFold; save(); renderBoard(); };
+  const bfl = document.getElementById('bFoldLog');
+  if(bfl) bfl.onclick = () => {
+    logCards.forEach(k => { (k.fold ||= {}).log = logAnyOpen ? true : false; });
+    save(); renderBoard();
+  };
   const sd = document.getElementById('shDone');
   if(sd) sd.onclick = () => { view = {type:'shelf', st:'done'}; render(); };
   const ss = document.getElementById('shStop');
@@ -2673,7 +2794,7 @@ function renderBoard(){
       <svg viewBox="0 0 16 16"><path d="M2.6 3.1h4.1c.9 0 1.3.5 1.3 1.2v8.6c0-.6-.5-1-1.3-1H2.6z"/><path d="M13.4 3.1H9.3c-.9 0-1.3.5-1.3 1.2v8.6c0-.6.5-1 1.3-1h4.1z"/></svg>
     </button>
   </div>` : ''}
-  <div class="cols ${shelf ? 'shelfcols' : ''}">${b.cols.map(c => {
+  <div class="cols ${shelf ? 'shelfcols' : ''} ${bFold ? 'foldall' : ''}">${b.cols.map(c => {
     const w = c.w || 288;
     return `<div class="col" data-col="${c.id}" style="width:${w}px;flex-basis:${w}px">
       <div class="col-head" data-colhead="${c.id}">
@@ -2853,7 +2974,7 @@ function cardHTML(k){
           <div class="t" contenteditable="true" data-stitle="${k.id}|${s.id}">${clean(s.title)}</div>
           ${s.done ? `<span class="chip sdate" data-sdate="${k.id}|${s.id}" title="完了日（クリックで変更）">✓ ${s.doneAt?fmtDue(s.doneAt):'日付なし'}</span>` : ''}
           <button class="submenu" data-submenu="${k.id}|${s.id}" title="見出し・説明">⋯</button>
-          <button class="x" data-sdel="${k.id}|${s.id}">×</button>
+
         </div>
         ${(s.noteOn || plain(s.note).trim()) ? `<div class="tnote sub-note" contenteditable="true"
           data-snote="${k.id}|${s.id}" data-ph="説明・注意事項…">${clean(s.note)}</div>` : ''}
@@ -3050,6 +3171,7 @@ function timeSection(k){
         <input type="date" value="${e.date || ''}" data-tmdate="${k.id}|${e.id}">
         <input type="time" value="${e.start || ''}" data-tmstart="${k.id}|${e.id}">–<input type="time" value="${e.end || ''}" data-tmend="${k.id}|${e.id}">
         <span class="dur" data-tmedit="${k.id}|${e.id}" style="cursor:pointer" title="クリックで編集">${fmtDur(e.sec)}</span>
+        ${APP === 'note' ? actChips(k.id, e.id, actArr(e)) : ''}
         <button class="x" data-tmdel="${k.id}|${e.id}">×</button></div>`).join('')}
       </div>
       <button class="logadd" data-timeadd="${k.id}">＋ 手動で追加</button>` : ''}
@@ -3090,7 +3212,7 @@ function memoCardHTML(k){
 }
 function logSection(k){
   if(!hasLog(k)) return '';
-  const open = !(k.fold && k.fold.log);
+  const open = !!(k.fold && k.fold.log === false);   /* 既定は閉じた状態 */
   const logs = k.logs;
   return `<div class="sec">
     <div class="sec-h">
@@ -3396,7 +3518,7 @@ function wireCards(root){
   root.querySelectorAll('[data-fold]').forEach(el => el.onclick = () => {
     const [which, cid] = el.dataset.fold.split('|');
     const k = findCard(cid).card;
-    k.fold = {memo:false, log:false, ...(k.fold || {})};
+    k.fold = {memo:false, log:true, ...(k.fold || {})};
     k.fold[which] = !k.fold[which];
     save(); render();
   });
@@ -3447,7 +3569,8 @@ function wireCards(root){
     save(); render();
   });
   /* 時間計測 */
-  root.querySelectorAll('[data-timer]').forEach(el => el.onclick = () => toggleTimer(el.dataset.timer));
+  root.querySelectorAll('[data-timer]').forEach(el => el.onclick = e =>
+    toggleTimer(el.dataset.timer, e.currentTarget.getBoundingClientRect()));
   root.querySelectorAll('[data-timeopen]').forEach(el => el.onclick = () => {
     const k = findCard(el.dataset.timeopen).card;
     k.fold = {memo:false, log:false, time:false, ...(k.fold || {})};
@@ -3458,18 +3581,19 @@ function wireCards(root){
     const last = (k.times || [])[k.times.length - 1];
     const start = last ? last.end : '09:00';
     const endMin = (hm2min(start) + 30) % 1440;
-    const e = {id:uid(), date:today(), start, end:`${pad2(endMin / 60 | 0)}:${pad2(endMin % 60)}`};
+    const e = {id:uid(), date:bizToday(), start, end:`${pad2(endMin / 60 | 0)}:${pad2(endMin % 60)}`};
     e.sec = spanSec(e);
     (k.times ||= []).push(e); save(); render();
   });
   root.querySelectorAll('[data-tmdate]').forEach(el => el.onchange = () => {
     const [cid, eid] = el.dataset.tmdate.split('|');
-    findCard(cid).card.times.find(x => x.id === eid).date = el.value; save(); render();
+    const e0 = timeListOf(cid).find(x => x.id === eid);
+    if(e0){ e0.date = el.value; save(); render(); }
   });
   root.querySelectorAll('[data-tmstart],[data-tmend]').forEach(el => el.onchange = () => {
     const key = el.dataset.tmstart ? 'tmstart' : 'tmend';
     const [cid, eid] = el.dataset[key].split('|');
-    const e = findCard(cid).card.times.find(x => x.id === eid);
+    const e = timeListOf(cid).find(x => x.id === eid);
     e[key === 'tmstart' ? 'start' : 'end'] = el.value;
     e.sec = spanSec(e); save(); render();
   });
@@ -3479,8 +3603,7 @@ function wireCards(root){
   });
   root.querySelectorAll('[data-tmdel]').forEach(el => el.onclick = () => {
     const [cid, eid] = el.dataset.tmdel.split('|');
-    const k = findCard(cid).card;
-    k.times = k.times.filter(x => x.id !== eid); save(); render();
+    delTime(cid, eid); save(); render();
   });
   root.querySelectorAll('[data-logdel]').forEach(el => el.onclick = () => {
     const [cid, lid] = el.dataset.logdel.split('|');
@@ -3980,7 +4103,7 @@ function cardMenu(e, cid){
     if(a === 'body'){ k.hasMemo = true; if(k.fold) k.fold.memo = false; }
     if(a === 'log'){
       k.logs = [{id:uid(), date:today(), who:'', text:''}];
-      if(k.fold) k.fold.log = false;
+      (k.fold ||= {}).log = false;
     }
     if(a === 'quote'){
       k.quote = {text:'', author:'', source:'', page:'', memo:'', card:false};
@@ -4648,7 +4771,7 @@ function wireRows(v){
       k.quote = {text:'', author:'', source:'', page:'', memo:'', card:false};
       if(k.fold) k.fold.quote = false;
     }
-    else { k.logs = [{id:uid(), date:today(), who:'', text:''}]; if(k.fold) k.fold.log = false; }
+    else { k.logs = [{id:uid(), date:today(), who:'', text:''}]; (k.fold ||= {}).log = false; }
     save(); render();
     document.querySelector({memo:`[data-body="${cid}"]`, quote:`[data-qtext="${cid}"]`}[which]
       || `[data-logtext^="${cid}|"]`)?.focus();
@@ -4719,7 +4842,7 @@ function rowHTML({board:b, col:c, card:k}, gi){
           <div class="t" contenteditable="true" data-tstitle="${k.id}|${s.id}">${clean(s.title)}</div>
           ${s.done ? `<span class="chip sdate" data-sdate="${k.id}|${s.id}" title="完了日（クリックで変更）">✓ ${s.doneAt?fmtDue(s.doneAt):'日付なし'}</span>` : ''}
           <button class="submenu" data-submenu="${k.id}|${s.id}" title="見出し・説明">⋯</button>
-          <button class="x" data-tsdel="${k.id}|${s.id}">×</button>
+
         </div>
         ${(s.noteOn || plain(s.note).trim()) ? `<div class="tnote sub-note" contenteditable="true"
           data-snote="${k.id}|${s.id}" data-ph="説明・注意事項…">${clean(s.note)}</div>` : ''}
@@ -4887,6 +5010,7 @@ function renderDone(){
 /* ---------------- 時間ログ ---------------- */
 const PIEC = ['#3d6fe0', '#4f8f57', '#d98324', '#7b52c0', '#c9899a', '#c9a227', '#5b6577', '#c0392b'];
 let timeSel = null;      // 表示中の日（null = 今日）
+let timeWork = false;    // Work タブ
 let timeAll = false;     // すべての記録を表示
 let pieRange = 'day';    // day | week | month | year
 let calMonth = null;     // 'YYYY-MM'
@@ -5085,9 +5209,17 @@ function calendarHTML(marks, sel, cm, allOn, allLabel){
 }
 
 /* 計測記録をあとから直す */
-function timeEdit(rect, cid, eid){
+/* 記録の置き場所（Work は S.workTimes）*/
+const timeListOf = cid => cid === 'work'
+  ? (S.workTimes ||= []) : (findCard(cid)?.card.times || []);
+function delTime(cid, eid){
+  if(cid === 'work'){ S.workTimes = (S.workTimes || []).filter(x => x.id !== eid); return; }
   const k = findCard(cid)?.card; if(!k) return;
-  const e = (k.times || []).find(x => x.id === eid); if(!e) return;
+  k.times = (k.times || []).filter(x => x.id !== eid);
+}
+function timeEdit(rect, cid, eid){
+  const list = timeListOf(cid);
+  const e = list.find(x => x.id === eid); if(!e) return;
   const mins = Math.round((e.sec || 0) / 60);
   const p = popup(Math.max(20, rect.left - 40), rect.bottom + 6, `<div class="dpanel" style="width:252px">
     <h4>記録を編集</h4>
@@ -5112,7 +5244,7 @@ function timeEdit(rect, cid, eid){
   $('teE').onchange = calc;
   $('teDel').onclick = () => {
     if(!confirm('この記録を削除しますか？')) return;
-    k.times = (k.times || []).filter(x => x.id !== eid);
+    delTime(cid, eid);
     save(); p.remove(); render();
   };
   $('teOK').onclick = () => {
@@ -5120,16 +5252,18 @@ function timeEdit(rect, cid, eid){
     e.start = $('teS').value;
     e.end = $('teE').value;
     e.sec = Math.max(0, Math.round((+$('teM').value || 0) * 60));
-    touch(k); save(); p.remove(); render();
+    if(cid !== 'work') touch(cid);
+    save(); p.remove(); render();
   };
 }
 
 function renderTimes(){
   const t = document.getElementById('pageTitle');
   t.disabled = true; t.oninput = null; t.style.color = '';
-  const sel = timeSel || today();
+  const sel = timeSel || bizToday();
   calMonth ||= sel.slice(0, 7);
-  t.value = timeAll ? `${TIMELB}（すべて）` : `${TIMELB} ${sel === today() ? '｜今日' : '｜' + sel}`;
+  t.value = (timeWork ? 'Work ' : '') +
+    (timeAll ? `${TIMELB}（すべて）` : `${TIMELB} ${sel === bizToday() ? '｜今日' : '｜' + sel}`);
 
   let all = allTimes();
   if(timeClient && !S.boards.some(b => b.id === timeClient)) timeClient = '';
@@ -5143,17 +5277,24 @@ function renderTimes(){
         .toLowerCase().includes(s);
     });
   }
-  let items = timeAll ? all.slice() : all.filter(i => i.e.date === sel);
+  const isW = i => i.board.id === 'work';
+  const allW = all.filter(isW);            /* Work だけ */
+  const allT = all.filter(i => !isW(i));   /* ふつうのタスク */
+  const base = timeWork ? allW : allT;
+  const listSrc = timeWork ? allW : allT;
+  let items = timeAll ? listSrc.slice() : listSrc.filter(i => i.e.date === sel);
   items.sort((a, b) => APP === 'note'
     ? ((a.e.date || '').localeCompare(b.e.date || '') || (a.e.start || '').localeCompare(b.e.start || ''))
-    : ((b.e.date || '').localeCompare(a.e.date || '') || (b.e.start || '').localeCompare(a.e.start || '')));
+    : ((b.e.date || '').localeCompare(a.e.date || '')
+       || ((isW(b) ? 1 : 0) - (isW(a) ? 1 : 0))
+       || (b.e.start || '').localeCompare(a.e.start || '')));
 
-  const grand = all.reduce((a, i) => a + (i.e.sec || 0), 0);
-  const selSec = all.filter(i => i.e.date === sel).reduce((a, i) => a + (i.e.sec || 0), 0);
-  const pieList = all.filter(i => inRange(i.e.date, sel, pieRange));
+  const grand = base.reduce((a, i) => a + (i.e.sec || 0), 0);
+  const selSec = base.filter(i => i.e.date === sel).reduce((a, i) => a + (i.e.sec || 0), 0);
+  const pieList = base.filter(i => inRange(i.e.date, sel, pieRange));
   const pieData = byBoard(pieList);
   const pieTotal = pieData.reduce((a, d) => a + d.sec, 0);
-  const {cols} = barCols(all, sel, pieRange);
+  const {cols} = barCols(base, sel, pieRange);
 
   const isNote = APP === 'note';
   if(isNote){
@@ -5185,13 +5326,16 @@ function renderTimes(){
   document.getElementById('view').innerHTML = `
     <div class="tools">
       <input class="search" id="q" placeholder="${isNote ? '著者・タイトルで絞り込み…' : 'タスク名・Client 名で絞り込み…'}" value="${esc(q)}">
-      ${isNote ? '' : clientSelect('timeCl', timeClient)}
+      ${isNote ? `` : `<div class="seg">
+        <button data-tw="0" class="${timeWork?'':'on'}">Task</button>
+        <button data-tw="1" class="${timeWork?'on':''}">Work</button></div>`}
+      ${isNote || timeWork ? '' : clientSelect('timeCl', timeClient)}
       <div class="seg">${[['day','日'],['week','週'],['month','月'],['year','年']]
         .map(([k, l]) => `<button data-pr="${k}" class="${pieRange===k?'on':''}">${l}</button>`).join('')}</div>
       <span style="color:var(--muted);font-size:12.5px">${rangeLabel(sel, pieRange)}</span>
     </div>
     <div class="tlrow">
-      ${calendarHTML(Object.fromEntries(Object.entries(all.reduce((o, i) => {
+      ${calendarHTML(Object.fromEntries(Object.entries(base.reduce((o, i) => {
           o[i.e.date] = (o[i.e.date] || 0) + (i.e.sec || 0); return o;
         }, {})).map(([k2, v]) => [k2, fmtDur(v)])), sel, calMonth, timeAll, 'すべての記録')}
       <div class="chartbox" style="flex:1 1 340px;margin:0">
@@ -5199,7 +5343,7 @@ function renderTimes(){
           ${pieRange === 'day' ? '（直近7日）' : ''}</h5>
         ${barChart(cols, sel)}
       </div>
-      <div class="pie" style="flex:0 1 330px;margin:0;flex-wrap:wrap">
+      <div class="pie" style="flex:0 1 330px;margin:0;flex-wrap:wrap;${timeWork ? 'display:none' : ''}">
         ${pieTotal ? donut(pieData, 128) : ''}
         <div style="flex:1;min-width:130px">
           <h5>${isNote ? 'タイトル 別' : 'Client 別'} ・ 計 ${fmtDur(pieTotal)}</h5>
@@ -5213,14 +5357,14 @@ function renderTimes(){
       </div>
     </div>
     <div class="sum">
-      <span>${sel === today() ? '今日' : sel} <b>${fmtDur(selSec)}</b></span>
+      <span>${sel === bizToday() ? '今日' : sel} <b>${fmtDur(selSec)}</b></span>
       <span>${esc(rangeLabel(sel, pieRange))} <b>${fmtDur(pieTotal)}</b></span>
       <span>合計 <b>${fmtDur(grand)}</b>（${all.length}件）</span>
     </div>
     ${(() => {
       const dayB = byBoard(all.filter(i => i.e.date === sel));
       return dayB.length ? `<div class="daysum">
-        <span class="ds-lb">${sel === today() ? '今日' : sel} の ${isNote ? 'タイトル' : 'Client'} 別</span>
+        <span class="ds-lb">${sel === bizToday() ? '今日' : sel} の ${isNote ? 'タイトル' : 'Client'} 別</span>
         ${dayB.map(g => `<span class="ds-i"><i style="background:${g.color}"></i>
           ${esc(g.name)} <b>${fmtDur(g.sec)}</b></span>`).join('')}
       </div>` : '';
@@ -5234,7 +5378,7 @@ function renderTimes(){
             <span>開始<i class="rz" data-rzc="4" title="ドラッグで幅を変更"></i></span>
             <span>終了<i class="rz" data-rzc="5" title="ドラッグで幅を変更"></i></span>
             <span style="text-align:right">合計<i class="rz" data-rzc="6" title="ドラッグで幅を変更"></i></span>
-            <span></span><span></span></div>`
+            <span style="padding-left:10px">したこと</span><span></span></div>`
         : `<div class="trow head"><span>日にち<i class="rz" data-rzc="0" title="ドラッグで幅を変更"></i></span>
             <span>Client<i class="rz" data-rzc="1" title="ドラッグで幅を変更"></i></span>
             <span>タスク<i class="rz" data-rzc="6" title="ドラッグで幅を変更"></i></span>
@@ -5246,11 +5390,14 @@ function renderTimes(){
       ${items.map((i, n) => {
         const prev = items[n - 1];
         const newDay = timeAll && (!prev || prev.e.date !== i.e.date);
-        const dayRows = all.filter(x => x.e.date === i.e.date);
+        const dayRows = base.filter(x => x.e.date === i.e.date);
         const daySec = dayRows.reduce((a, x) => a + (x.e.sec || 0), 0);
         const bs = byBoard(dayRows);
+        const wSec = timeWork ? 0 : allW.filter(x => x.e.date === i.e.date)
+          .reduce((a, x) => a + (x.e.sec || 0), 0);
         return `${newDay ? `<div class="trow sub"><span>${i.e.date ? fmtDue(i.e.date) : '日付なし'}</span>
           <span style="grid-column:2/7">${i.e.date ? i.e.date + ' ' + WD[parse(i.e.date).getDay()] + '曜' : ''}
+            ${wSec ? `<span class="bsum"><i style="background:${WORKBD.color}"></i>Work <b>${fmtDur(wSec)}</b></span>` : ''}
             ${bs.map(g => `<span class="bsum"><i style="background:${g.color}"></i>${esc(g.name)} <b>${fmtDur(g.sec)}</b></span>`).join('')}</span>
           <span class="d">${fmtDur(daySec)}</span><span style="grid-column:8/10"></span></div>` : ''}
         ${isNote ? (() => {
@@ -5267,13 +5414,13 @@ function renderTimes(){
             <span class="tm" data-tmedit="${i.card.id}|${i.e.id}" style="cursor:pointer">${i.e.start || '--:--'}</span>
             <span class="tm" data-tmedit="${i.card.id}|${i.e.id}" style="cursor:pointer">${i.e.end || '--:--'}</span>
             <span class="d" data-tmedit="${i.card.id}|${i.e.id}" style="cursor:pointer" title="タップで編集">${fmtDur(i.e.sec)}</span>
-            <span></span>
+            ${actChips(i.card.id, i.e.id, actArr(i.e))}
             <button class="x" data-tmdel="${i.card.id}|${i.e.id}">×</button>
           </div>`;
-        })() : `<div class="trow">
+        })() : `<div class="trow ${isW(i) ? 'wrow' : ''}">
           <span class="dt">${i.e.date ? i.e.date : '—'}</span>
           <span class="bd"><span style="${i.board.color?`color:${i.board.color}`:''}">▦</span> ${esc(i.board.name)}</span>
-          <span class="nm" data-goto="${i.board.id}" title="${esc(plain(i.card.title))}">${clean(i.card.title) || '無題'}</span>
+          <span class="nm" ${i.board.id === 'work' ? '' : `data-goto="${i.board.id}"`} title="${esc(plain(i.card.title))}">${clean(i.card.title) || '無題'}</span>
           <span class="tm" data-tmedit="${i.card.id}|${i.e.id}" style="cursor:pointer">${i.e.start || '--:--'}</span>
           <span class="tm" data-tmedit="${i.card.id}|${i.e.id}" style="cursor:pointer">${i.e.end || '--:--'}</span>
           <span class="d" data-tmedit="${i.card.id}|${i.e.id}" style="cursor:pointer" title="クリックで編集">${fmtDur(i.e.sec)}</span>
@@ -5295,6 +5442,9 @@ function renderTimes(){
   const tcl = document.getElementById('timeCl');
   if(tcl) tcl.onchange = e => { timeClient = e.target.value; renderTimes(); };
   v.querySelectorAll('[data-pr]').forEach(b => b.onclick = () => { pieRange = b.dataset.pr; renderTimes(); });
+  v.querySelectorAll('[data-tw]').forEach(b => b.onclick = () => {
+    timeWork = b.dataset.tw === '1'; renderTimes();
+  });
   v.querySelectorAll('[data-cal]').forEach(b => b.onclick = () => {
     timeSel = b.dataset.cal; calMonth = timeSel.slice(0, 7); timeAll = false; renderTimes(); });
   v.querySelectorAll('[data-cm]').forEach(b => b.onclick = () => {
@@ -5328,15 +5478,14 @@ function renderTimes(){
   });
   v.querySelectorAll('[data-rep]').forEach(el => el.onclick = () => {
     const [cid, eid] = el.dataset.rep.split('|');
-    const e = findCard(cid).card.times.find(x => x.id === eid);
+    const e = timeListOf(cid).find(x => x.id === eid); if(!e) return;
     e.report = e.report === 'check' ? '' : 'check';
     save(); renderTimes();
   });
   v.querySelectorAll('[data-goto]').forEach(el => el.onclick = () => { view = {type:'board', id:el.dataset.goto}; render(); });
   v.querySelectorAll('[data-tmdel]').forEach(el => el.onclick = () => {
     const [cid, eid] = el.dataset.tmdel.split('|');
-    const k = findCard(cid).card;
-    k.times = k.times.filter(x => x.id !== eid); save(); render();
+    delTime(cid, eid); save(); render();
   });
 }
 
@@ -6291,7 +6440,8 @@ function renderCard(){
     if(c.fold) c.fold = {};
     touch(c); save(); render();
   });
-  v.querySelectorAll('[data-timer]').forEach(el => el.onclick = () => toggleTimer(el.dataset.timer));
+  v.querySelectorAll('[data-timer]').forEach(el => el.onclick = e =>
+    toggleTimer(el.dataset.timer, e.currentTarget.getBoundingClientRect()));
   v.querySelectorAll('[data-kidadd]').forEach(el => el.onclick = e => addMenu(e, f.col.id, k.id));
 }
 
@@ -7268,6 +7418,12 @@ document.addEventListener('click', e => {
 
 /* 「— 著者『書名』」やページを開くボタンは、どのページでも押せるように */
 document.addEventListener('click', e => {
+  const ac = e.target.closest('[data-actopen]');
+  if(ac){
+    e.preventDefault(); e.stopPropagation();
+    const [cid, eid] = ac.dataset.actopen.split('|');
+    return actMenu(ac.getBoundingClientRect(), cid, eid);
+  }
   const el = e.target.closest('[data-openpage]');
   if(!el) return;
   e.preventDefault(); e.stopPropagation();
@@ -7293,9 +7449,21 @@ document.addEventListener('keydown', e => {
       }
     }
   } else {
-    document.execCommand('insertText', false, '　');
+    let ok = false;
+    try{ ok = document.execCommand('insertText', false, '　'); }catch(_){}
+    if(!ok){
+      const sel = window.getSelection();
+      if(sel && sel.rangeCount){
+        const r = sel.getRangeAt(0);
+        r.deleteContents();
+        const t = document.createTextNode('　');
+        r.insertNode(t);
+        r.setStartAfter(t); r.collapse(true);
+        sel.removeAllRanges(); sel.addRange(r);
+      }
+    }
   }
-  const box = el.closest('[data-body],[data-qtext],[data-qmemo],[data-rmemo],[data-bmemo],[data-daily],[data-note],[data-head]')
+  const box = el.closest('[data-body],[data-qtext],[data-qmemo],[data-rmemo],[data-bmemo],[data-daily],[data-note],[data-head],[data-tstitle],[data-stitle],[data-shead],[data-snote],[data-logtext],[data-title]')
     || el;
   if(typeof saveBody === 'function' && box.dataset) saveBody(box);
 }, true);
@@ -7832,6 +8000,9 @@ const boot = () => {
   }
   document.title = APP_TITLE;
   if(APP === 'task') document.body.classList.add('app-task');
+  const wb = document.getElementById('workBtn');
+  if(wb) wb.onclick = () => toggleWork();
+  paintWork();
   const bn = document.getElementById('brandName');
   if(bn) bn.textContent = APP_TITLE;
   const bs = document.getElementById('brandSub');
