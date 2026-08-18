@@ -567,6 +567,8 @@
   .acts:hover{background:#f4f0ef}
   .actc{font-size:10.5px;padding:1px 7px;border-radius:20px;background:#efe7ea;color:#8a6472;
     white-space:nowrap}
+  .actp{font-size:10.5px;padding:1px 7px;border-radius:20px;background:#eceee9;color:#5f6b5c;
+    white-space:nowrap;font-variant-numeric:tabular-nums}
   .actadd{font-size:10.5px;color:#c3bbbd}
   .trow .acts{overflow:hidden;padding-left:10px}
   .tlog .x{opacity:0;color:#c0b8ba;padding:0 2px;font-size:13px}
@@ -1133,6 +1135,11 @@
     background:var(--panel);outline:none}
   .drow input:focus,.drow select:focus{border-color:var(--accent)}
   .drow input[type=number]{flex:0 0 54px}
+  .drow.pgrow{gap:3px}
+  .drow.pgrow label{width:auto;flex:0 0 auto;font-size:12.5px;color:#6e6668;margin:0}
+  .drow.pgrow input[type=number]{flex:1 1 auto;min-width:0;width:100%;padding:5px 6px;
+    text-align:center;font-variant-numeric:tabular-nums}
+  .drow.pgrow .pgsep{color:#a9a0a2;font-size:12px;padding:0 3px}
   .allday{display:flex;align-items:center;gap:6px;font-size:12.5px;color:#6e6668;
     margin:0 0 8px 60px;cursor:pointer;user-select:none}
   .allday input{width:14px;height:14px;accent-color:var(--brown);cursor:pointer}
@@ -1590,7 +1597,7 @@
 const APP = 'note';
 const KEY = APP === 'task' ? 'boards.tasks.task.v1' : 'boards.tasks.v1';
 const APP_TITLE = APP === 'task' ? 'Tasks' : 'Notes';
-const APPVER = '20260818-1437';
+const APPVER = '20260818-1602';
 const TIMELB = APP === 'task' ? 'Time Log' : 'Read Log';
 const TASKLB = APP === 'task' ? 'Tasks' : 'Action';
 /* Task 用は初回だけ、これまでのデータを引き継ぐ */
@@ -1768,21 +1775,43 @@ const runningCard = () => allCards().find(x => x.card.timer);
 /* 計測のあとに残す「したこと」（Notes のみ） */
 const ACTS = ['読んだ', 'メモした', '調べた'];
 const actArr = e => (e && Array.isArray(e.acts)) ? e.acts : [];
-const actChips = (cid, eid, arr) =>
-  `<span class="acts" data-actopen="${cid}|${eid}" title="クリックで変更">${
-    arr.length ? arr.map(a => `<span class="actc">${esc(a)}</span>`).join('')
-      : '<span class="actadd">＋ したこと</span>'}</span>`;
+const pageLabel = e => {
+  const a = (e && e.p1 !== undefined && e.p1 !== '') ? e.p1 : '';
+  const b = (e && e.p2 !== undefined && e.p2 !== '') ? e.p2 : '';
+  if(a === '' && b === '') return '';
+  return `p.${a || '—'} – p.${b || '—'}`;
+};
+const actChips = (cid, eid, e) => {
+  const arr = actArr(e), pg = pageLabel(e);
+  return `<span class="acts" data-actopen="${cid}|${eid}" title="クリックで変更">${
+    pg ? `<span class="actp">${esc(pg)}</span>` : ''}${
+    arr.map(a => `<span class="actc">${esc(a)}</span>`).join('')}${
+    (!arr.length && !pg) ? '<span class="actadd">＋ したこと</span>' : ''}</span>`;
+};
 function actMenu(rect, cid, eid){
   const k = findCard(cid)?.card; if(!k) return;
   const e = (k.times || []).find(x => x.id === eid); if(!e) return;
   const cur = actArr(e);
-  const p = popup(Math.max(12, rect.left - 40), rect.bottom + 6, `<div class="dpanel" style="width:190px">
+  const p = popup(Math.max(12, rect.left - 40), rect.bottom + 6, `<div class="dpanel" style="width:224px">
     <h4>したこと</h4>
     <div class="quick" style="margin-left:0">${ACTS.map(a =>
       `<button data-act="${esc(a)}" ${cur.includes(a)
         ? 'style="background:var(--accent-soft);color:var(--accent);font-weight:700"' : ''}>${esc(a)}</button>`).join('')}</div>
+    <h4 style="margin-top:10px">ページ</h4>
+    <div class="drow pgrow"><label>p.</label>
+      <input type="number" id="acP1" min="0" step="1" value="${e.p1 !== undefined ? esc(String(e.p1)) : ''}">
+      <span class="pgsep">〜</span><label>p.</label>
+      <input type="number" id="acP2" min="0" step="1" value="${e.p2 !== undefined ? esc(String(e.p2)) : ''}"></div>
     <div class="dfoot"><button id="actOk">OK</button></div>
   </div>`);
+  const setP = () => {
+    const v1 = p.querySelector('#acP1').value, v2 = p.querySelector('#acP2').value;
+    e.p1 = v1 === '' ? '' : +v1;
+    e.p2 = v2 === '' ? '' : +v2;
+    touch(k); save();
+  };
+  p.querySelector('#acP1').oninput = setP;
+  p.querySelector('#acP2').oninput = setP;
   p.querySelectorAll('[data-act]').forEach(b => b.onclick = () => {
     const a = b.dataset.act;
     const now = actArr(e);
@@ -1818,7 +1847,12 @@ function stopTimer(k){
   keepAliveStop();
   const sec = Math.max(1, Math.round(runSec(k)));
   const e = {id:uid(), date:k.timer.date, start:k.timer.start, end:nowHM(), sec};
-  (k.times ||= []).push(e);
+  k.times ||= [];
+  if(APP === 'note'){
+    const prev = [...k.times].reverse().find(x => x.p2 !== undefined && x.p2 !== '');
+    e.p1 = prev ? prev.p2 : 1;      /* 最初の計測は p.1 から */
+  }
+  k.times.push(e);
   delete k.timer;
   return e;
 }
@@ -3138,6 +3172,9 @@ function quoteCardHTML(k, inCard){
 
 /* 時間計測を使えるカード：Tasks では Task、Notes では Read だけ */
 const onPage = k => !!(view && view.type === 'card' && view.id === k.id);
+/* 「確定して戻る」の戻り先。親メモがあればそのページへ */
+const backView = (k, b) => (k.parent && findCard(k.parent))
+  ? {type:'card', id:k.parent} : {type:'board', id:b.id};
 const canTime = k => APP === 'task'
   ? (k.type === 'task' || (view && view.type === 'card'))
   : (k.type === 'book' || (k.type === 'read' && !k.parent));
@@ -3171,7 +3208,7 @@ function timeSection(k){
         <input type="date" value="${e.date || ''}" data-tmdate="${k.id}|${e.id}">
         <input type="time" value="${e.start || ''}" data-tmstart="${k.id}|${e.id}">–<input type="time" value="${e.end || ''}" data-tmend="${k.id}|${e.id}">
         <span class="dur" data-tmedit="${k.id}|${e.id}" style="cursor:pointer" title="クリックで編集">${fmtDur(e.sec)}</span>
-        ${APP === 'note' ? actChips(k.id, e.id, actArr(e)) : ''}
+        ${APP === 'note' ? actChips(k.id, e.id, e) : ''}
         <button class="x" data-tmdel="${k.id}|${e.id}">×</button></div>`).join('')}
       </div>
       <button class="logadd" data-timeadd="${k.id}">＋ 手動で追加</button>` : ''}
@@ -3441,7 +3478,7 @@ function wireCards(root){
     k.book.no ||= nextNo('bookNo');
     k.book.date ||= k.day || today();
     touch(k); save();
-    if(el.dataset.back) view = {type:'board', id:f.board.id};
+    if(el.dataset.back) view = backView(k, f.board);
     render();
   });
   root.querySelectorAll('[data-bedit]').forEach(el => el.onclick = () => {
@@ -3478,7 +3515,7 @@ function wireCards(root){
     k.read.no ||= Math.max(0, ...allCards().map(x => +((x.card.read && x.card.read.no) || 0))) + 1;
     k.read.date ||= k.day || today();
     touch(k); save();
-    if(el.dataset.back) view = {type:'board', id:f0.board.id};
+    if(el.dataset.back) view = backView(k, f0.board);
     render();
   });
   root.querySelectorAll('[data-redit]').forEach(el => el.onclick = () => {
@@ -3493,7 +3530,7 @@ function wireCards(root){
     .forEach(el => el.onmousedown = e => e.preventDefault());   // 入力欄からフォーカスを奪わない
   root.querySelectorAll('[data-qreg]').forEach(el => el.onclick = () => {
     const f0 = findCard(el.dataset.qreg), k = f0.card;
-    if(el.dataset.back) setTimeout(() => { view = {type:'board', id:f0.board.id}; render(); }, 0);
+    if(el.dataset.back) setTimeout(() => { view = backView(k, f0.board); render(); }, 0);
     k.quote.registered = true;
     k.quote.no ||= nextQuoteNo();
     k.quote.date ||= k.day || today();
@@ -5414,7 +5451,7 @@ function renderTimes(){
             <span class="tm" data-tmedit="${i.card.id}|${i.e.id}" style="cursor:pointer">${i.e.start || '--:--'}</span>
             <span class="tm" data-tmedit="${i.card.id}|${i.e.id}" style="cursor:pointer">${i.e.end || '--:--'}</span>
             <span class="d" data-tmedit="${i.card.id}|${i.e.id}" style="cursor:pointer" title="タップで編集">${fmtDur(i.e.sec)}</span>
-            ${actChips(i.card.id, i.e.id, actArr(i.e))}
+            ${actChips(i.card.id, i.e.id, i.e)}
             <button class="x" data-tmdel="${i.card.id}|${i.e.id}">×</button>
           </div>`;
         })() : `<div class="trow ${isW(i) ? 'wrow' : ''}">
@@ -6405,8 +6442,10 @@ function renderCard(){
   const t = document.getElementById('pageTitle');
   const head = (plain(k.title).trim() || plain(k.body).trim().split('\n')[0] || 'Memo').slice(0, 40);
   t.value = head; t.disabled = true; t.oninput = null; t.style.color = '';
-  document.getElementById('topActions').innerHTML =
-    `<button class="btn" id="ocBack">▦ ${esc(f.board.name)} へ戻る</button>`;
+  const par = k.parent ? findCard(k.parent) : null;
+  document.getElementById('topActions').innerHTML = par
+    ? `<button class="btn" id="ocBack">← ${esc((cardLabel(par.card) || 'メモ').slice(0, 22))} へ戻る</button>`
+    : `<button class="btn" id="ocBack">▦ ${esc(f.board.name)} へ戻る</button>`;
   const kids = f.col.cards.filter(x => x.parent === k.id);
   const v = document.getElementById('view');
   v.innerHTML = `<div class="ocwrap"><div class="onecard">
@@ -6425,7 +6464,10 @@ function renderCard(){
     <button class="add" data-kidadd="${k.id}">＋ New</button>
     <div class="drop">${kids.map(cardHTML).join('')}</div>
   </div></div>`;
-  document.getElementById('ocBack').onclick = () => { view = {type:'board', id:f.board.id}; render(); };
+  document.getElementById('ocBack').onclick = () => {
+    view = par ? {type:'card', id:par.card.id} : {type:'board', id:f.board.id};
+    render();
+  };
   wireCards(v);
   v.querySelectorAll('[data-secadd]').forEach(el => el.onclick = () => {
     const [which, cid] = el.dataset.secadd.split('|');
