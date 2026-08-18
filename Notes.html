@@ -966,9 +966,9 @@
   .qrand .dcard .mm{font-size:13.5px;margin-top:16px;padding-top:13px}
   .qrand .dsrc{font-size:11px}
   .qrand .dbtn .btn{padding:6px 14px;font-size:12px}
-  .colwrap.gallery{display:grid;max-width:none;gap:14px;
-    grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));align-items:start}
-  .colwrap.gallery .colitem{margin:0;width:auto}
+  .colwrap.gallery{display:block;max-width:none;columns:320px;column-gap:14px}
+  .colwrap.gallery .colitem{margin:0 0 14px;width:100%;break-inside:avoid;
+    -webkit-column-break-inside:avoid;page-break-inside:avoid}
   /* Pin Memo は高さのばらつきを詰めて並べる */
   .pinwrap{display:flex;gap:14px;align-items:flex-start;max-width:none}
   .pincolm{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:14px}
@@ -1614,7 +1614,7 @@
 const APP = 'note';
 const KEY = APP === 'task' ? 'boards.tasks.task.v1' : 'boards.tasks.v1';
 const APP_TITLE = APP === 'task' ? 'Tasks' : 'Notes';
-const APPVER = '20260818-1657';
+const APPVER = '20260818-2357';
 const TIMELB = APP === 'task' ? 'Time Log' : 'Read Log';
 const TASKLB = APP === 'task' ? 'Tasks' : 'Action';
 /* Task 用は初回だけ、これまでのデータを引き継ぐ */
@@ -3170,7 +3170,11 @@ function quoteCardHTML(k, inCard){
   const ribbon = inCard ? '' : `<span class="qribbon" title="Quote"></span>`;
   const cite = k.parent
     ? (() => {
-        const a2 = (Q.author || '').trim(), s2 = (Q.source || '').trim();
+        let a2 = (Q.author || '').trim(), s2 = (Q.source || '').trim();
+        if(!a2 && !s2){                       /* 自分に無ければ親（本）から */
+          const P = parentMeta(k);
+          a2 = P.author; s2 = P.source;
+        }
         const sq = s2 ? (/^[『「《]/.test(s2) ? s2 : `『${s2}』`) : '';
         const c2 = [a2, sq].filter(Boolean).join('');
         return c2 ? c2 + (Q.page ? `, p.${Q.page}` : '') : (Q.page ? `p.${Q.page}` : '');
@@ -5162,12 +5166,19 @@ let calMonth = null;     // 'YYYY-MM'
 function byBoard(list){
   const m = [];
   list.forEach(i => {
-    /* Notes では出典（本のタイトル）ごとにまとめる */
-    const R = (APP === 'note' && i.card.read) ? i.card.read : null;
-    const id = R ? ((R.source || '').trim() || '—') : i.board.id;
-    const nm = R ? ((R.source || '').trim() || plain(i.card.title).trim() || '無題') : i.board.name;
+    /* Notes では本のタイトルごとにまとめる（Book メモ・親から継いだ Read も拾う）*/
+    const note = APP === 'note';
+    let ttl = '';
+    if(note){
+      const k = i.card;
+      ttl = (k.book ? (k.book.title || '') : (readMeta(k).source || '')).trim()
+        || (k.read ? (k.read.source || '').trim() : '')
+        || plain(k.title).trim();
+    }
+    const id = note ? (ttl || '—') : i.board.id;
+    const nm = note ? (ttl || '無題') : i.board.name;
     let g = m.find(x => x.id === id);
-    if(!g) m.push(g = {id, name:nm, color:R ? '' : (i.board.color || ''), sec:0});
+    if(!g) m.push(g = {id, name:nm, color:note ? '' : (i.board.color || ''), sec:0});
     g.sec += i.e.sec || 0;
   });
   m.forEach((g, n) => g.color = g.color || PIEC[n % PIEC.length]);
@@ -5236,9 +5247,10 @@ function barCols(all, sel, range){
   const boards = byBoard(rowsIn);
   const cols = keys.map(k => {
     const rows = all.filter(i => k.pick(i.e.date));
+    const gs = byBoard(rows);          /* まとめ方は円グラフと同じ */
     const parts = boards.map(b => ({
       color:b.color, name:b.name,
-      sec:rows.filter(r => r.board.id === b.id).reduce((a, r) => a + (r.e.sec || 0), 0),
+      sec:(gs.find(x => x.id === b.id) || {sec:0}).sec,
     })).filter(p => p.sec);
     return {label:k.label, day:k.day, parts, total:parts.reduce((a, p) => a + p.sec, 0)};
   });
@@ -6055,19 +6067,23 @@ function renderCollection(kind){
   t.disabled = true; t.oninput = null; t.style.color = '';
   document.getElementById('topActions').innerHTML = '';
 
-  const notEmpty = x => {
-    const o = kind === 'quote' ? x.card.quote : x.card.read;
-    return !!o && !!(plain(o.text || '').trim() || (o.author || '').trim()
-      || (o.source || '').trim() || plain(o.memo || '').trim() || (o.media || '').trim()
-      || (o.flags || []).length);
-  };
-  const has = kind === 'quote' ? hasQuote : hasRead;
-  const dOf = x => (kind === 'quote' ? x.card.quote.date : x.card.read.date) || x.card.created || '';
-  let all = allCards().filter(x => has(x.card) && notEmpty(x));
+  const nonEmpty = o => !!o && !!(plain(o.text || '').trim() || (o.author || '').trim()
+    || (o.source || '').trim() || plain(o.memo || '').trim() || (o.media || '').trim()
+    || (o.flags || []).length);
+  const okRead = x => hasRead(x.card) && nonEmpty(x.card.read);
+  const okQuote = x => hasQuote(x.card) && nonEmpty(x.card.quote);
+  /* Read Memo には Quote メモも並べる */
+  const kdOf = x => x.kd || kind;
+  const objOf = x => kdOf(x) === 'quote' ? x.card.quote : x.card.read;
+  const dOf = x => (objOf(x).date) || x.card.created || '';
+  let all = (kind === 'quote'
+    ? allCards().filter(okQuote)
+    : allCards().filter(x => okRead(x) || okQuote(x)))
+    .map(x => ({...x, kd: kind === 'quote' ? 'quote' : (okRead(x) ? 'read' : 'quote')}));
   if(q){
     const s = q.toLowerCase();
     all = all.filter(x => {
-      const k = x.card, o = kind === 'quote' ? k.quote : k.read;
+      const k = x.card, o = objOf(x);
       return [plain(o.text), o.author, o.source, o.media, plain(o.memo),
         plain(k.title), x.board.name, (o.flags || []).join(' ')]
         .join(' ').toLowerCase().includes(s);
@@ -6076,7 +6092,7 @@ function renderCollection(kind){
 
   /* 著者・出典での絞り込み */
   const cf = colFilter[kind];
-  const metaOf = x => kind === 'quote' ? quoteMeta(x.card) : readMeta(x.card);
+  const metaOf = x => kdOf(x) === 'quote' ? quoteMeta(x.card) : readMeta(x.card);
   const authors = [...new Set(all.map(x => metaOf(x).author).filter(Boolean))].sort();
   const sources = [...new Set(all.map(x => metaOf(x).source).filter(Boolean))].sort();
   if(cf.author) all = all.filter(x => metaOf(x).author === cf.author);
@@ -6169,17 +6185,18 @@ function listHTML(items, kind){
     <span style="font-size:12px">ボードの「＋ New」から作れます</span></div>`;
   return `<div class="colwrap ${kind === 'quote' ? 'gallery' : ''}">${items.map(x => {
     const k = x.card;
-    return `<div class="card ${kind} colitem">
+    const kd = x.kd || kind;
+    return `<div class="card ${kd} colitem">
       <div class="col-src">
         <span data-goto="${x.board.id}" style="cursor:pointer">
           <span style="${x.board.color?`color:${x.board.color}`:''}">▦</span> ${esc(x.board.name)}</span>
         ${plain(k.title).trim() ? `<span>／ ${esc(plain(k.title).trim())}</span>` : ''}
-        <span style="margin-left:auto">${cardTgl(kind, k,
-          kind === 'quote' ? (k.quote && k.quote.card) : (k.read && k.read.card))}</span>
+        <span style="margin-left:auto">${cardTgl(kd, k,
+          kd === 'quote' ? (k.quote && k.quote.card) : (k.read && k.read.card))}</span>
       </div>
       ${citeLine(k)}
       ${canTime(k) ? `<div class="meta meta2">${timerChip(k)}</div>` : ''}
-      ${kind === 'quote' ? quoteSection(k, true) : readSection(k, true)}
+      ${kd === 'quote' ? quoteSection(k, true) : readSection(k, true)}
     </div>`;
   }).join('')}</div>`;
 }
