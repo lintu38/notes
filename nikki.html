@@ -41,7 +41,8 @@
   .title{font-size:14px;letter-spacing:.42em;color:#D8D2BE;margin:0;font-weight:400;text-indent:.42em}
   .bar .grow{flex:1}
   .btn{font-family:var(--gothic);font-size:12px;letter-spacing:.12em;color:#CFC8B4;background:transparent;
-       border:1px solid rgba(207,200,180,.35);border-radius:2px;padding:6px 11px;cursor:pointer}
+       border:1px solid rgba(207,200,180,.35);border-radius:2px;padding:6px 11px;cursor:pointer;
+       white-space:nowrap;flex:0 0 auto}
   .btn:hover{background:rgba(207,200,180,.12)}
   .btn:focus-visible{outline:2px solid var(--kishi);outline-offset:2px}
   label.btn{display:inline-block;line-height:1.25}
@@ -200,6 +201,21 @@
   .dbox .pw{width:100%;margin-bottom:10px;background:#fff;border:1px solid var(--rule);text-align:left}
   .dbox .note{font-family:var(--gothic);font-size:11px;line-height:1.7;color:var(--usuzumi);margin:6px 0 16px}
   .drow{display:flex;gap:8px;justify-content:flex-end}
+  /* スマホ */
+  @media (max-width:860px){
+    .bar{gap:5px;padding:8px 10px 7px;flex-wrap:nowrap}
+    .title{font-size:12.5px;letter-spacing:.18em;text-indent:.18em;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto}
+    .state{font-size:10px;min-width:0;letter-spacing:.04em;flex:0 0 auto;
+      max-width:5.4em;overflow:hidden;white-space:nowrap}
+    .btn{font-size:11px;padding:6px 7px;letter-spacing:.04em}
+    .sheet{margin:0 8px 8px}
+    .band{flex:0 0 58px}
+  }
+  @media (max-width:400px){
+    .state{display:none}
+    .btn{padding:6px 6px}
+  }
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -321,7 +337,9 @@ function paintPage(animate){
   $("hiduke").innerHTML=`${num(p.m)}月${num(p.d)}日`;
   $("youbi").textContent=p.w+"曜日";
   $("hashira").innerHTML=`<span class="upr">${p.y}</span>年　日記帖`;
-  $("barTitle").textContent="日記帖　- その日暮らし -";
+  $("barTitle").textContent =
+    (window.matchMedia && window.matchMedia("(max-width:860px)").matches)
+      ? "日記帖" : "日記帖　- その日暮らし -";
   $("coverYear").textContent=p.y+"年";
   $("coverEra").textContent="- "+nengo(p.y)+" -";
   const n=paper.innerText.replace(/\s/g,"").length;
