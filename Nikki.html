@@ -46,6 +46,7 @@
   .btn:hover{background:rgba(207,200,180,.12)}
   .btn:focus-visible{outline:2px solid var(--kishi);outline-offset:2px}
   label.btn{display:inline-block;line-height:1.25}
+  .btn.day{padding:6px 8px;letter-spacing:0;font-size:13px;line-height:1}
   .state{font-family:var(--gothic);font-size:11px;color:rgba(207,200,180,.6);letter-spacing:.1em;min-width:5em;text-align:right}
 
   /* ── 料紙 ── */
@@ -100,6 +101,8 @@
   @keyframes stamp{0%{transform:rotate(-4deg) scale(1.7);opacity:0}60%{opacity:.95}100%{transform:rotate(-4deg) scale(1);opacity:.85}}
   .hiduke{writing-mode:vertical-rl;font-size:16px;letter-spacing:.08em;color:var(--sumi);margin-top:4px}
   .youbi{writing-mode:vertical-rl;font-size:12px;letter-spacing:.2em;color:var(--usuzumi);margin-top:-2px}
+  .shuku{writing-mode:vertical-rl;font-size:11.5px;letter-spacing:.16em;color:var(--shu);
+    margin-top:6px;text-indent:.16em}
   .band .fill{flex:1}
   .hashira{writing-mode:vertical-rl;font-size:11px;letter-spacing:.34em;color:var(--usuzumi);text-indent:.34em}
   .ji{font-family:var(--gothic);font-size:10px;color:#9C8574;letter-spacing:.06em;writing-mode:vertical-rl}
@@ -226,11 +229,13 @@
     <h1 class="title" id="barTitle">日記帖</h1>
     <span class="grow"></span>
     <span class="state" id="state">読み込み中</span>
+    <button class="btn" id="openMokuji">目次</button>
+    <button class="btn day" id="prevDay" title="前の日" aria-label="前の日">≪</button>
+    <button class="btn day" id="nextDay" title="次の日" aria-label="次の日">≫</button>
     <button class="btn" id="export">書出</button>
     <label class="btn" for="importFile">読込</label>
     <input type="file" id="importFile" accept="application/json,.json" hidden>
     <button class="btn" id="syncBtn">同期</button>
-    <button class="btn" id="openMokuji">目次</button>
   </div>
 
   <div class="sheet">
@@ -241,6 +246,7 @@
       <div class="seal" id="seal"><span></span></div>
       <div class="hiduke" id="hiduke"></div>
       <div class="youbi" id="youbi"></div>
+      <div class="shuku" id="shuku"></div>
       <div class="fill"></div>
       <div class="hashira" id="hashira">日記帖</div>
       <div class="ji" id="ji"></div>
@@ -328,6 +334,51 @@ function nengo(y){
 const WEEK=["日","月","火","水","木","金","土"];
 function parts(key){ const [y,m,d]=key.split("-").map(Number); return {y,m,d,w:WEEK[new Date(y,m-1,d).getDay()]}; }
 
+
+/* ── 日本の祝日 ── */
+const holCache={};
+function addDaysK(k,n){ const [y,m,d]=k.split("-").map(Number);
+  const t=new Date(y,m-1,d+n);
+  return t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+String(t.getDate()).padStart(2,"0"); }
+function jpHolidays(y){
+  if(holCache[y]) return holCache[y];
+  const H={};
+  const p2=n=>String(n).padStart(2,"0");
+  const set=(m,d,n)=>{ if(d>=1) H[`${y}-${p2(m)}-${p2(d)}`]=n; };
+  const nthMon=(m,n)=>{ const first=new Date(y,m-1,1).getDay(); return 1+((8-first)%7)+(n-1)*7; };
+  set(1,1,"元日");
+  set(1,nthMon(1,2),"成人の日");
+  set(2,11,"建国記念の日");
+  if(y>=2020) set(2,23,"天皇誕生日");
+  set(3,Math.floor(20.8431+0.242194*(y-1980)-Math.floor((y-1980)/4)),"春分の日");
+  set(4,29,y>=2007?"昭和の日":"みどりの日");
+  set(5,3,"憲法記念日");
+  set(5,4,y>=2007?"みどりの日":"国民の休日");
+  set(5,5,"こどもの日");
+  if(y>=2003) set(7,nthMon(7,3),"海の日"); else set(7,20,"海の日");
+  if(y>=2016) set(8,11,"山の日");
+  set(9,nthMon(9,3),"敬老の日");
+  set(9,Math.floor(23.2488+0.242194*(y-1980)-Math.floor((y-1980)/4)),"秋分の日");
+  set(10,nthMon(10,2),y>=2020?"スポーツの日":"体育の日");
+  set(11,3,"文化の日");
+  set(11,23,"勤労感謝の日");
+  if(y<=2018) set(12,23,"天皇誕生日");
+  Object.keys(H).slice().forEach(k=>{           /* 国民の休日 */
+    const d2=addDaysK(k,2), d1=addDaysK(k,1);
+    const [yy,mm,dd]=d1.split("-").map(Number);
+    if(H[d2] && !H[d1] && new Date(yy,mm-1,dd).getDay()!==0) H[d1]="国民の休日";
+  });
+  Object.keys(H).slice().forEach(k=>{           /* 振替休日 */
+    const [yy,mm,dd]=k.split("-").map(Number);
+    if(new Date(yy,mm-1,dd).getDay()!==0) return;
+    let n2=addDaysK(k,1);
+    while(H[n2]) n2=addDaysK(n2,1);
+    H[n2]="振替休日";
+  });
+  return holCache[y]=H;
+}
+const holName=d=>d?(jpHolidays(+d.slice(0,4))[d]||""):"";
+
 function paintPage(animate){
   const p=parts(current);
   const num=n=>`<span class="${String(n).length>2?"upr":"tcy"}">${n}</span>`;
@@ -336,6 +387,7 @@ function paintPage(animate){
   if(animate){ seal.classList.remove("stamp"); void seal.offsetWidth; seal.classList.add("stamp"); }
   $("hiduke").innerHTML=`${num(p.m)}月${num(p.d)}日`;
   $("youbi").textContent=p.w+"曜日";
+  $("shuku").textContent=holName(current);
   $("hashira").innerHTML=`<span class="upr">${p.y}</span>年　日記帖`;
   $("barTitle").textContent =
     (window.matchMedia && window.matchMedia("(max-width:860px)").matches)
@@ -461,6 +513,14 @@ paper.addEventListener("paste",e=>{
   e.preventDefault();
   const t=(e.clipboardData||window.clipboardData).getData("text");
   document.execCommand("insertText",false,t);
+});
+$("prevDay").onclick=()=>openDay(addDaysK(current,-1));
+$("nextDay").onclick=()=>openDay(addDaysK(current,1));
+document.addEventListener("keydown",e=>{
+  if(e.metaKey||e.ctrlKey||e.altKey) return;
+  if(document.activeElement===paper) return;
+  if(e.key==="ArrowLeft"){ e.preventDefault(); openDay(addDaysK(current,-1)); }
+  if(e.key==="ArrowRight"){ e.preventDefault(); openDay(addDaysK(current,1)); }
 });
 $("openMokuji").onclick=openMokuji;
 $("closeMokuji").onclick=closeMokuji;
