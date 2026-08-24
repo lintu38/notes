@@ -160,6 +160,20 @@ function draw(){
   });
 }
 
+/* 履歴はページをたどって全部集める（1回の応答には30件しか入らない） */
+async function loadHist(){
+  let all = [];
+  for(let page = 1; page <= 10; page++){
+    const r = await fetch(`${GH}/gists/${gid}/commits?per_page=100&page=${page}`, {headers:head()});
+    if(!r.ok) break;
+    const a = await r.json();
+    if(!a.length) break;
+    all = all.concat(a);
+    msg(`履歴を集めています… ${all.length} 件`);
+    if(a.length < 100) break;
+  }
+  return all;
+}
 /* 「この時間より前」で絞ったあとの並び */
 function targets(){
   const v = $('before').value;
@@ -171,7 +185,11 @@ async function scan(n){
   const pass = $('pass').value;
   const list = targets();
   const end = Math.min(shown + n, list.length);
-  if(!list.length){ msg('その時間より前の版がありません。'); return; }
+  if(!list.length){
+    const oldest = hist.length ? new Date(hist[hist.length - 1].committed_at).toLocaleString() : '—';
+    msg(`その時間より前の版がありません。\n履歴は ${hist.length} 件で、いちばん古いのは ${oldest} です。`);
+    return;
+  }
   for(let i = shown; i < end; i++){
     const h = list[i];
     const when = new Date(h.committed_at).toLocaleString();
@@ -203,9 +221,12 @@ $('run').onclick = async () => {
     if(r.status === 401) throw new Error('トークンが違います（gist の権限が要ります）');
     if(r.status === 404) throw new Error('Gist が見つかりません');
     if(!r.ok) throw new Error('取得できません（' + r.status + '）');
-    const g = await r.json();
-    hist = g.history || [];
+    await r.json();
+    msg('履歴を数えています…（多いと少し時間がかかります）');
+    hist = await loadHist();
     if(!hist.length) throw new Error('履歴がありません');
+    const oldest = new Date(hist[hist.length - 1].committed_at).toLocaleString();
+    msg(`履歴は全部で ${hist.length} 件。いちばん古いのは ${oldest} です。`);
     await scan(20);
   }catch(e){ msg('うまくいきません：' + e.message); }
 };
