@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Notes をとりもどす</title>
+<style>
+  :root{--bg:#f7f4ef;--panel:#fffefd;--ink:#1f1a1c;--muted:#8b8285;--line:#e8e1df;--pink:#c48f95}
+  *{box-sizing:border-box}
+  body{margin:0;padding:24px 18px 60px;background:var(--bg);color:var(--ink);
+    font-family:'Hiragino Sans','Noto Sans JP','Yu Gothic UI',sans-serif;font-size:14px;line-height:1.8}
+  .wrap{max-width:900px;margin:0 auto}
+  h1{font-size:19px;letter-spacing:.06em;margin:0 0 4px}
+  .lead{color:var(--muted);font-size:12.5px;margin:0 0 20px}
+  .box{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;
+    margin-bottom:16px}
+  label{display:block;font-size:11.5px;letter-spacing:.1em;color:var(--muted);margin:10px 0 3px}
+  label:first-child{margin-top:0}
+  input{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;font-size:13.5px;
+    background:#fff;font-family:inherit}
+  input:focus{outline:none;border-color:var(--pink)}
+  button{font-family:inherit;font-size:13px;padding:9px 18px;border:1px solid var(--line);
+    background:#fff;border-radius:999px;cursor:pointer;color:var(--ink)}
+  button:hover{background:#faf7f6}
+  button.go{background:var(--pink);border-color:var(--pink);color:#fff;font-weight:600}
+  button.go:hover{filter:brightness(.95)}
+  button.sm{padding:5px 13px;font-size:12px}
+  #msg{margin:12px 0 0;font-size:12.5px;color:var(--muted);white-space:pre-wrap}
+  table{border-collapse:collapse;width:100%;margin-top:6px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-size:11px;letter-spacing:.1em;color:var(--muted);font-weight:400}
+  td.n{font-variant-numeric:tabular-nums;white-space:nowrap}
+  .hit{background:#fdf5f6}
+  .prev{font-size:12px;color:#5f585a;max-width:340px;overflow:hidden;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .big{font-weight:700;color:#3f7d49}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Notes をとりもどす</h1>
+  <p class="lead">Gist の履歴をまとめて調べ、消えたメモが入っている版を探します。
+    トークンはこの画面から出ず、GitHub 以外には送られません。</p>
+
+  <div class="box">
+    <label>アクセストークン</label>
+    <input id="tok" type="password" placeholder="ghp_ ..." autocomplete="off" spellcheck="false">
+    <label>Gist の ID か URL</label>
+    <input id="gid" type="text" placeholder="https://gist.github.com/..." spellcheck="false">
+    <label>合言葉（設定していなければ空のまま）</label>
+    <input id="pass" type="password" autocomplete="off">
+    <div style="margin-top:14px;display:flex;gap:8px;align-items:center">
+      <button class="go" id="run">履歴を調べる</button>
+      <button id="more" style="display:none">さらに古い版も</button>
+    </div>
+    <div id="msg"></div>
+  </div>
+
+  <div class="box" id="out" style="display:none"></div>
+</div>
+
+<script>
+const GH = 'https://api.github.com';
+const FILE = 'notes-sync.json';
+const $ = id => document.getElementById(id);
+const msg = t => { $('msg').textContent = t; };
+let hist = [], shown = 0, tok = '', gid = '';
+
+const head = () => ({authorization:'Bearer ' + tok, accept:'application/vnd.github+json'});
+
+function gidOf(s){
+  const m = String(s).match(/([0-9a-f]{20,})/i);
+  return m ? m[1].toLowerCase() : String(s).trim().toLowerCase();
+}
+function esc(s){ return String(s).replace(/[&<>"]/g, c =>
+  ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function plain(h){ const d = document.createElement('div'); d.innerHTML = h || ''; return d.textContent || ''; }
+
+/* 件数を数える（Notes の数え方に合わせる） */
+function dataSize(d){
+  if(!d || !d.boards) return 0;
+  let n = 0;
+  d.boards.forEach(b => {
+    (b.cols || []).forEach(c => n += (c.cards || []).length);
+    Object.values(b.days || {}).forEach(v => { if(plain(v).trim()) n++; });
+  });
+  return n;
+}
+/* いちばん新しく手を入れたメモの書き出し */
+function newest(d){
+  let best = null;
+  (d.boards || []).forEach(b => (b.cols || []).forEach(c => (c.cards || []).forEach(k => {
+    const body = plain(k.body || '').trim();
+    if(!body) return;
+    const key = (k.updated || '') + '|' + (k.day || '');
+    if(!best || key > best.key) best = {key, body, day:k.day || ''};
+  })));
+  return best;
+}
+/* 合言葉つきのときにほどく（アプリと同じ作り） */
+async function aesKey(pass){
+  const enc = new TextEncoder();
+  const base = await crypto.subtle.importKey('raw', enc.encode(pass), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    {name:'PBKDF2', salt:enc.encode('notes.sync.salt.v1'), iterations:120000, hash:'SHA-256'},
+    base, {name:'AES-GCM', length:256}, false, ['encrypt', 'decrypt']);
+}
+const fromB64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+async function unpack(p, pass){
+  if(!p) return null;
+  if(!p.enc) return JSON.parse(p.body || '{}');
+  if(!pass) throw new Error('この版は合言葉つきです');
+  const k = await aesKey(pass);
+  const pt = await crypto.subtle.decrypt({name:'AES-GCM', iv:fromB64(p.iv)}, k, fromB64(p.body));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+
+async function revState(version, pass){
+  const r = await fetch(`${GH}/gists/${gid}/${version}`, {headers:head()});
+  if(!r.ok) throw new Error('取得できません（' + r.status + '）');
+  const g = await r.json();
+  const f = g.files && g.files[FILE];
+  if(!f) return null;
+  let txt = f.content;
+  if(f.truncated && f.raw_url) txt = await (await fetch(f.raw_url)).text();
+  const d = JSON.parse(txt);
+  return await unpack(d.payload, pass);
+}
+
+function save(state, when){
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'notes-とりもどし-' + when.replace(/[\/: ]/g, '-') + '.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+const rows = [];
+function draw(){
+  const best = Math.max(...rows.map(r => r.n));
+  $('out').style.display = '';
+  $('out').innerHTML = `<table><tr><th>送られた日時</th><th>件数</th>
+    <th>いちばん新しいメモ</th><th></th></tr>` +
+    rows.map((r, i) => `<tr class="${r.n === best && best > 0 ? 'hit' : ''}">
+      <td class="n">${esc(r.when)}</td>
+      <td class="n ${r.n === best && best > 0 ? 'big' : ''}">${r.n === null ? '—' : r.n + ' 件'}</td>
+      <td><div class="prev">${r.prev ? esc(r.prev) : '<span style="color:#bbb">—</span>'}</div></td>
+      <td><button class="sm" data-i="${i}">この版を保存</button></td>
+    </tr>`).join('') + '</table>';
+  $('out').querySelectorAll('[data-i]').forEach(b => b.onclick = () => {
+    const r = rows[+b.dataset.i];
+    save(r.state, r.when);
+  });
+}
+
+async function scan(n){
+  const pass = $('pass').value;
+  const end = Math.min(shown + n, hist.length);
+  for(let i = shown; i < end; i++){
+    const h = hist[i];
+    const when = new Date(h.committed_at).toLocaleString();
+    msg(`調べています… ${i + 1} / ${hist.length}　（${when}）`);
+    try{
+      const st = await revState(h.version, pass);
+      const nb = newest(st);
+      rows.push({when, n:dataSize(st), state:st,
+        prev:nb ? (nb.day ? nb.day + '　' : '') + nb.body.slice(0, 60) : ''});
+    }catch(e){
+      rows.push({when, n:null, state:null, prev:'（読めません：' + e.message + '）'});
+    }
+    draw();
+  }
+  shown = end;
+  msg(`${shown} 件ぶん調べました。緑の数字がいちばん多い版です。`);
+  $('more').style.display = shown < hist.length ? '' : 'none';
+}
+
+$('run').onclick = async () => {
+  tok = $('tok').value.trim();
+  gid = gidOf($('gid').value);
+  if(!tok || !gid) return msg('トークンと Gist の ID を入れてください。');
+  rows.length = 0; shown = 0;
+  msg('履歴を取りに行っています…');
+  try{
+    const r = await fetch(`${GH}/gists/${gid}`, {headers:head()});
+    if(r.status === 401) throw new Error('トークンが違います（gist の権限が要ります）');
+    if(r.status === 404) throw new Error('Gist が見つかりません');
+    if(!r.ok) throw new Error('取得できません（' + r.status + '）');
+    const g = await r.json();
+    hist = g.history || [];
+    if(!hist.length) throw new Error('履歴がありません');
+    await scan(12);
+  }catch(e){ msg('うまくいきません：' + e.message); }
+};
+$('more').onclick = () => scan(12);
+</script>
+</body>
+</html>
