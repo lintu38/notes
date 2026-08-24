@@ -301,6 +301,9 @@
     margin-right:4px;white-space:nowrap}
   #savedTag.on{opacity:1}
   #savedTag.err{color:#c0392b;opacity:1}
+  #lastSave{font-size:11px;color:#b3aaac;letter-spacing:.06em;margin-left:8px;
+    font-variant-numeric:tabular-nums;white-space:nowrap}
+  #lastSave.stale{color:#c0392b;font-weight:700}
   .btn{padding:6px 12px;border-radius:8px;font-size:13px;border:1px solid var(--line);background:var(--panel)}
   .btn:hover{border-color:#cdc5c7}
   .scroll{flex:1;overflow:auto;padding:20px 22px 90px}
@@ -1167,11 +1170,11 @@
   /* 吹き出し（Claude の返事があるカードだけ） */
   .card.chat .qcard{padding:2px 2px 4px}
   .card.chat .qc-h{padding-left:6px}
-  .card.chat .qc-body{max-width:86%;width:fit-content;min-width:90px;
+  .card.chat .qc-body:not(.qbg){max-width:86%;width:fit-content;min-width:90px;
     background:#fcf7f8;border:1px solid #f0e6e8;border-radius:15px 15px 15px 5px;
     padding:11px 15px}
-  .card.chat .qc-body:hover{background:#fdf9fa}
-  .card.chat .qc-body:focus{background:#fffdfd}
+  .card.chat .qc-body:not(.qbg):hover{background:#fdf9fa}
+  .card.chat .qc-body:not(.qbg):focus{background:#fffdfd}
   .card.chat .airep{max-width:86%;min-width:150px;width:fit-content;
     margin:12px 2px 2px auto;padding:0;background:none;border:0;border-radius:0}
   .card.chat .airep-h{padding-right:6px;margin-bottom:4px;justify-content:flex-end}
@@ -1758,6 +1761,7 @@
       <div class="spacer"></div>
       <span id="backupTag" title="クリックで書き出し"></span>
       <span id="savedTag">✓ 保存しました</span>
+      <span id="lastSave" title="最後に保存できた時刻"></span>
       <div id="topActions"></div>
     </div>
     <div class="scroll" id="view"></div>
@@ -1788,7 +1792,7 @@
 const APP = 'note';
 const KEY = APP === 'task' ? 'boards.tasks.task.v1' : 'boards.tasks.v1';
 const APP_TITLE = APP === 'task' ? 'Tasks' : 'Notes';
-const APPVER = '20260824-1434';
+const APPVER = '20260824-1818';
 const TIMELB = APP === 'task' ? 'Time Log' : 'Read Log';
 const TASKLB = APP === 'task' ? 'Tasks' : 'Action';
 /* Task 用は初回だけ、これまでのデータを引き継ぐ */
@@ -2370,8 +2374,82 @@ function seed(){
   ]};
   return {boards:[b1, b2], contacts:['田中さん', '佐藤さん', '鈴木さん', 'チーム']};
 }
+/* ---- 本体の保存先 ----
+   localStorage は 1 サイト 5MB までで、画像を貼ると簡単に届いてしまう。
+   届いた瞬間から保存が失敗し、書いたものが消える。
+   そこで本命を IndexedDB に置き、localStorage は控えとして使う。       */
+let bootRaw = null, idbBad = false, lsFull = false;
+const SKEY_IDB = () => hkey('state');
+async function idbPutState(json){
+  const db = await idb();
+  if(!db) throw new Error('IndexedDB が使えません');
+  await new Promise((res, rej) => {
+    const tx = db.transaction('s', 'readwrite');
+    tx.objectStore('s').put(json, SKEY_IDB());
+    tx.oncomplete = res;
+    tx.onerror = () => rej(tx.error || new Error('保存できません'));
+    tx.onabort = () => rej(tx.error || new Error('保存が中断されました'));
+  });
+}
+async function idbGetState(){
+  try{
+    const db = await idb(); if(!db) return null;
+    return await new Promise(res => {
+      const q = db.transaction('s', 'readonly').objectStore('s').get(SKEY_IDB());
+      q.onsuccess = () => res(q.result || null);
+      q.onerror = () => res(null);
+    });
+  }catch(e){ return null; }
+}
+/* 取り込みや復元のときは、こちらを通す */
+function putState(json){
+  bootRaw = json;
+  try{ localStorage.setItem(KEY, json); }catch(e){ lsFull = true; }
+  idbPutState(json).catch(() => {});
+}
+let lastSaveAt = 0;
+function markSaved(){
+  lastSaveAt = Date.now();
+  const el = document.getElementById('lastSave');
+  if(!el) return;
+  const d = new Date(lastSaveAt);
+  const z = n => String(n).padStart(2, '0');
+  el.textContent = '保存 ' + z(d.getHours()) + ':' + z(d.getMinutes());
+  el.classList.remove('stale');
+}
+/* 保存が止まっていたら、目に見える形で知らせ続ける */
+setInterval(() => {
+  const el = document.getElementById('lastSave');
+  if(!el || !lastSaveAt) return;
+  const min = Math.floor((Date.now() - lastSaveAt) / 60000);
+  if(min >= 3){
+    el.classList.add('stale');
+    el.textContent = '保存できていません（' + min + '分）';
+  }
+}, 30000);
+/* 保存がどうしても効かないときは、はっきり知らせて逃がす */
+let alarmShown = false;
+function saveAlarm(m){
+  if(alarmShown) return;
+  alarmShown = true;
+  const tag = document.getElementById('savedTag');
+  if(tag){
+    tag.textContent = '⚠ 保存できていません';
+    tag.classList.add('on', 'err');
+  }
+  setTimeout(() => {
+    alert('保存できていません。\n\n' + (m || '') +
+      '\n\nこのまま書き続けると失われます。\n' +
+      'いま「Export」を押して、ファイルに逃がしてください。');
+    alarmShown = false;
+  }, 60);
+  try{ exportNow(); }catch(e){}
+}
 function load(){
-  try{ const raw = localStorage.getItem(KEY); if(raw) S = JSON.parse(raw); }catch(e){}
+  try{
+    const raw = bootRaw !== null ? bootRaw : localStorage.getItem(KEY);
+    if(raw) S = JSON.parse(raw);
+  }catch(e){}
   if(!S || !S.boards) S = seed();
   S.contacts ||= [];
   S.tagColors ||= {};
@@ -2598,17 +2676,15 @@ function reRender(){
 function save(){
   try{
     const json = JSON.stringify(S);
-    localStorage.setItem(KEY, json);
-    /* 本当に書けたか読み返して確かめる */
-    const back = localStorage.getItem(KEY);
-    if(back !== json){
-      const tag = document.getElementById('savedTag');
-      if(tag){
-        tag.textContent = '⚠ 保存が反映されていません（ブラウザの設定を確認してください）';
-        tag.classList.add('on', 'err');
-      }
-      console.error('save verify failed', json.length, back ? back.length : null);
-    }
+    bootRaw = json;
+    /* 本命：IndexedDB（容量に余裕がある） */
+    idbPutState(json).then(() => { idbBad = false; markSaved(); })
+      .catch(e => { idbBad = true; saveAlarm(String(e.message || e)); });
+    /* 控え：localStorage。入らなくても止めない */
+    try{
+      localStorage.setItem(KEY, json);
+      lsFull = (localStorage.getItem(KEY) !== json);
+    }catch(e){ lsFull = true; }
     scheduleBackup();
     syncLater();
     const tag = document.getElementById('savedTag');
@@ -6257,7 +6333,7 @@ function weatherHTML(b, d){
 /* ---------------- Book（本の記録） ---------------- */
 const hasBook = k => !!k.book;
 const BMEDIA = ['Kindle', 'Kindle Unlimited', 'Kindle Sample',
-  '単行本', '文庫', 'audible', 'その他'];
+  '単行本', '文庫', 'audible', 'Webサイト', 'ブログ', 'X', 'その他'];
 const BICO = {
   author: '<svg class="bico" viewBox="0 0 16 16"><circle cx="8" cy="5" r="2.6"/><path d="M2.8 13.6c.7-2.6 2.7-4 5.2-4s4.5 1.4 5.2 4"/></svg>',
   trans:  '<svg class="bico" viewBox="0 0 16 16"><path d="M2.4 3.4h11.2v7.4H8.6L5.4 13.4v-2.6H2.4z"/></svg>',
@@ -6304,7 +6380,7 @@ function bookSection(k, fixed){
       <div class="qfoot" style="margin:6px 0 2px">
         <button class="imgadd" data-bcov="${k.id}">＋ 画像ファイルから選ぶ</button>
       </div>
-      <label>Amazon URL${B.url
+      <label>URL${B.url
         ? ` <a class="ulink amzgo" href="${esc(B.url)}" target="_blank" rel="noopener">開く ↗</a>` : ''}</label>
       <input data-bf="url|${k.id}" value="${esc(B.url || '')}" placeholder="表紙を押すとここへ飛びます"
         autocapitalize="off" autocorrect="off" spellcheck="false">
@@ -6396,7 +6472,7 @@ function bookCardHTML(k){
     ${B.trans ? `<div class="brow">${BICO.trans}${esc(B.trans)}</div>` : ''}
     ${B.pub ? `<div class="brow">${BICO.pub}${esc(B.pub)}</div>` : ''}
     ${B.url ? `<div class="brow"><svg class="bico" viewBox="0 0 16 16"><path d="M6.6 9.4a2.6 2.6 0 0 0 3.9.3l2-2a2.6 2.6 0 0 0-3.7-3.7l-1.1 1.1"/><path d="M9.4 6.6a2.6 2.6 0 0 0-3.9-.3l-2 2a2.6 2.6 0 0 0 3.7 3.7l1.1-1.1"/></svg>
-      <a class="ulink" href="${esc(B.url)}" target="_blank" rel="noopener">Amazon で見る</a></div>` : ''}
+      <a class="ulink" href="${esc(B.url)}" target="_blank" rel="noopener">リンクを開く</a></div>` : ''}
     <div class="bsep"></div>
     ${B.met ? `<div class="brow">${BICO.met}${esc(B.met)}</div>` : ''}
     ${B.buy ? `<div class="brow">${BICO.buy}${esc(B.buy)}</div>` : ''}
@@ -8246,8 +8322,12 @@ function idb(){
   return new Promise(res => {
     if(!window.indexedDB) return res(null);
     let r;
-    try{ r = indexedDB.open('notes-fs', 1); }catch(e){ return res(null); }
-    r.onupgradeneeded = () => r.result.createObjectStore('h');
+    try{ r = indexedDB.open('notes-fs', 2); }catch(e){ return res(null); }
+    r.onupgradeneeded = () => {
+      const d = r.result;
+      if(!d.objectStoreNames.contains('h')) d.createObjectStore('h');
+      if(!d.objectStoreNames.contains('s')) d.createObjectStore('s');
+    };
     r.onsuccess = () => res(r.result);
     r.onerror = () => res(null);
   });
@@ -8382,7 +8462,26 @@ async function pickFolder(){
   return false;
 }
 /* 静かに最新版だけ書き戻す */
+let snapAt = 0;
+/* 10分に一度、日時つきの控えを別名で残す（消えても遡れるように） */
+async function snapshotMaybe(){
+  try{
+    if(!dirHandle) return;
+    if(Date.now() - snapAt < 10 * 60000) return;
+    if(!(await ensurePerm(dirHandle))) return;
+    snapAt = Date.now();
+    const d = new Date();
+    const z = n => String(n).padStart(2, '0');
+    const nm = `${APP === 'task' ? 'tasks' : 'notes'}-控え-${d.getFullYear()}-`
+      + `${z(d.getMonth() + 1)}-${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}.json`;
+    const fh = await dirHandle.getFileHandle(nm, {create:true});
+    const w = await fh.createWritable();
+    await w.write(JSON.stringify(S));
+    await w.close();
+  }catch(e){}
+}
 async function backupNow(force){
+  snapshotMaybe();
   try{
     if(dirHandle){
       if(!(await ensurePerm(dirHandle))) return false;
@@ -8467,7 +8566,9 @@ document.getElementById('impFile').onchange = e => {
     try{
       const d = JSON.parse(r.result);
       if(!d.boards) throw 0;
-      localStorage.setItem(KEY, JSON.stringify(d));
+      if(!okToReplace(d, 'ファイル')) return;
+      keepUndo('import');
+      putState(JSON.stringify(d));
       load();
       view = {type:'board', id:S.boards[0]?.id}; save(); render();
     }catch(_){ alert('読み込めませんでした（JSON形式が違います）'); }
@@ -9274,6 +9375,69 @@ async function syncPut(at, payload, ifAt){
   return 'ok';
 }
 
+/* 上書きの直前に、いまの中身を控えておく（1回ぶん戻せる） */
+const UNDOKEY = KEY + '.undo';
+function keepUndo(why){
+  try{
+    const cur = bootRaw !== null ? bootRaw : localStorage.getItem(KEY);
+    if(!cur) return;
+    /* 目印だけ localStorage に、本文は IndexedDB に */
+    localStorage.setItem(UNDOKEY, JSON.stringify({at:Date.now(), why:why || '', n:dataSize(S)}));
+    idb().then(db => {
+      if(!db) return;
+      db.transaction('s', 'readwrite').objectStore('s').put(cur, SKEY_IDB() + '.undo');
+    }).catch(() => {});
+    keepUndoFile(cur);          /* 保存先にも、日時つきで残す */
+  }catch(e){}
+}
+/* 上書きされる前の中身を、フォルダにも書き出しておく */
+async function keepUndoFile(json){
+  try{
+    if(!dirHandle) return;
+    if(!(await ensurePerm(dirHandle))) return;
+    const d = new Date();
+    const z = n => String(n).padStart(2, '0');
+    const nm = `${APP === 'task' ? 'tasks' : 'notes'}-上書き前-${d.getFullYear()}-`
+      + `${z(d.getMonth() + 1)}-${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}.json`;
+    const fh = await dirHandle.getFileHandle(nm, {create:true});
+    const w = await fh.createWritable();
+    await w.write(json);
+    await w.close();
+  }catch(e){}
+}
+function undoInfo(){
+  try{
+    const u = JSON.parse(localStorage.getItem(UNDOKEY) || 'null');
+    return (u && u.at) ? u : null;
+  }catch(e){ return null; }
+}
+async function undoRestore(){
+  const u = undoInfo();
+  if(!u) return alert('戻せる控えがありません。');
+  const db = await idb();
+  const body = db && await new Promise(res => {
+    const q = db.transaction('s', 'readonly').objectStore('s').get(SKEY_IDB() + '.undo');
+    q.onsuccess = () => res(q.result || null);
+    q.onerror = () => res(null);
+  });
+  if(!body) return alert('控えの中身が見つかりません。');
+  if(!confirm('上書きされる前の状態にもどします。\n\n'
+    + '　' + (u.n || '?') + ' 件（' + new Date(u.at).toLocaleString() + ' 時点）\n\n'
+    + 'よろしいですか？')) return;
+  keepUndo('undo');                 /* いまの中身も一応控える */
+  putState(body);
+  load(); save(); render();
+  alert('もどしました。');
+}
+/* 減るときは黙って上書きしない */
+function okToReplace(data, from){
+  const now = dataSize(S), next = dataSize(data);
+  if(next >= now) return true;
+  return confirm('取り込もうとしている内容のほうが少ないです。\n\n'
+    + '　いまの画面：' + now + ' 件\n'
+    + '　' + (from || '置き場所') + '：' + next + ' 件\n\n'
+    + 'このまま入れ替えると、差のぶんは消えます。続けますか？');
+}
 /* 置き場所から取り込む */
 async function syncPull(force){
   if(!syncOn()) return false;
@@ -9282,7 +9446,9 @@ async function syncPull(force){
   if(!force && rec.at <= (syncCfg.at || 0)) return false;
   const data = await decPack(rec.payload);
   if(!data || !data.boards) throw new Error('データを読めません');
-  localStorage.setItem(KEY, JSON.stringify(data));
+  if(!okToReplace(data, '置き場所')) return false;
+  keepUndo('pull');
+  putState(JSON.stringify(data));
   load();                       // 足りない項目を補う（通常の読み込みと同じ処理）
   syncCfg.at = rec.at; saveSync();
   syncDirty = false;
@@ -9370,6 +9536,10 @@ function syncDialog(rect){
       <button id="syPush" title="この端末の内容で置き場所を上書きします">送る</button>
       <button id="syClose">閉じる</button>
     </div>
+    ${(() => { const u = undoInfo(); return u ? `<div class="hint" style="margin-top:8px;
+      display:flex;align-items:center;gap:8px;justify-content:space-between">
+      <span>上書き前の控え：${u.n} 件（${new Date(u.at).toLocaleString()}）</span>
+      <button id="syUndo" style="flex:0 0 auto">もどす</button></div>` : ''; })()}
   </div>`);
   const $ = id => p.querySelector('#' + id);
   const msg = (t, err) => { $('syMsg').innerHTML =
@@ -9434,6 +9604,7 @@ function syncDialog(rect){
       msg(n > 200 ? `送りました（${Math.round(n/1024)} KB）` : '送れていません。もう一度お試しください', n <= 200);
     }catch(e){ msg(errText(e), true); console.error('push', e); }
   };
+  if($('syUndo')) $('syUndo').onclick = () => { grab(); p.remove(); undoRestore(); };
   $('syClose').onclick = () => { grab(); p.remove(); };
 }
 
@@ -9600,7 +9771,7 @@ async function checkUpdate(){
 }
 
 window.addEventListener('pagehide', () => {
-  try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){}
+  try{ putState(JSON.stringify(S)); }catch(e){}
   flushSync();
 });
 /* ほかのアプリに切り替えた・タブを離れたとき、未送信の変更をすぐ送る */
@@ -9614,11 +9785,10 @@ function flushSync(){
 }
 document.addEventListener('visibilitychange', () => {
   if(document.visibilityState === 'hidden'){
-    try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){}
+    try{ putState(JSON.stringify(S)); }catch(e){}
     flushSync();
   }
 });
-load();
 const boot = () => {
   if(window.matchMedia('(max-width: 860px)').matches){
     S.sideHidden = true; S.rsideHidden = true;
@@ -9683,7 +9853,11 @@ const boot2 = () => {
   if(syncOn() && !syncDirty) syncPull().then(ok => { if(ok){ render(); syncTag('取り込みました'); } })
     .catch(e => syncTag('同期できません：' + e.message, true));
 };
-if(S.pin) showLock(boot2); else boot2();
+(async () => {
+  bootRaw = await idbGetState();
+  load();
+  if(S.pin) showLock(boot2); else boot2();
+})();
 })();
 </script>
 </body>
