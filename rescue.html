@@ -47,12 +47,13 @@
   <div class="box">
     <label>アクセストークン</label>
     <input id="tok" type="password" placeholder="ghp_ ..." autocomplete="off" spellcheck="false">
-    <label>Gist の ID か URL</label>
-    <input id="gid" type="text" placeholder="https://gist.github.com/..." spellcheck="false">
+    <label>Gist の ID（分からなければ下の「自分の Gist を一覧」から）</label>
+    <input id="gid" type="text" placeholder="3f8a1c… のような英数字" spellcheck="false">
     <label>合言葉（設定していなければ空のまま）</label>
     <input id="pass" type="password" autocomplete="off">
     <div style="margin-top:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
       <button class="go" id="run">履歴を調べる</button>
+      <button id="list">自分の Gist を一覧</button>
       <button id="test">つながるか試す</button>
       <button id="more" style="display:none">さらに古い版も</button>
     </div>
@@ -73,7 +74,7 @@ const head = () => ({authorization:'Bearer ' + tok, accept:'application/vnd.gith
 
 function gidOf(s){
   const m = String(s).match(/([0-9a-f]{20,})/i);
-  return m ? m[1].toLowerCase() : String(s).trim().toLowerCase();
+  return m ? m[1].toLowerCase() : '';
 }
 function esc(s){ return String(s).replace(/[&<>"]/g, c =>
   ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
@@ -182,7 +183,8 @@ async function scan(n){
 $('run').onclick = async () => {
   tok = $('tok').value.trim();
   gid = gidOf($('gid').value);
-  if(!tok || !gid) return msg('トークンと Gist の ID を入れてください。');
+  if(!tok) return msg('トークンを入れてください。');
+  if(!gid) return msg('Gist の ID が読み取れません。\n「自分の Gist を一覧」から選んでください。');
   rows.length = 0; shown = 0;
   msg('履歴を取りに行っています…');
   try{
@@ -197,6 +199,35 @@ $('run').onclick = async () => {
   }catch(e){ msg('うまくいきません：' + e.message); }
 };
 $('more').onclick = () => scan(12);
+
+/* 自分の Gist を並べて選ばせる */
+$('list').onclick = async () => {
+  tok = $('tok').value.trim();
+  if(!tok) return msg('先にトークンを入れてください。');
+  msg('Gist を探しています…');
+  try{
+    const r = await fetch(GH + '/gists?per_page=100', {headers:head()});
+    if(!r.ok) throw new Error('取得できません（' + r.status + '）');
+    const gs = await r.json();
+    if(!gs.length) throw new Error('Gist がありません');
+    $('out').style.display = '';
+    $('out').innerHTML = '<table><tr><th>名前</th><th>ファイル</th><th>最後の更新</th><th></th></tr>'
+      + gs.map(g => {
+          const names = Object.keys(g.files || {});
+          const mine = names.includes(FILE);
+          return `<tr class="${mine ? 'hit' : ''}">
+            <td>${esc(g.description || '（名前なし）')}</td>
+            <td class="${mine ? 'big' : ''}">${esc(names.join('、'))}</td>
+            <td class="n">${new Date(g.updated_at).toLocaleString()}</td>
+            <td><button class="sm" data-g="${g.id}">これを調べる</button></td></tr>`;
+        }).join('') + '</table>';
+    $('out').querySelectorAll('[data-g]').forEach(b => b.onclick = () => {
+      $('gid').value = b.dataset.g;
+      $('run').click();
+    });
+    msg('緑の「' + FILE + '」があるものが同期の置き場所です。「これを調べる」を押してください。');
+  }catch(e){ msg('うまくいきません：' + e.message); }
+};
 
 /* いまどこから開いているか */
 (() => {
