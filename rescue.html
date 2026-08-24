@@ -42,6 +42,8 @@
   <p class="lead">Gist の履歴をまとめて調べ、消えたメモが入っている版を探します。
     トークンはこの画面から出ず、GitHub 以外には送られません。</p>
 
+  <div class="box" id="where" style="font-size:12.5px"></div>
+
   <div class="box">
     <label>アクセストークン</label>
     <input id="tok" type="password" placeholder="ghp_ ..." autocomplete="off" spellcheck="false">
@@ -49,8 +51,9 @@
     <input id="gid" type="text" placeholder="https://gist.github.com/..." spellcheck="false">
     <label>合言葉（設定していなければ空のまま）</label>
     <input id="pass" type="password" autocomplete="off">
-    <div style="margin-top:14px;display:flex;gap:8px;align-items:center">
+    <div style="margin-top:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
       <button class="go" id="run">履歴を調べる</button>
+      <button id="test">つながるか試す</button>
       <button id="more" style="display:none">さらに古い版も</button>
     </div>
     <div id="msg"></div>
@@ -194,6 +197,37 @@ $('run').onclick = async () => {
   }catch(e){ msg('うまくいきません：' + e.message); }
 };
 $('more').onclick = () => scan(12);
+
+/* いまどこから開いているか */
+(() => {
+  const u = location.href;
+  const local = location.protocol === 'file:';
+  $('where').innerHTML = local
+    ? '<b style="color:#c0392b">いまファイルを直接開いています。</b><br>'
+      + 'この開き方では GitHub と通信できません。'
+      + 'GitHub Pages に上げた rescue.html を開いてください。<br>'
+      + '<span style="color:#8b8285;font-size:11.5px;word-break:break-all">' + esc(u) + '</span>'
+    : 'いまの住所：<span style="word-break:break-all">' + esc(u) + '</span>';
+})();
+
+/* 通信の切り分け */
+$('test').onclick = async () => {
+  const lines = [];
+  try{
+    const r = await fetch('https://api.github.com/zen');
+    lines.push('① GitHub へのふつうの通信：OK（' + r.status + '）');
+  }catch(e){ lines.push('① GitHub へのふつうの通信：だめ（' + e.message + '）'); }
+  const t = $('tok').value.trim();
+  if(!t){ lines.push('② トークンなしのため、ここまで'); return msg(lines.join('\n')); }
+  try{
+    const r = await fetch(GH + '/user', {headers:{authorization:'Bearer ' + t}});
+    lines.push('② トークンつきの通信：' + (r.ok ? 'OK' : 'エラー ' + r.status));
+    if(r.status === 401) lines.push('　→ トークンが違うか、期限切れです');
+  }catch(e){ lines.push('② トークンつきの通信：だめ（' + e.message + '）'); }
+  const g = gidOf($('gid').value);
+  lines.push('③ 読み取った Gist ID：' + (g || '（空です）'));
+  msg(lines.join('\n'));
+};
 </script>
 </body>
 </html>
