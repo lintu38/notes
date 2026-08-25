@@ -1301,6 +1301,13 @@
     font-style:normal;font-size:12.5px;line-height:1;color:#8b8285}
   .pop button:hover .ic{color:inherit}
   .pop hr{border:0;border-top:1px solid var(--line2);margin:4px 2px}
+  .wrow{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+  .wrow input[type=color]{width:34px;height:28px;padding:0;flex:0 0 34px;
+    border:1px solid var(--line);border-radius:6px;background:none}
+  .wrow .tinput{flex:1 1 auto;min-width:0;width:auto;padding:6px 9px;font-size:13px}
+  .pop .wrow .wx{width:24px;flex:0 0 24px;padding:0;justify-content:center;
+    color:#c0b8ba;font-size:14px;background:none}
+  .pop .wrow .wx:hover{color:#c0392b;background:#f7efef}
   .swatches{display:flex;gap:6px;padding:6px 10px 8px}
   .sw{width:19px;height:19px;border-radius:50%;border:1px solid rgba(0,0,0,.08);flex:0 0 19px}
   .sw.on{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--accent)}
@@ -1813,7 +1820,7 @@
 const APP = 'note';
 const KEY = APP === 'task' ? 'boards.tasks.task.v1' : 'boards.tasks.v1';
 const APP_TITLE = APP === 'task' ? 'Tasks' : 'Notes';
-const APPVER = '20260825-1545';
+const APPVER = '20260825-1551';
 const TIMELB = APP === 'task' ? 'Time Log' : 'Read Log';
 const TASKLB = APP === 'task' ? 'Tasks' : 'Action';
 const TASKONE = APP === 'task' ? 'Task' : 'Action';   /* 1件ぶんの呼び名 */
@@ -3427,7 +3434,7 @@ const hasTime = k => !!(k.timer || (k.times && k.times.length)
 const hasQuote = k => !!k.quote;
 const PINICO = `<svg class="cdico" viewBox="0 0 16 16"><path d="M9.6 1.9l4.5 4.5-1.6.5-1 1-.4 3.1-4.7-4.7 3.1-.4 1-1z"/><path d="M6.4 6.3L2.2 13.8l7.5-4.2"/></svg>`;
 /* Cards / Quotes ページでも同じボタンを出す */
-const actTgl = k => (k.type === 'task' || k.type === 'heading') ? '' :
+const actTgl = k => (k.type === 'task' || k.type === 'heading' || k.type === 'book') ? '' :
   `<button class="mkact" data-mkact="${k.id}"
     title="このメモをリンクした Action メモをつくる">＋Action</button>`;
 const pinTgl = k => APP !== 'note' ? '' :
@@ -4969,12 +4976,11 @@ function whenEdit(rect){
         <h4>「いつやる？」の項目</h4>
         <div class="hint" style="margin:-2px 0 8px">名前と色を変えられます。
           いちばん上は、まだ選んでいないときの表示です。</div>
-        ${list.map(([v, n, c], i) => `<div class="drow" style="gap:6px;align-items:center">
-          <input type="color" value="${c}" data-c="${i}"
-            style="width:32px;height:26px;padding:0;flex:0 0 auto"${v ? '' : ' disabled'}>
-          <input class="tinput" value="${esc(n)}" data-n="${i}" style="flex:1;min-width:0">
-          ${v ? `<button data-x="${i}" title="この項目を消す" style="flex:0 0 auto">×</button>`
-              : '<span style="width:24px;flex:0 0 auto"></span>'}
+        ${list.map(([v, n, c], i) => `<div class="wrow">
+          <input type="color" value="${c}" data-c="${i}"${v ? '' : ' disabled'}>
+          <input class="tinput" value="${esc(n)}" data-n="${i}">
+          ${v ? `<button class="wx" data-x="${i}" title="この項目を消す">×</button>`
+              : '<span class="wx"></span>'}
         </div>`).join('')}
         <div class="dfoot" style="gap:6px">
           <button id="wAdd">＋ 追加</button>
@@ -7291,7 +7297,7 @@ function linkCardHTML(f, back, ownerId){
   const ttl = cardLabel(k);
   return `<div class="lcard" data-jumpcard="${k.id}">
     <div class="lc-h">
-      <span class="lc-kind ${kind.toLowerCase()}">${kind}</span>
+      <span class="lc-kind ${kind.toLowerCase()}">${kind === 'Task' ? TASKONE : kind}</span>
       ${back ? '' : `<button class="lc-x" data-unlink="${ownerId}|${k.id}" title="リンクを外す">×</button>`}
     </div>
     <div class="lc-t">${esc(ttl)}</div>
