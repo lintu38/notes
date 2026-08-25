@@ -1820,7 +1820,7 @@
 const APP = 'note';
 const KEY = APP === 'task' ? 'boards.tasks.task.v1' : 'boards.tasks.v1';
 const APP_TITLE = APP === 'task' ? 'Tasks' : 'Notes';
-const APPVER = '20260825-1551';
+const APPVER = '20260825-1554';
 const TIMELB = APP === 'task' ? 'Time Log' : 'Read Log';
 const TASKLB = APP === 'task' ? 'Tasks' : 'Action';
 const TASKONE = APP === 'task' ? 'Task' : 'Action';   /* 1件ぶんの呼び名 */
@@ -3464,15 +3464,17 @@ function pinListHTML(boardId){
   </div>`;
 }
 
-/* このメモから Action メモをつくる */
-function makeAction(cid){
+/* このメモから、リンク付きの新しいメモをつくる（Action / Memo） */
+const makeAction = cid => makeLinked(cid, 'task');
+function makeLinked(cid, kind){
   const f = findCard(cid); if(!f) return;
   const k = f.card;
   const t = (plain(k.title).trim() || (k.bodyTitle || '').trim()
     || plain(k.body || '').trim().split('\n')[0].trim() || '').slice(0, 40);
-  const nk = {id:uid(), type:'task', title:t, body:'', color:k.color || '',
+  const nk = {id:uid(), type:kind, title:kind === 'task' ? t : '', body:'', color:k.color || '',
     start:'', due:'', repeat:{unit:'', n:1, days:[]}, done:false, subs:[], tags:[],
     links:[k.id], created:today(), updated:today()};
+  if(kind === 'note'){ nk.hasMemo = true; nk.bodyTitle = t; nk.day = k.day || today(); }
   /* 本や親メモの中で押したときは、その中の一番上に置く */
   const pid = k.parent || (k.type === 'book' ? k.id : '');
   let at = f.idx;
@@ -3488,7 +3490,8 @@ function makeAction(cid){
   f.col.cards.splice(at, 0, nk);
   touch(k); save(); render();
   setTimeout(() => {
-    const el = document.querySelector(`[data-title="${nk.id}"]`);
+    const el = document.querySelector(kind === 'task'
+      ? `[data-title="${nk.id}"]` : `[data-body="${nk.id}"]`);
     if(el){ el.focus(); el.scrollIntoView({block:'center', behavior:'smooth'}); }
   }, 40);
 }
@@ -4795,6 +4798,8 @@ function cardMenu(e, cid){
     <button data-a="note"><i class="ic">≡</i>${(k.noteOn||plain(k.note).trim()) ? '説明を削除' : '説明を追加'}</button>` : ''}
     <button data-a="tags"><i class="ic">🏷</i>Tag</button>
     <button data-a="link"><i class="ic"><svg class="mico" viewBox="0 0 16 16"><path d="M6.6 9.4a2.6 2.6 0 0 0 3.9.3l2-2a2.6 2.6 0 0 0-3.7-3.7l-1.1 1.1"/><path d="M9.4 6.6a2.6 2.6 0 0 0-3.9-.3l-2 2a2.6 2.6 0 0 0 3.7 3.7l1.1-1.1"/></svg></i>リンクを追加</button>
+    ${(APP === 'note' && k.type !== 'heading' && k.type !== 'book')
+      ? `<button data-a="linkmemo"><i class="ic">✎</i>Link Memo を追加</button>` : ''}
     ${k.type !== 'heading' ? `<button data-a="body"><i class="ic"><svg class="mico" viewBox="0 0 16 16"><path d="M3.4 2.4h6.3l3 3v8.2H3.4z"/><path d="M9.5 2.5v3.2h3.1"/><path d="M5.6 8.4h5M5.6 10.8h3.4"/></svg></i>${hasMemo(k) ? 'Memo を編集' : 'Memo を追加'}</button>` : ''}
     ${k.type !== 'heading' && !hasQuote(k) ? `<button data-a="quote"><i class="ic">❝</i>Quote を追加</button>` : ''}
     ${k.type !== 'heading' && !hasRead(k) ? `<button data-a="read"><i class="ic"><svg class="mico" viewBox="0 0 16 16"><path d="M2.6 3.1h4.1c.9 0 1.3.5 1.3 1.2v8.6c0-.6-.5-1-1.3-1H2.6z"/><path d="M13.4 3.1H9.3c-.9 0-1.3.5-1.3 1.2v8.6c0-.6.5-1 1.3-1h4.1z"/></svg></i>Read を追加</button>` : ''}
@@ -4823,6 +4828,7 @@ function cardMenu(e, cid){
       if(k.noteOn || plain(k.note).trim()){ delete k.noteOn; k.note = ''; }
       else k.noteOn = true;
     }
+    if(a === 'linkmemo'){ p.remove(); return makeLinked(cid, 'note'); }
     if(a === 'body'){ k.hasMemo = true; if(k.fold) k.fold.memo = false; }
     if(a === 'log'){
       k.logs = [newLog()];
