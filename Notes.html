@@ -507,6 +507,10 @@
   .qc-body{border-top:1px dashed #ded4d2;margin-top:8px;padding-top:14px;
     font-size:14.5px;line-height:1.95;white-space:pre-wrap;word-break:break-word}
   /* 背景だけ外へ広げ、文字の開始位置は下の Memo と揃える */
+  .mkact{font-size:11px;letter-spacing:.04em;color:#a99ea2;padding:3px 9px;
+    border-radius:999px;border:1px solid transparent;background:none;flex:0 0 auto;
+    white-space:nowrap}
+  .mkact:hover{color:#6f6669;border-color:var(--line);background:#fdfbfb}
   .qc-body.qbg{background:var(--quote-bg);border:0;border-radius:11px;
     margin:10px -4px 0 -10px;padding:13px 14px 13px 10px}
   .qc-cite{text-align:right;font-size:12.5px;color:#6e6668;margin-top:16px;letter-spacing:.02em}
@@ -1170,6 +1174,10 @@
   /* 吹き出し（Claude の返事があるカードだけ） */
   .card.chat .qcard{padding:2px 2px 4px}
   .card.chat .qc-h{padding-left:6px}
+  /* 引用文は、返事があっても元のグレーの箱のまま */
+  .card.chat .qc-body.qbg{background:var(--quote-bg);border:0;border-radius:11px;
+    max-width:none;width:auto;min-width:0;margin:10px -4px 0 -10px;
+    padding:13px 14px 13px 10px}
   /* 引用文・Read の本文は、そのままの見た目にしておく */
   .card.quote.chat .qcard,.card.read.chat .qcard{padding:2px 10px 6px}
   .card.quote.chat .qc-h,.card.read.chat .qc-h{padding-left:0}
@@ -1797,7 +1805,7 @@
 const APP = 'note';
 const KEY = APP === 'task' ? 'boards.tasks.task.v1' : 'boards.tasks.v1';
 const APP_TITLE = APP === 'task' ? 'Tasks' : 'Notes';
-const APPVER = '20260824-1823';
+const APPVER = '20260825-1522';
 const TIMELB = APP === 'task' ? 'Time Log' : 'Read Log';
 const TASKLB = APP === 'task' ? 'Tasks' : 'Action';
 /* Task 用は初回だけ、これまでのデータを引き継ぐ */
@@ -3324,6 +3332,9 @@ function cardHTML(k){
     ${k.type === 'task' ? `<input type="checkbox" class="ck" data-done="${k.id}" ${k.done?'checked':''}>` : ''}
     ${(k.type === 'quote' || k.type === 'note' || k.type === 'read') ? '<div style="flex:1"></div>'
       : `<div class="ctitle" contenteditable="true" data-title="${k.id}">${clean(k.title)}</div>`}
+    ${(k.type !== 'task' && k.type !== 'heading')
+      ? `<button class="mkact" data-mkact="${k.id}"
+          title="このメモをリンクした Action メモをつくる">＋Action</button>` : ''}
     ${(k.type === 'note' || k.type === 'task') ? cardTgl('memo', k, k.memoCard)
       : k.type === 'quote' ? cardTgl('quote', k, k.quote && k.quote.card)
       : k.type === 'read' ? cardTgl('read', k, k.read && k.read.card) : ''}
@@ -3433,6 +3444,22 @@ function pinListHTML(boardId){
   </div>`;
 }
 
+/* このメモから Action メモをつくる */
+function makeAction(cid){
+  const f = findCard(cid); if(!f) return;
+  const k = f.card;
+  const t = (plain(k.title).trim() || (k.bodyTitle || '').trim()
+    || plain(k.body || '').trim().split('\n')[0].trim() || '').slice(0, 40);
+  const nk = {id:uid(), type:'task', title:t, body:'', color:k.color || '',
+    start:'', due:'', repeat:{unit:'', n:1, days:[]}, done:false, subs:[], tags:[],
+    links:[k.id], created:today(), updated:today()};
+  f.col.cards.splice(f.idx + 1, 0, nk);
+  touch(k); save(); render();
+  setTimeout(() => {
+    const el = document.querySelector(`[data-title="${nk.id}"]`);
+    if(el){ el.focus(); el.scrollIntoView({block:'center', behavior:'smooth'}); }
+  }, 40);
+}
 const cardTgl = (which, k, on) =>
   `<button class="cardtg ${on?'on':''}" data-cardtg="${which}|${k.id}"
     title="Cards（ランダム表示）に入れる"><svg class="cdico" viewBox="0 0 16 16"><rect x="5" y="2.2" width="8.8" height="10.6" rx="1.6"/><path d="M10.6 13.8H4a1.6 1.6 0 0 1-1.6-1.6V4.8"/></svg>Card</button>`;
@@ -3542,8 +3569,8 @@ function quoteCardHTML(k, inCard){
     </div>
     <div class="qc-body qbg">${clean(Q.text) || '<span style="color:#c4bcbe">（本文なし）</span>'}</div>
     ${cite ? `<div class="qc-cite">— ${esc(cite)}</div>` : ''}
-    <div class="qc-memo ${(k.fold && k.fold.cmemoOpen) ? '' : 'shut'}">
-      <div class="cm-h"><button class="fold ${(k.fold && k.fold.cmemoOpen) ? 'open' : ''}" data-fold="cmemoOpen|${k.id}">▶</button>
+    <div class="qc-memo ${cmOpen(k) ? '' : 'shut'}">
+      <div class="cm-h"><button class="fold ${cmOpen(k) ? 'open' : ''}" data-fold="cmemoOpen|${k.id}">▶</button>
         <label>Memo</label></div>
       <div class="body live" contenteditable="true" data-qmemo="${k.id}" data-ph="補足メモ">${clean(Q.memo)}</div></div>
     <div class="qc-foot"><button data-openpage="${k.id}" title="ページで開いて編集">⤢ 開く</button></div>
@@ -3595,6 +3622,9 @@ function timeSection(k){
   </div>`;
 }
 
+/* カード内の Memo：Notes では開いた状態を既定にする（一度たたんだら覚える） */
+const cmOpen = k => (k.fold && k.fold.cmemoOpen !== undefined)
+  ? !!k.fold.cmemoOpen : APP === 'note';
 function memoSection(k){
   if(!hasMemo(k)) return '';
   const open = !(k.fold && k.fold.memo);
@@ -3810,6 +3840,9 @@ function wireCards(root){
     const k = findCard(from).card;
     k.links = (k.links || []).filter(x => x !== to);
     save(); render();
+  });
+  root.querySelectorAll('[data-mkact]').forEach(el => el.onclick = e => {
+    e.stopPropagation(); makeAction(el.dataset.mkact);
   });
   root.querySelectorAll('[data-cdate]').forEach(el =>
     el.onclick = () => createdMenu(el.getBoundingClientRect(), el.dataset.cdate));
@@ -4029,7 +4062,8 @@ function wireCards(root){
     const [which, cid] = el.dataset.fold.split('|');
     const k = findCard(cid).card;
     k.fold = {memo:false, log:true, pdf:true, ...(k.fold || {})};
-    k.fold[which] = !k.fold[which];
+    if(which === 'cmemoOpen') k.fold[which] = !cmOpen(k);
+    else k.fold[which] = !k.fold[which];
     save(); render();
   });
   root.querySelectorAll('[data-btitle]').forEach(el => {
@@ -6573,8 +6607,8 @@ function readCardHTML(k){
     ${(M.author || srcQ) ? `<div class="qc-ttl">${esc([M.author, srcQ].filter(Boolean).join(' '))}</div>` : ''}
     ${(R.media || R.page) ? `<div class="qc-sub">${esc([R.media, R.page ? 'p.' + R.page : ''].filter(Boolean).join('　・　'))}</div>` : ''}
     ${rflagsHTML(k)}
-    <div class="qc-memo ${(k.fold && k.fold.cmemoOpen) ? '' : 'shut'}">
-      <div class="cm-h"><button class="fold ${(k.fold && k.fold.cmemoOpen) ? 'open' : ''}" data-fold="cmemoOpen|${k.id}">▶</button>
+    <div class="qc-memo ${cmOpen(k) ? '' : 'shut'}">
+      <div class="cm-h"><button class="fold ${cmOpen(k) ? 'open' : ''}" data-fold="cmemoOpen|${k.id}">▶</button>
         <label>Memo</label></div>
       <div class="body live" contenteditable="true" data-rmemo="${k.id}" data-ph="読んだ感想や覚え書き">${clean(R.memo)}</div></div>
     <div class="qc-foot"><button data-openpage="${k.id}" title="ページで開いて編集">⤢ 開く</button></div>
