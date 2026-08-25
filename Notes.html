@@ -507,9 +507,10 @@
   .qc-body{border-top:1px dashed #ded4d2;margin-top:8px;padding-top:14px;
     font-size:14.5px;line-height:1.95;white-space:pre-wrap;word-break:break-word}
   /* 背景だけ外へ広げ、文字の開始位置は下の Memo と揃える */
-  .mkact{font-size:11px;letter-spacing:.04em;color:#b9702f;padding:3px 10px;
-    border-radius:999px;border:1px solid #f0d6bc;background:#fdf3e9;flex:0 0 auto;
-    white-space:nowrap;font-weight:600}
+  .mkact{font-size:10.5px;letter-spacing:.04em;color:#b9702f;padding:0 9px;
+    height:20px;border-radius:20px;border:1px solid #f0d6bc;background:#fdf3e9;
+    flex:0 0 auto;white-space:nowrap;font-weight:600;
+    display:inline-flex;align-items:center}
   .mkact:hover{color:#fff;border-color:#d98a3f;background:#d98a3f}
   .qc-body.qbg{background:var(--quote-bg);border:0;border-radius:11px;
     margin:10px -4px 0 -10px;padding:13px 14px 13px 10px}
@@ -598,7 +599,8 @@
     font-size:13px;color:#5f585a;white-space:pre-wrap;line-height:1.85}
   .dsrc{margin-top:14px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;
     align-items:center;justify-content:center}
-  .dcard-h{display:flex;justify-content:flex-end;margin:-14px -14px 4px 0}
+  .dcard-h{display:flex;justify-content:flex-end;gap:6px;align-items:center;
+    margin:-14px -14px 4px 0}
   .dsrc b{cursor:pointer}
   .dsrc b:hover{text-decoration:underline}
   .dbtn{margin-top:20px;display:flex;gap:10px;justify-content:center;align-items:center}
@@ -1023,6 +1025,12 @@
   .qrand .dcard .mm{font-size:13.5px;margin-top:16px;padding-top:13px}
   .qrand .dsrc{font-size:11px}
   .qrand .dbtn .btn{padding:6px 14px;font-size:12px}
+  .randmemo{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:16px 18px 14px;margin-bottom:26px}
+  .randmemo h5{text-align:center}
+  .randmemo .card{box-shadow:none;border:0;background:none;padding:0}
+  .randmemo .col-src{margin-bottom:6px}
+  .randmemo .dbtn{margin-top:14px}
   .colwrap.gallery{display:block;max-width:none;columns:320px;column-gap:14px}
   .colwrap.gallery .colitem{margin:0 0 14px;width:100%;break-inside:avoid;
     -webkit-column-break-inside:avoid;page-break-inside:avoid}
@@ -1805,7 +1813,7 @@
 const APP = 'note';
 const KEY = APP === 'task' ? 'boards.tasks.task.v1' : 'boards.tasks.v1';
 const APP_TITLE = APP === 'task' ? 'Tasks' : 'Notes';
-const APPVER = '20260825-1531';
+const APPVER = '20260825-1537';
 const TIMELB = APP === 'task' ? 'Time Log' : 'Read Log';
 const TASKLB = APP === 'task' ? 'Tasks' : 'Action';
 /* Task 用は初回だけ、これまでのデータを引き継ぐ */
@@ -3332,9 +3340,7 @@ function cardHTML(k){
     ${k.type === 'task' ? `<input type="checkbox" class="ck" data-done="${k.id}" ${k.done?'checked':''}>` : ''}
     ${(k.type === 'quote' || k.type === 'note' || k.type === 'read') ? '<div style="flex:1"></div>'
       : `<div class="ctitle" contenteditable="true" data-title="${k.id}">${clean(k.title)}</div>`}
-    ${(k.type !== 'task' && k.type !== 'heading')
-      ? `<button class="mkact" data-mkact="${k.id}"
-          title="このメモをリンクした Action メモをつくる">＋Action</button>` : ''}
+    ${actTgl(k)}
     ${(k.type === 'note' || k.type === 'task') ? cardTgl('memo', k, k.memoCard)
       : k.type === 'quote' ? cardTgl('quote', k, k.quote && k.quote.card)
       : k.type === 'read' ? cardTgl('read', k, k.read && k.read.card) : ''}
@@ -3417,6 +3423,10 @@ const hasTime = k => !!(k.timer || (k.times && k.times.length)
   || (canTime(k) && view && view.type === 'card' && Array.isArray(k.times)));
 const hasQuote = k => !!k.quote;
 const PINICO = `<svg class="cdico" viewBox="0 0 16 16"><path d="M9.6 1.9l4.5 4.5-1.6.5-1 1-.4 3.1-4.7-4.7 3.1-.4 1-1z"/><path d="M6.4 6.3L2.2 13.8l7.5-4.2"/></svg>`;
+/* Cards / Quotes ページでも同じボタンを出す */
+const actTgl = k => (k.type === 'task' || k.type === 'heading') ? '' :
+  `<button class="mkact" data-mkact="${k.id}"
+    title="このメモをリンクした Action メモをつくる">＋Action</button>`;
 const pinTgl = k => APP !== 'note' ? '' :
   `<button class="cardtg pintg ${k.pin ? 'on' : ''}" data-pintg="${k.id}"
     title="${k.pin ? 'ピン留めを外す' : 'ピン留めする'}">${PINICO}Pin</button>`;
@@ -6785,7 +6795,8 @@ function renderCollection(kind){
     rand = `<div class="qrand">
       <h5>This one for you</h5>
       <div class="dcard">
-        <div class="dcard-h">${cardTgl('quote', cur.card, cur.card.quote && cur.card.quote.card)}</div>
+        <div class="dcard-h">${actTgl(cur.card)}${
+          cardTgl('quote', cur.card, cur.card.quote && cur.card.quote.card)}${pinTgl(cur.card)}</div>
         ${quoteCardHTML(cur.card)}
       </div>
       <div class="dsrc" style="margin-top:10px">
@@ -6880,6 +6891,46 @@ function wireSearchInput(el, onChange){
 
 /* ---------------- Search（横断検索） ---------------- */
 let searchQ = '', searchAuthor = '', searchSource = '';
+/* ---- Search の中で、これまでのメモをひとつずつ思い出す ---- */
+let randId = null;
+function randPool(){
+  return allCards().filter(x => {
+    const k = x.card;
+    if(k.type === 'book' || k.type === 'heading') return false;   /* 本そのものは除く */
+    return cardHay(k).trim().length > 0;
+  });
+}
+function pickRand(){
+  const pool = randPool();
+  if(!pool.length){ randId = null; return; }
+  let id = randId, n = 0;
+  while(n++ < 12){
+    const c = pool[Math.floor(Math.random() * pool.length)].card.id;
+    if(pool.length === 1 || c !== randId){ id = c; break; }
+  }
+  randId = id;
+}
+function randBoxHTML(){
+  if(!randId || !findCard(randId)) pickRand();
+  const f = randId ? findCard(randId) : null;
+  if(!f) return '';
+  const par = f.card.parent ? findCard(f.card.parent) : null;
+  return `<div class="qrand randmemo">
+    <h5>ふりかえり</h5>
+    <div class="card ${f.card.type}" style="margin:0">
+      <div class="col-src">
+        <span style="${f.board.color?`color:${f.board.color}`:''}">▦</span> ${esc(f.board.name)}
+        ${par ? `<span>／ ${esc((cardLabel(par.card) || '').slice(0, 22))}</span>` : ''}
+        ${f.card.day ? `<span>／ ${f.card.day}</span>` : ''}
+      </div>
+      ${cardBodyHTML(f.card)}
+    </div>
+    <div class="dbtn">
+      <button class="btn" id="rnNext">別のメモ</button>
+      <button class="btn" id="rnOpen">このメモを開く</button>
+    </div>
+  </div>`;
+}
 function cardHay(k){
   const Q = k.quote || {}, R = k.read || {};
   return [plain(k.title), k.bodyTitle, plain(k.body), plain(k.note), plain(k.head),
@@ -6939,7 +6990,8 @@ function renderSearch(){
         ${active ? `<span class="shits">${cards.length + days.length} 件</span>` : ''}
       </div>
     </div>
-    ${!active ? `<div class="empty">タイトル・本文・Memo・Quote・Read・Message Log・サブタスク・タグ、<br>
+    ${!active ? `${randBoxHTML()}
+      <div class="empty">タイトル・本文・Memo・Quote・Read・Message Log・サブタスク・タグ、<br>
       Daily Memo の本文まで、すべてを対象に探します</div>`
     : (cards.length + days.length) ? `
       ${days.length ? `<div class="sgrp"><div class="sgrp-h">Daily Memo</div>
@@ -6973,6 +7025,10 @@ function renderSearch(){
   if(sc) sc.onclick = () => { searchQ = ''; searchAuthor = ''; searchSource = ''; renderSearch(); };
   const v = document.getElementById('view');
   wireCards(v);
+  const rn = document.getElementById('rnNext');
+  if(rn) rn.onclick = () => { pickRand(); renderSearch(); };
+  const ro = document.getElementById('rnOpen');
+  if(ro) ro.onclick = () => { if(randId){ view = {type:'card', id:randId}; render(); } };
   v.querySelectorAll('[data-goto]').forEach(el => el.onclick = () => {
     view = {type:'board', id:el.dataset.goto}; render(); });
   v.querySelectorAll('[data-openday]').forEach(el => el.onclick = () => {
@@ -7731,7 +7787,7 @@ function renderCards(){
   document.getElementById('view').innerHTML = `<div class="deck">
     <h5>This one for you</h5>
     <div class="dcard">
-      <div class="dcard-h">${cardTgl(cur.kind, k, true)}</div>
+      <div class="dcard-h">${actTgl(k)}${cardTgl(cur.kind, k, true)}${pinTgl(k)}</div>
       ${cur.kind === 'read'
         ? readCardHTML(k)
         : cur.kind === 'quote'
