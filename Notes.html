@@ -1805,7 +1805,7 @@
 const APP = 'note';
 const KEY = APP === 'task' ? 'boards.tasks.task.v1' : 'boards.tasks.v1';
 const APP_TITLE = APP === 'task' ? 'Tasks' : 'Notes';
-const APPVER = '20260825-1522';
+const APPVER = '20260825-1526';
 const TIMELB = APP === 'task' ? 'Time Log' : 'Read Log';
 const TASKLB = APP === 'task' ? 'Tasks' : 'Action';
 /* Task 用は初回だけ、これまでのデータを引き継ぐ */
@@ -3453,7 +3453,7 @@ function makeAction(cid){
   const nk = {id:uid(), type:'task', title:t, body:'', color:k.color || '',
     start:'', due:'', repeat:{unit:'', n:1, days:[]}, done:false, subs:[], tags:[],
     links:[k.id], created:today(), updated:today()};
-  f.col.cards.splice(f.idx + 1, 0, nk);
+  f.col.cards.splice(f.idx, 0, nk);      /* 元のメモのすぐ上に置く */
   touch(k); save(); render();
   setTimeout(() => {
     const el = document.querySelector(`[data-title="${nk.id}"]`);
