@@ -1740,7 +1740,7 @@
     <div class="nav" id="navTasks" data-nav="tasks" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><circle cx="10.2" cy="2.9" r="1.5"/><path d="M4.2 14.2l2.1-3.4 1.6-1.1-1-3.1-2.4 1.5-1 2.1"/><path d="M6.9 6.6l2.6-1.3 1.6 2.4 2.4.9"/><path d="M11.6 13.9l-1.4-3.1-2.3-1.3"/></svg></span><span id="navTasksLb">Tasks</span><span class="cnt" id="cntAll">0</span></div>
     <div class="nav" id="navPin" data-nav="pin" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M9.6 1.9l4.5 4.5-1.6.5-1 1-.4 3.1-4.7-4.7 3.1-.4 1-1z"/><path d="M6.4 6.3L2.2 13.8l7.5-4.2"/></svg></span><span>Pin Memo</span><span class="cnt" id="cntPin">0</span></div>
     <div class="nav" id="navTimes" data-nav="times" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 4.6V8l2.4 1.6"/></svg></span><span id="navTimesLb">Time Log</span><span class="cnt" id="cntTime"></span></div>
-    <div class="nav" id="navDone" data-nav="done" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M2.6 8.4l3.3 3.3 7.5-7.6"/></svg></span><span>Done Task</span><span class="cnt" id="cntDone">0</span></div>
+    <div class="nav" id="navDone" data-nav="done" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M2.6 8.4l3.3 3.3 7.5-7.6"/></svg></span><span id="navDoneLb">Done Task</span><span class="cnt" id="cntDone">0</span></div>
     <div class="nav" id="navRep" data-nav="replog" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M2.4 4.2h6.4M2.4 8h9.6M2.4 11.8h4.8"/><path d="M11.4 3.2v2M14 6.9v2.2M9.4 10.7v2.2"/></svg></span><span>Timeline</span></div>
     <div class="nav" id="navRead" data-nav="read" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M2.6 3.1h4.1c.9 0 1.3.5 1.3 1.2v8.6c0-.6-.5-1-1.3-1H2.6z"/><path d="M13.4 3.1H9.3c-.9 0-1.3.5-1.3 1.2v8.6c0-.6.5-1 1.3-1h4.1z"/></svg></span><span>Read Memo</span><span class="cnt" id="cntRead">0</span></div>
     <div class="nav" id="navQuote" data-nav="quote" draggable="true"><span class="ico">❝</span><span>Quotes</span><span class="cnt" id="cntQuote">0</span></div>
@@ -1813,9 +1813,10 @@
 const APP = 'note';
 const KEY = APP === 'task' ? 'boards.tasks.task.v1' : 'boards.tasks.v1';
 const APP_TITLE = APP === 'task' ? 'Tasks' : 'Notes';
-const APPVER = '20260825-1537';
+const APPVER = '20260825-1545';
 const TIMELB = APP === 'task' ? 'Time Log' : 'Read Log';
 const TASKLB = APP === 'task' ? 'Tasks' : 'Action';
+const TASKONE = APP === 'task' ? 'Task' : 'Action';   /* 1件ぶんの呼び名 */
 /* Task 用は初回だけ、これまでのデータを引き継ぐ */
 if(APP === 'task' && !localStorage.getItem(KEY)){
   try{
@@ -1836,13 +1837,15 @@ const CATS_DEF = [
 const catList = () => (S.cats ||= CATS_DEF.map(([c, n]) => ({c, n})));
 const CATS = () => [['', 'なし'], ...catList().map(x => [x.c, x.n])];
 /* いつやるか */
-const WHENS = [
+const WHENDEF = [
   ['',      'いつやる？',     '#a7a0a2'],
   ['now',   '今日必ず',       '#c0392b'],
   ['maybe', '今日できれば',   '#4f8f57'],
   ['later', '明日以降でよい', '#8b8285'],
 ];
-const whenOf = v => WHENS.find(x => x[0] === (v || '')) || WHENS[0];
+/* 名前と色は自分で変えられる（値そのものは変えないので、既存のメモはそのまま） */
+const whenList = () => (Array.isArray(S.whens) && S.whens.length) ? S.whens : WHENDEF;
+const whenOf = v => whenList().find(x => x[0] === (v || '')) || whenList()[0];
 const whenChip = k => {
   const [v, n, c] = whenOf(k.when);
   return `<span class="chip when ${v?'':'none'}" data-when="${k.id}" title="いつやるか"
@@ -4790,7 +4793,7 @@ function cardMenu(e, cid){
     ${k.type !== 'heading' && !hasRead(k) ? `<button data-a="read"><i class="ic"><svg class="mico" viewBox="0 0 16 16"><path d="M2.6 3.1h4.1c.9 0 1.3.5 1.3 1.2v8.6c0-.6-.5-1-1.3-1H2.6z"/><path d="M13.4 3.1H9.3c-.9 0-1.3.5-1.3 1.2v8.6c0-.6.5-1 1.3-1h4.1z"/></svg></i>Read を追加</button>` : ''}
     ${isTask && !hasLog(k) ? `<button data-a="log"><i class="ic">💬</i>Message Log を追加</button>` : ''}
     ${k.type !== 'heading' ? `<button data-a="pdf"><i class="ic"><svg class="mico" viewBox="0 0 16 16"><path d="M3.4 2.4h6.3l3 3v8.2H3.4z"/><path d="M9.5 2.5v3.2h3.1"/><path d="M5.6 9.4h4.8M5.6 11.4h3.2"/></svg></i>PDF を添付</button>` : ''}
-    ${isTask ? `<button data-a="tonote"><i class="ic">→</i>Memo に変換</button>` : `<button data-a="totask"><i class="ic">→</i>Task に変換</button>`}
+    ${isTask ? `<button data-a="tonote"><i class="ic">→</i>Memo に変換</button>` : `<button data-a="totask"><i class="ic">→</i>${TASKONE} に変換</button>`}
     ${APP === 'task' ? `<button data-a="tpl"><i class="ic">▤</i>${k.tpl ? 'テンプレートを解除' : 'テンプレートにする'}</button>` : ''}
     ${k.type !== 'heading' ? `<button data-a="ai"><i class="ic">✧</i>Claude に返事をもらう</button>` : ''}
     <hr><div class="cats">${CATS().map(([c, n]) => `<button class="cat ${k.color===c?'on':''}" data-c="${c}">
@@ -4942,13 +4945,74 @@ function dateMenu(rect, cid){
 function whenMenu(rect, cid){
   const k = findCard(cid)?.card; if(!k) return;
   const p = popup(rect.left - 20, rect.bottom + 6, `
-    <div style="font-size:11px;color:var(--muted);letter-spacing:.06em;padding:5px 10px 2px;font-weight:700">いつやる？</div>
-    <div class="cats">${WHENS.map(([v, n, c]) => `<button class="cat ${(k.when||'')===v?'on':''}" data-w="${v}">
+    <div style="display:flex;align-items:center;justify-content:space-between;
+      font-size:11px;color:var(--muted);letter-spacing:.06em;padding:5px 10px 2px;font-weight:700">
+      <span>いつやる？</span>
+      <button id="wEdit" style="font-size:10.5px;font-weight:400;padding:2px 8px;
+        border-radius:999px;color:var(--muted)">編集</button></div>
+    <div class="cats">${whenList().map(([v, n, c]) => `<button class="cat ${(k.when||'')===v?'on':''}" data-w="${v}">
       <span class="sw" style="background:${v ? c : 'repeating-linear-gradient(45deg,#eee,#eee 3px,#fff 3px,#fff 6px)'}"></span>
       <span style="${v?`color:${c}`:''}">${n}</span>${(k.when||'')===v?'<span class="tick">●</span>':''}</button>`).join('')}</div>`);
   p.querySelectorAll('[data-w]').forEach(b => b.onclick = () => {
     k.when = b.dataset.w; touch(k); save(); p.remove(); render();
   });
+  const ed = p.querySelector('#wEdit');
+  if(ed) ed.onclick = () => { p.remove(); whenEdit(rect); };
+}
+/* 「いつやる？」の項目そのものを編集する */
+function whenEdit(rect){
+  const list = whenList().map(x => [...x]);
+  const draw = () => {
+    document.querySelectorAll('.pop').forEach(x => x.remove());
+    const p = popup(Math.max(12, rect.left - 40), rect.bottom + 6, `
+      <div class="dpanel" style="width:280px">
+        <h4>「いつやる？」の項目</h4>
+        <div class="hint" style="margin:-2px 0 8px">名前と色を変えられます。
+          いちばん上は、まだ選んでいないときの表示です。</div>
+        ${list.map(([v, n, c], i) => `<div class="drow" style="gap:6px;align-items:center">
+          <input type="color" value="${c}" data-c="${i}"
+            style="width:32px;height:26px;padding:0;flex:0 0 auto"${v ? '' : ' disabled'}>
+          <input class="tinput" value="${esc(n)}" data-n="${i}" style="flex:1;min-width:0">
+          ${v ? `<button data-x="${i}" title="この項目を消す" style="flex:0 0 auto">×</button>`
+              : '<span style="width:24px;flex:0 0 auto"></span>'}
+        </div>`).join('')}
+        <div class="dfoot" style="gap:6px">
+          <button id="wAdd">＋ 追加</button>
+          <button id="wDef">既定に戻す</button>
+          <button id="wOK">閉じる</button>
+        </div>
+      </div>`);
+    const commit = () => {
+      p.querySelectorAll('[data-n]').forEach(el =>
+        list[+el.dataset.n][1] = el.value.trim() || '（無題）');
+      p.querySelectorAll('[data-c]').forEach(el => list[+el.dataset.c][2] = el.value);
+      S.whens = list.map(x => [...x]);
+      save();
+    };
+    p.querySelectorAll('input').forEach(el => el.onchange = commit);
+    p.querySelectorAll('[data-x]').forEach(b => b.onclick = () => {
+      commit();
+      const v = list[+b.dataset.x][0];
+      const used = allCards().filter(x => (x.card.when || '') === v).length;
+      if(used && !confirm(used + ' 件のメモで使われています。消すと未設定に戻ります。よろしいですか？')) return;
+      allCards().forEach(x => { if((x.card.when || '') === v) delete x.card.when; });
+      list.splice(+b.dataset.x, 1);
+      S.whens = list.map(y => [...y]); save(); draw(); render();
+    });
+    p.querySelector('#wAdd').onclick = () => {
+      commit();
+      list.push(['w' + uid(), '新しい項目', '#8b8285']);
+      S.whens = list.map(y => [...y]); save(); draw();
+    };
+    p.querySelector('#wDef').onclick = () => {
+      if(!confirm('もとの4つに戻しますか？\n（メモにつけた選択はそのまま残ります）')) return;
+      delete S.whens; save();
+      document.querySelectorAll('.pop').forEach(x => x.remove());
+      render();
+    };
+    p.querySelector('#wOK').onclick = () => { commit(); p.remove(); render(); };
+  };
+  draw();
 }
 
 /* No. の横の日付（＝カレンダーに紐づく日付） */
@@ -5348,7 +5412,7 @@ function renderTasks(){
     }
     if(gb === 'when'){
       const [v, n, c] = whenOf(k.when);
-      return {name:n, color:v ? c : '', ord:WHENS.findIndex(x => x[0] === (k.when || ''))};
+      return {name:n, color:v ? c : '', ord:whenList().findIndex(x => x[0] === (k.when || ''))};
     }
     if(gb === 'due'){
       const d = k.due;
@@ -5609,7 +5673,7 @@ function renderDone(){
   t.disabled = true; t.oninput = null; t.style.color = '';
   const sel = doneSel || today();
   doneMonth ||= sel.slice(0, 7);
-  t.value = doneAll ? 'Done Task' : `Done Task ｜${sel === today() ? '今日' : sel}`;
+  t.value = doneAll ? `Done ${TASKONE}` : `Done ${TASKONE} ｜${sel === today() ? '今日' : sel}`;
   document.getElementById('topActions').innerHTML = '';
 
   let all = doneRows();
@@ -9911,6 +9975,8 @@ const boot = () => {
     : 'Grow your notes, grow your mind.';
   const tl = document.getElementById('navTimesLb');
   if(tl) tl.textContent = TIMELB;
+  const dl = document.getElementById('navDoneLb');
+  if(dl) dl.textContent = 'Done ' + TASKONE;
   const kl = document.getElementById('navTasksLb');
   if(kl) kl.textContent = TASKLB;
   if(APP === 'task'){          /* Tasks では、走る人ではなくリストの印に */
