@@ -507,10 +507,10 @@
   .qc-body{border-top:1px dashed #ded4d2;margin-top:8px;padding-top:14px;
     font-size:14.5px;line-height:1.95;white-space:pre-wrap;word-break:break-word}
   /* 背景だけ外へ広げ、文字の開始位置は下の Memo と揃える */
-  .mkact{font-size:11px;letter-spacing:.04em;color:#a99ea2;padding:3px 9px;
-    border-radius:999px;border:1px solid transparent;background:none;flex:0 0 auto;
-    white-space:nowrap}
-  .mkact:hover{color:#6f6669;border-color:var(--line);background:#fdfbfb}
+  .mkact{font-size:11px;letter-spacing:.04em;color:#b9702f;padding:3px 10px;
+    border-radius:999px;border:1px solid #f0d6bc;background:#fdf3e9;flex:0 0 auto;
+    white-space:nowrap;font-weight:600}
+  .mkact:hover{color:#fff;border-color:#d98a3f;background:#d98a3f}
   .qc-body.qbg{background:var(--quote-bg);border:0;border-radius:11px;
     margin:10px -4px 0 -10px;padding:13px 14px 13px 10px}
   .qc-cite{text-align:right;font-size:12.5px;color:#6e6668;margin-top:16px;letter-spacing:.02em}
@@ -1805,7 +1805,7 @@
 const APP = 'note';
 const KEY = APP === 'task' ? 'boards.tasks.task.v1' : 'boards.tasks.v1';
 const APP_TITLE = APP === 'task' ? 'Tasks' : 'Notes';
-const APPVER = '20260825-1526';
+const APPVER = '20260825-1531';
 const TIMELB = APP === 'task' ? 'Time Log' : 'Read Log';
 const TASKLB = APP === 'task' ? 'Tasks' : 'Action';
 /* Task 用は初回だけ、これまでのデータを引き継ぐ */
@@ -3453,7 +3453,19 @@ function makeAction(cid){
   const nk = {id:uid(), type:'task', title:t, body:'', color:k.color || '',
     start:'', due:'', repeat:{unit:'', n:1, days:[]}, done:false, subs:[], tags:[],
     links:[k.id], created:today(), updated:today()};
-  f.col.cards.splice(f.idx, 0, nk);      /* 元のメモのすぐ上に置く */
+  /* 本や親メモの中で押したときは、その中の一番上に置く */
+  const pid = k.parent || (k.type === 'book' ? k.id : '');
+  let at = f.idx;
+  if(pid){
+    nk.parent = pid;
+    const first = f.col.cards.findIndex(x => x.parent === pid);
+    if(first >= 0) at = first;
+    else {
+      const host = findCard(pid);
+      at = host ? host.idx + 1 : f.idx;
+    }
+  }
+  f.col.cards.splice(at, 0, nk);
   touch(k); save(); render();
   setTimeout(() => {
     const el = document.querySelector(`[data-title="${nk.id}"]`);
@@ -6509,7 +6521,7 @@ function bookCardHTML(k){
     ${B.trans ? `<div class="brow">${BICO.trans}${esc(B.trans)}</div>` : ''}
     ${B.pub ? `<div class="brow">${BICO.pub}${esc(B.pub)}</div>` : ''}
     ${B.url ? `<div class="brow"><svg class="bico" viewBox="0 0 16 16"><path d="M6.6 9.4a2.6 2.6 0 0 0 3.9.3l2-2a2.6 2.6 0 0 0-3.7-3.7l-1.1 1.1"/><path d="M9.4 6.6a2.6 2.6 0 0 0-3.9-.3l-2 2a2.6 2.6 0 0 0 3.7 3.7l1.1-1.1"/></svg>
-      <a class="ulink" href="${esc(B.url)}" target="_blank" rel="noopener">リンクを開く</a></div>` : ''}
+      <a class="ulink" href="${esc(B.url)}" target="_blank" rel="noopener">サイトを開く</a></div>` : ''}
     <div class="bsep"></div>
     ${B.met ? `<div class="brow">${BICO.met}${esc(B.met)}</div>` : ''}
     ${B.buy ? `<div class="brow">${BICO.buy}${esc(B.buy)}</div>` : ''}
