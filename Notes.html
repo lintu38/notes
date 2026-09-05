@@ -1725,6 +1725,46 @@
     .daily-h b{font-size:17px}
     .wx button{width:31px;height:31px}
   }
+
+  /* ---------- One Step パネル ---------- */
+  #navTimer .nico.paw{fill:var(--brown);stroke:none;width:15px;height:13px}
+  #navTimer:hover .nico.paw{fill:var(--ink)}
+  #navTimer.on,#navTimer.live{background:var(--bo,var(--panel));color:var(--ink);
+    font-weight:500;box-shadow:var(--shadow)}
+  #navTimer.on .ico,#navTimer.on .nico{stroke:none;color:inherit}
+  .timer-panel{position:fixed;top:0;right:0;width:432px;max-width:100vw;height:100vh;
+    background:#FAF6EF;border-left:1px solid var(--line);
+    box-shadow:-12px 0 32px -18px rgba(30,25,15,.35);
+    z-index:900;display:flex;flex-direction:column;
+    transform:translateX(100%);transition:transform .28s cubic-bezier(.3,.8,.3,1)}
+  .timer-panel.open{transform:translateX(0)}
+  .timer-panel-head{display:flex;align-items:center;justify-content:space-between;
+    padding:11px 14px;border-bottom:1px solid #E7DFD2;
+    font-family:var(--fdisp);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    color:#A79B8D}
+  .timer-head-btns{display:flex;align-items:center;gap:2px}
+  .timer-reset-w{color:#A79B8D;font-size:15px;line-height:1;padding:3px 7px;border-radius:6px}
+  .timer-reset-w:hover{background:#F3EDE2;color:var(--ink)}
+  .timer-close{color:#A79B8D;font-size:20px;line-height:1;padding:0 6px;border-radius:6px}
+  .timer-close:hover{background:#F3EDE2;color:var(--ink)}
+  .timer-panel iframe{flex:1;width:100%;border:0}
+  .timer-rz{position:absolute;top:0;left:0;width:8px;height:100%;cursor:col-resize;z-index:20}
+  .timer-rz::after{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:transparent}
+  .timer-rz:hover::after,.timer-rz.act::after{background:var(--accent)}
+  .timer-panel.rz{transition:none}
+  .timer-panel.rz iframe{pointer-events:none}   /* iframe がドラッグを吸わないように */
+  /* running indicator on the sidebar item */
+  .tm-badge{display:inline-flex;align-items:center;gap:5px;font-variant-numeric:tabular-nums;
+    letter-spacing:.02em}
+  .tm-badge::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;
+    animation:tmPulse 1.6s ease-in-out infinite}
+  .tm-badge.working{background:#cbe6ec;color:#26707f}
+  .tm-badge.ready{background:#e6ddcb;color:#8a6c3f}
+  .tm-badge.break{background:#ded7d4;color:#7a6f6b}
+  .tm-badge.break::before{animation:none;opacity:.55}
+  @keyframes tmPulse{0%,100%{opacity:1}50%{opacity:.25}}
+  #navTimer.live{background:var(--bo,var(--panel));box-shadow:var(--shadow)}
+  @media (max-width:560px){.timer-panel{width:100vw}}
 </style>
 </head>
 <body>
@@ -1742,6 +1782,7 @@
       <button class="workbtn" id="workBtn"><svg class="nico" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 4.6V8l2.4 1.6"/></svg>
         <span class="wl" id="workLb">Work</span><span class="wt" id="workEl"></span></button>
     </div>
+    <div class="nav" id="navTimer" title="One Step を開く"><span class="ico"><svg class="nico paw" viewBox="0 0 40 34"><ellipse cx="20" cy="25" rx="8.6" ry="7"/><ellipse cx="9.5" cy="14.5" rx="4" ry="5.2" transform="rotate(-18 9.5 14.5)"/><ellipse cx="16.5" cy="8" rx="3.7" ry="5"/><ellipse cx="24.5" cy="8" rx="3.7" ry="5"/><ellipse cx="31" cy="14.5" rx="4" ry="5.2" transform="rotate(18 31 14.5)"/></svg></span><span>One Step</span><span class="cnt tm-badge" id="timerBadge" hidden></span></div>
     <div id="navList">
     <div class="nav" id="navSearch" data-nav="search" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><circle cx="7.2" cy="7.2" r="4.6"/><path d="M10.6 10.6l3.2 3.2"/></svg></span><span>Search</span></div>
     <div class="nav" id="navTasks" data-nav="tasks" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><circle cx="10.2" cy="2.9" r="1.5"/><path d="M4.2 14.2l2.1-3.4 1.6-1.1-1-3.1-2.4 1.5-1 2.1"/><path d="M6.9 6.6l2.6-1.3 1.6 2.4 2.4.9"/><path d="M11.6 13.9l-1.4-3.1-2.3-1.3"/></svg></span><span id="navTasksLb">Tasks</span><span class="cnt" id="cntAll">0</span></div>
@@ -10041,6 +10082,126 @@ const boot2 = () => {
   load();
   if(S.pin) showLock(boot2); else boot2();
 })();
+})();
+</script>
+
+<div class="timer-panel" id="timerPanel" hidden>
+  <div class="timer-rz" id="timerRz" title="ドラッグで幅を変更"></div>
+  <div class="timer-panel-head">
+    <span>One Step</span>
+    <span class="timer-head-btns">
+      <button class="timer-reset-w" id="timerResetW" title="幅を元に戻す" hidden>⇥</button>
+      <button class="timer-close" id="timerClose" title="閉じる">×</button>
+    </span>
+  </div>
+  <iframe id="timerFrame" title="One Step"></iframe>
+</div>
+
+<script>
+/* ---- Timer panel (iframe) ---- */
+(function(){
+  const tab   = document.getElementById('navTimer');
+  const panel = document.getElementById('timerPanel');
+  const frame = document.getElementById('timerFrame');
+  const shut  = document.getElementById('timerClose');
+  if(!tab || !panel || !frame) return;
+
+  let loaded = false, curTab = '', running = false;
+  const SRC = t => 'https://lintu38.github.io/OneStepT/?tab=' + t + '&v=' + Date.now();
+
+  function open(t){
+    const want = t || 'home';
+    if(!loaded){ frame.src = SRC(want); loaded = true; curTab = want; }
+    /* 計測中は読み込み直さない（動いているセッションを止めないため） */
+    else if(want !== curTab && !running){ frame.src = SRC(want); curTab = want; }
+    panel.hidden = false;
+    requestAnimationFrame(() => panel.classList.add('open'));
+    tab.classList.add('on');
+  }
+  function close(){
+    panel.classList.remove('open');
+    tab.classList.remove('on');
+    // iframe は残すので、閉じても計測は続く
+    setTimeout(() => { if(!panel.classList.contains('open')) panel.hidden = true; }, 300);
+  }
+
+  /* サイドメニューから開いたときは Session を出す */
+  tab.addEventListener('click', () => {
+    panel.classList.contains('open') ? close() : open('ss');
+  });
+
+  /* 起動したときは HOME */
+  setTimeout(() => open('home'), 300);
+  shut.addEventListener('click', close);
+
+  /* タイマーが動いていることを、パネルを閉じていても分かるようにする */
+  const badge = document.getElementById('timerBadge');
+  const baseTitle = document.title;
+  window.addEventListener('message', ev => {
+    const d = ev.data;
+    if(!d || d.source !== 'startlog' || !badge) return;
+    running = d.phase === 'ready' || d.phase === 'working' || d.phase === 'break';
+    badge.hidden = !running;
+    badge.className = 'cnt tm-badge' + (running ? ' ' + d.phase : '');
+    badge.textContent = running ? (d.type ? d.type + ' ' + d.main : d.main) : '';
+    tab.classList.toggle('live', running && !panel.classList.contains('open'));
+    const mark = d.phase === 'working' ? '\u25B6'
+               : d.phase === 'ready' ? '\u25CB'
+               : d.phase === 'break' ? '\u23F8' : '';
+    document.title = running ? mark + ' ' + d.main + ' \u2014 ' + baseTitle : baseTitle;
+  });
+  document.addEventListener('keydown', e => {
+    if(e.key === 'Escape' && panel.classList.contains('open')) close();
+  });
+
+  /* ---- 左端をドラッグして幅を変える ---- */
+  const MINW = 320, MAXW = 1100, DEFW = 432;
+  const rz = document.getElementById('timerRz');
+  const resetW = document.getElementById('timerResetW');
+  const saved = parseInt(localStorage.getItem('timerPanelW') || '', 10);
+  if(saved >= MINW) panel.style.width = saved + 'px';
+
+  function syncResetBtn(){
+    if(!resetW) return;
+    const w = parseInt(panel.style.width, 10) || DEFW;
+    resetW.hidden = Math.abs(w - DEFW) < 2;
+  }
+  function setWidth(w){
+    panel.style.width = w + 'px';
+    localStorage.setItem('timerPanelW', String(w));
+    syncResetBtn();
+  }
+  syncResetBtn();
+  if(resetW) resetW.addEventListener('click', () => setWidth(DEFW));
+
+  if(rz){
+    let dragging = false;
+    const apply = (clientX) => {
+      const w = Math.min(MAXW, Math.max(MINW, window.innerWidth - clientX));
+      panel.style.width = w + 'px';
+    };
+    const stop = () => {
+      if(!dragging) return;
+      dragging = false;
+      rz.classList.remove('act');
+      panel.classList.remove('rz');
+      document.body.style.userSelect = '';
+      localStorage.setItem('timerPanelW', parseInt(panel.style.width, 10) || '');
+      syncResetBtn();
+    };
+    rz.addEventListener('pointerdown', e => {
+      dragging = true;
+      rz.classList.add('act');
+      panel.classList.add('rz');
+      document.body.style.userSelect = 'none';
+      rz.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    });
+    rz.addEventListener('pointermove', e => { if(dragging) apply(e.clientX); });
+    rz.addEventListener('pointerup', stop);
+    rz.addEventListener('pointercancel', stop);
+    rz.addEventListener('dblclick', () => setWidth(DEFW));   // ダブルクリックでも戻せる
+  }
 })();
 </script>
 </body>
