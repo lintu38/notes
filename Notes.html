@@ -1801,9 +1801,9 @@
   /* ふきだしは One Step と同じ書体・同じ色づかい */
   .dogsay{position:absolute;left:0;top:0;transform:translate(-50%,-100%) scale(.8);
     background:#fff;border:1px solid var(--line);border-radius:13px;
-    padding:6px 12px;font-family:'Comfortaa','Zen Kaku Gothic New',cursive;
-    font-size:12px;font-weight:500;line-height:1.5;color:#7C6247;white-space:nowrap;
-    text-align:center;box-shadow:0 6px 16px -10px rgba(80,60,40,.6);pointer-events:none;
+    padding:5px 11px;font-family:'Comfortaa','Zen Kaku Gothic New',cursive;
+    font-size:11px;font-weight:400;line-height:1.5;color:#7C6247;white-space:nowrap;
+    text-align:center;pointer-events:none;
     opacity:0;z-index:9;
     transition:opacity .45s ease, transform .45s cubic-bezier(.2,1.6,.4,1)}
   .dogsay.on{opacity:1;transform:translate(-50%,-100%) scale(1)}
@@ -10434,7 +10434,7 @@ const boot2 = () => {
       const s2 = sayFor.size;
       const px = s2 / 2 + sayFor.x * Math.max(0, W - s2);
       bub.style.left = px.toFixed(1) + 'px';
-      bub.style.top = (feet(s2 * sayFor.scale) - s2 * sayFor.scale * .62 - 6).toFixed(1) + 'px';
+      bub.style.top = (feet(s2 * sayFor.scale) - s2 * sayFor.scale * .5 - 2).toFixed(1) + 'px';
     } else if(sayFor){
       bub.classList.remove('on');
       sayFor = null;
