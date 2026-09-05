@@ -1767,17 +1767,26 @@
   @media (max-width:560px){.timer-panel{width:100vw}}
 
   /* ---------- Daily Learning ---------- */
-  .card.learn .body{background:#faf0f2}
-  .card.learn .body:hover,.card.learn .body:focus{background:#f6e6ea}
-  .card.learn .qbox > .body{background:#faf0f2;box-shadow:0 0 0 1.5px #e9d7db}
-  .card.learn .qbox > .body:focus{box-shadow:0 0 0 1.5px #d8b8c0}
-  .card.learn .qc-body{background:#faf0f2;border-radius:10px;padding:10px 12px}
+  .card.learn .body{background:#f4eaeb}
+  .card.learn .body:hover,.card.learn .body:focus{background:#eee1e3}
+  .card.learn .qbox{padding:0 2px}
+  .card.learn .qbox > .body{background:#f4eaeb;box-shadow:0 0 0 1.5px #e4d5d7}
+  .card.learn .qbox > .body:focus{box-shadow:0 0 0 1.5px #d3bcc0}
+  /* 登録済みのメモ：点線は出さず、うすいピンクの枠だけ */
+  .card.learn .qcard{padding:2px 2px 6px}
+  .card.learn .qc-body{border-top:0;margin-top:10px;background:#f4eaeb;
+    border-radius:10px;padding:12px 14px}
   .lgrid{display:grid;grid-template-columns:repeat(4, minmax(0, 1fr));gap:14px;align-items:start}
   .lgrid .colitem{width:auto;margin:0}
   .ltitle{font-family:var(--fdisp);font-size:13px;font-weight:700;color:#7a5560;
-    letter-spacing:.03em;margin:4px 0 2px;word-break:break-word}
+    letter-spacing:.03em;margin:4px 0 6px;word-break:break-word}
   .lrand{width:560px}
-  .lrand .colitem{border:0;box-shadow:none;background:none;padding:0}
+  .lrand h5{text-align:center;margin:2px 0 10px}
+  .qrand .lbig{padding:26px 24px 22px}
+  /* Today's one の文字は Quotes と同じ（游明朝・大きめ） */
+  .qrand .lbig .body,.qrand .lbig .qc-body{font-family:var(--fserif);font-weight:500;
+    font-size:14.5px!important;line-height:1.95!important}
+  .qrand .lbig .ltitle{font-size:14px;margin-bottom:8px}
   .lrand .dbtn{margin-top:14px;text-align:center}
   @media (max-width:1400px){ .lgrid{grid-template-columns:repeat(3, minmax(0, 1fr))} }
   @media (max-width:1080px){ .lgrid{grid-template-columns:repeat(2, minmax(0, 1fr))} }
@@ -7877,7 +7886,7 @@ const learnCards = () => allCards().filter(x => !!x.card.learn);
 function learnCardHTML(x, big){
   const k = x.card;
   const ttl = (k.bodyTitle || '').trim();
-  return `<div class="card note learn colitem${big ? ' lbig' : ''}">
+  return `<div class="card note learn colitem${big ? ' dcard lbig' : ''}">
     <div class="col-src">
       <span data-goto="${x.board.id}" style="cursor:pointer">
         <span style="${x.board.color?`color:${x.board.color}`:''}">▦</span> ${esc(x.board.name)}</span>
@@ -7905,7 +7914,7 @@ function renderLearn(){
   if(L.length){
     let cur = L.find(x => x.card.id === lRandId);
     if(!cur){ cur = L[Math.floor(Math.random() * L.length)]; lRandId = cur.card.id; }
-    rand = `<div class="qrand randmemo lrand">
+    rand = `<div class="qrand lrand">
       <h5>Today's one</h5>
       ${learnCardHTML(cur, true)}
       <div class="dbtn"><button class="btn" id="lRandNext">Next</button></div>
