@@ -1765,6 +1765,23 @@
   @keyframes tmPulse{0%,100%{opacity:1}50%{opacity:.25}}
   #navTimer.live{background:var(--bo,var(--panel));box-shadow:var(--shadow)}
   @media (max-width:560px){.timer-panel{width:100vw}}
+
+  /* ---------- Daily Learning ---------- */
+  .card.learn .body{background:#faf0f2}
+  .card.learn .body:hover,.card.learn .body:focus{background:#f6e6ea}
+  .card.learn .qbox > .body{background:#faf0f2;box-shadow:0 0 0 1.5px #e9d7db}
+  .card.learn .qbox > .body:focus{box-shadow:0 0 0 1.5px #d8b8c0}
+  .card.learn .qc-body{background:#faf0f2;border-radius:10px;padding:10px 12px}
+  .lgrid{display:grid;grid-template-columns:repeat(4, minmax(0, 1fr));gap:14px;align-items:start}
+  .lgrid .colitem{width:auto;margin:0}
+  .ltitle{font-family:var(--fdisp);font-size:13px;font-weight:700;color:#7a5560;
+    letter-spacing:.03em;margin:4px 0 2px;word-break:break-word}
+  .lrand{width:560px}
+  .lrand .colitem{border:0;box-shadow:none;background:none;padding:0}
+  .lrand .dbtn{margin-top:14px;text-align:center}
+  @media (max-width:1400px){ .lgrid{grid-template-columns:repeat(3, minmax(0, 1fr))} }
+  @media (max-width:1080px){ .lgrid{grid-template-columns:repeat(2, minmax(0, 1fr))} }
+  @media (max-width:720px){ .lgrid{grid-template-columns:1fr} .lrand{width:auto} }
 </style>
 </head>
 <body>
@@ -1787,6 +1804,7 @@
     <div class="nav" id="navSearch" data-nav="search" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><circle cx="7.2" cy="7.2" r="4.6"/><path d="M10.6 10.6l3.2 3.2"/></svg></span><span>Search</span></div>
     <div class="nav" id="navTasks" data-nav="tasks" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><circle cx="10.2" cy="2.9" r="1.5"/><path d="M4.2 14.2l2.1-3.4 1.6-1.1-1-3.1-2.4 1.5-1 2.1"/><path d="M6.9 6.6l2.6-1.3 1.6 2.4 2.4.9"/><path d="M11.6 13.9l-1.4-3.1-2.3-1.3"/></svg></span><span id="navTasksLb">Tasks</span><span class="cnt" id="cntAll">0</span></div>
     <div class="nav" id="navPin" data-nav="pin" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M9.6 1.9l4.5 4.5-1.6.5-1 1-.4 3.1-4.7-4.7 3.1-.4 1-1z"/><path d="M6.4 6.3L2.2 13.8l7.5-4.2"/></svg></span><span>Pin Memo</span><span class="cnt" id="cntPin">0</span></div>
+    <div class="nav" id="navLearn" data-nav="learn" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M2.6 13.4V11l7.6-7.6 2.4 2.4L5 13.4z"/><path d="M9.4 4.2l2.4 2.4"/><path d="M2.6 13.4h10.8"/></svg></span><span>D Learning</span><span class="cnt" id="cntLearn">0</span></div>
     <div class="nav" id="navTimes" data-nav="times" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 4.6V8l2.4 1.6"/></svg></span><span id="navTimesLb">Time Log</span><span class="cnt" id="cntTime"></span></div>
     <div class="nav" id="navDone" data-nav="done" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M2.6 8.4l3.3 3.3 7.5-7.6"/></svg></span><span id="navDoneLb">Done Task</span><span class="cnt" id="cntDone">0</span></div>
     <div class="nav" id="navRep" data-nav="replog" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M2.4 4.2h6.4M2.4 8h9.6M2.4 11.8h4.8"/><path d="M11.4 3.2v2M14 6.9v2.2M9.4 10.7v2.2"/></svg></span><span>Timeline</span></div>
@@ -2907,8 +2925,8 @@ function boardNav(b, inFolder){
 }
 const NAVKEYS = APP === 'task'
   ? ['search', 'tasks', 'replog', 'done', 'times']
-  : ['search', 'tasks', 'pin', 'read', 'times', 'quote', 'cards'];
-const NAVALL = ['search','tasks','times','done','read','quote','cards','pin'];
+  : ['search', 'tasks', 'pin', 'learn', 'read', 'times', 'quote', 'cards'];
+const NAVALL = ['search','tasks','times','done','read','quote','cards','pin','learn'];
 let dragNav = null;
 /* サイドバー上部メニューの並び替え */
 function renderNavOrder(){
@@ -2926,6 +2944,12 @@ function renderNavOrder(){
     const i = S.navOrder.indexOf('tasks');
     if(i >= 0) S.navOrder.splice(i + 1, 0, 'replog'); else S.navOrder.push('replog');
     S.navRep2 = true;
+  }
+  if(APP === 'note' && !S.navLearn1){     /* D Learning は Pin Memo の下に */
+    S.navOrder = (S.navOrder || []).filter(k => k !== 'learn');
+    const i2 = S.navOrder.indexOf('pin');
+    if(i2 >= 0) S.navOrder.splice(i2 + 1, 0, 'learn'); else S.navOrder.push('learn');
+    S.navLearn1 = true;
   }
   S.navOrder = (S.navOrder || []).filter(k => NAVKEYS.includes(k));
   NAVKEYS.forEach(k => { if(!S.navOrder.includes(k)) S.navOrder.push(k); });
@@ -3083,6 +3107,13 @@ function renderSide(){
   }
   paintWork();
   document.getElementById('navSearch').classList.toggle('on', view.type === 'search');
+  const nvL = document.getElementById('navLearn');
+  if(nvL){
+    nvL.classList.toggle('on', view.type === 'learn');
+    const nL = learnCards().length;
+    const lb2 = document.getElementById('cntLearn');
+    if(lb2){ lb2.textContent = nL; lb2.style.display = nL ? '' : 'none'; }
+  }
   document.getElementById('navQuote').classList.toggle('on', view.type === 'quote');
   document.getElementById('navRead').classList.toggle('on', view.type === 'read');
   const nQ = allCards().filter(x => hasQuote(x.card)).length;
@@ -3370,7 +3401,7 @@ function cardHTML(k){
   /* まだ始まらないタスクは、はじめから畳んでおく（開閉したらその状態を覚える）*/
   const cFold = k.cardFold === undefined
     ? (APP === 'task' && k.type === 'task' && notStarted(k)) : !!k.cardFold;
-  const cls = ['card', k.type, done ? 'done' : '', cFold ? 'fold1' : '',
+  const cls = ['card', k.type, k.learn ? 'learn' : '', done ? 'done' : '', cFold ? 'fold1' : '',
     k.type === 'task' && notStarted(k) ? 'pending' : '',
     (k.chat && k.chat.length) ? 'chat' : ''].join(' ');
   const style = k.color ? `style="--c:${k.color}"` : '';
@@ -4795,6 +4826,7 @@ const NEWBTN = {
   quote: `<button data-t="quote"><i class="ic">❝</i>Quote</button>`,
   book: `<button data-t="book"><i class="ic"><svg class="mico" viewBox="0 0 16 16"><path d="M2.8 3.2h4.4c1 0 1.4.5 1.4 1.3v9c0-.6-.5-1-1.4-1H2.8z"/><path d="M13.2 3.2H8.8c-1 0-1.4.5-1.4 1.3v9c0-.6.5-1 1.4-1h4.4z"/></svg></i>Book</button>`,
   readmemo: `<button data-t="read"><i class="ic"><svg class="mico" viewBox="0 0 16 16"><path d="M3.4 2.4h6.3l3 3v8.2H3.4z"/><path d="M9.5 2.5v3.2h3.1"/><path d="M5.6 8.4h5M5.6 10.8h3.4"/></svg></i>Memo</button>`,
+  learn: `<button data-t="learn"><i class="ic"><svg class="mico" viewBox="0 0 16 16"><path d="M2.6 13.4V11l7.6-7.6 2.4 2.4L5 13.4z"/><path d="M9.4 4.2l2.4 2.4"/><path d="M2.6 13.4h10.8"/></svg></i>Daily Learning</button>`,
   read: `<button data-t="read"><i class="ic"><svg class="mico" viewBox="0 0 16 16"><path d="M2.6 3.1h4.1c.9 0 1.3.5 1.3 1.2v8.6c0-.6-.5-1-1.3-1H2.6z"/><path d="M13.4 3.1H9.3c-.9 0-1.3.5-1.3 1.2v8.6c0-.6.5-1 1.3-1h4.1z"/></svg></i>Read</button>`,
 };
 function addMenu(e, colId, parentId){
@@ -4809,15 +4841,17 @@ function addMenu(e, colId, parentId){
       ? ['task', 'note', 'quote', 'read']
       : isShelf
       ? ['book', 'readmemo', 'quote', 'task']
-      : ['note', 'task', 'read', 'quote']).map(t => NEWBTN[t]).join('')}
+      : ['note', 'learn', 'task', 'read', 'quote']).map(t => NEWBTN[t]).join('')}
     ${parentId ? '' : `<button data-t="heading"><i class="ic">H</i>見出し</button>`}`);
   p.querySelectorAll('[data-t]').forEach(btn => btn.onclick = () => {
     const bd = S.boards.find(b2 => (b2.cols || []).some(c => c.id === colId)) || board(view.id);
     if(!bd) return;
     const col = bd.cols.find(c => c.id === colId);
-    const k = {id:uid(), type:btn.dataset.t, title:'', body:'', color:'', start:'', due:'',
+    const isLearn = btn.dataset.t === 'learn';
+    const k = {id:uid(), type: isLearn ? 'note' : btn.dataset.t, title:'', body:'', color:'', start:'', due:'',
       repeat:{unit:'', n:1, days:[]}, done:false, subs:[],
       tags: (tagFilter && view.type === 'tag') ? [tagFilter] : []};
+    if(isLearn) k.learn = true;
     if(k.type === 'quote') k.quote = {text:'', author:'', source:'', page:'', memo:'', card:false};
     if(k.type === 'read') k.read = {author:'', source:'', media:'', memo:'', card:false};
     if(k.type === 'book') k.book = {cover:'', url:'', title:'', author:'', trans:'', pub:'',
@@ -4827,7 +4861,8 @@ function addMenu(e, colId, parentId){
     k.created = today(); k.updated = today();
     if(bd.daily || parentId) col.cards.unshift(k); else col.cards.push(k);
     save(); p.remove(); render();
-    document.querySelector(`[data-title="${k.id}"]`)?.focus();
+    (document.querySelector(`[data-title="${k.id}"]`)
+      || (k.type === 'note' ? document.querySelector(`[data-body="${k.id}"]`) : null))?.focus();
   });
 }
 function cardMenu(e, cid){
@@ -7836,6 +7871,71 @@ function pinCardHTML(x){
         </div>`}
   </div>`;
 }
+/* ---------------- Daily Learning ---------------- */
+let lRandId = null;
+const learnCards = () => allCards().filter(x => !!x.card.learn);
+function learnCardHTML(x, big){
+  const k = x.card;
+  const ttl = (k.bodyTitle || '').trim();
+  return `<div class="card note learn colitem${big ? ' lbig' : ''}">
+    <div class="col-src">
+      <span data-goto="${x.board.id}" style="cursor:pointer">
+        <span style="${x.board.color?`color:${x.board.color}`:''}">▦</span> ${esc(x.board.name)}</span>
+      <span style="margin-left:auto;font-size:10.5px;color:var(--muted)">${esc(noteDate(k) || '')}</span>
+    </div>
+    ${ttl ? `<div class="ltitle">${esc(ttl)}</div>` : ''}
+    ${k.memoReg ? memoCardHTML(k) : `<div class="qbox">
+      <div class="body" contenteditable="true" data-body="${k.id}">${clean(k.body)}</div>
+      <div class="qfoot"><button class="imgadd" data-imgadd="body|${k.id}">＋ 画像</button>${fmtBar()}
+        <button class="qreg" data-mreg="${k.id}">Add</button></div>
+    </div>`}
+  </div>`;
+}
+function renderLearn(){
+  const t = document.getElementById('pageTitle');
+  t.value = 'Daily Learning'; t.disabled = true; t.oninput = null; t.style.color = '';
+  document.getElementById('topActions').innerHTML = '';
+  let L = learnCards();
+  if(q){
+    const s2 = q.toLowerCase();
+    L = L.filter(x => cardHay(x.card).includes(s2));
+  }
+  L.sort((a, b) => (noteDate(b.card) || '').localeCompare(noteDate(a.card) || ''));
+  let rand = '';
+  if(L.length){
+    let cur = L.find(x => x.card.id === lRandId);
+    if(!cur){ cur = L[Math.floor(Math.random() * L.length)]; lRandId = cur.card.id; }
+    rand = `<div class="qrand randmemo lrand">
+      <h5>Today's one</h5>
+      ${learnCardHTML(cur, true)}
+      <div class="dbtn"><button class="btn" id="lRandNext">Next</button></div>
+    </div>`;
+  }
+  const v = document.getElementById('view');
+  v.innerHTML = `
+    <div class="tools">
+      <input class="search" id="q" placeholder="Daily Learning を検索…" value="${esc(q)}">
+      <span style="color:var(--muted);font-size:12.5px">${L.length} 件</span>
+    </div>
+    ${rand}
+    ${L.length ? `<div class="lgrid">${L.map(x => learnCardHTML(x)).join('')}</div>`
+      : `<div class="empty">Daily Learning はまだありません<br>
+        <span style="font-size:12px">ボードの「＋ New」から作れます</span></div>`}`;
+  const qi = document.getElementById('q');
+  wireSearchInput(qi, (val, pos) => { q = val; renderLearn();
+    const n = document.getElementById('q'); if(n){ n.focus(); n.setSelectionRange(pos, pos); } });
+  const rn = document.getElementById('lRandNext');
+  if(rn) rn.onclick = () => {
+    if(L.length > 1){
+      let n; do { n = L[Math.floor(Math.random() * L.length)]; } while(n.card.id === lRandId);
+      lRandId = n.card.id;
+    }
+    renderLearn();
+  };
+  wireCards(v);
+  v.querySelectorAll('[data-goto]').forEach(el => el.onclick = () => {
+    view = {type:'board', id:el.dataset.goto}; render(); });
+}
 function renderPins(){
   const t = document.getElementById('pageTitle');
   t.value = 'Pin Memo'; t.disabled = true; t.oninput = null; t.style.color = '';
@@ -8493,6 +8593,7 @@ function render(){
   else if(view.type === 'times') renderTimes();
   else if(view.type === 'cards') renderCards();
   else if(view.type === 'pin') renderPins();
+  else if(view.type === 'learn') renderLearn();
   else if(view.type === 'card') renderCard();
   else if(view.type === 'shelf') renderShelf();
   else if(view.type === 'replog') renderRepeatLog();
@@ -8518,6 +8619,7 @@ document.getElementById('navQuote').onclick = () => { view = {type:'quote'}; q =
 document.getElementById('navRead').onclick = () => { view = {type:'read'}; q = ''; render(); };
 document.getElementById('navCards').onclick = () => { view = {type:'cards'}; deckId = null; render(); };
 document.getElementById('navPin').onclick = () => { view = {type:'pin'}; q = ''; render(); };
+document.getElementById('navLearn').onclick = () => { view = {type:'learn'}; q = ''; render(); };
 document.getElementById('navDone').onclick = () => { view = {type:'done'}; q = ''; render(); };
 const nvRep = document.getElementById('navRep');
 if(nvRep) nvRep.onclick = () => { view = {type:'replog'}; render(); };
