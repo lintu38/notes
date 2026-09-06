@@ -43,12 +43,12 @@
     font:14.5px/1.75 var(--fserif);
     font-feature-settings:"palt" 1;}
   /* メイン画面はサイドバーと同じ書体に。メモ・引用など読ませる文章だけ明朝に戻す */
-  .scroll{font-family:var(--fdisp)}
+  .scroll{font-family:var(--fserif)}
   .qc-body,.qc-memo,.dailybody,
   .dcard .qt,.dcard .mm,.rs-p,.lc-p{font-family:var(--fserif)}
   /* 本文を出す場所（編集中も表示も）に共通の書式を効かせる */
   /* メモ本文・Message Log・セクション見出しはサイドバーと同じ書体 */
-  .body,.log-t,.sec-lb{font-family:var(--fdisp)}
+  .body,.log-t,.sec-lb{font-family:var(--fserif)}
   .body.dailybody{font-family:var(--fserif);font-weight:500}
   /* Memo・Quote・Read は入力中も表示も游明朝（見出しラベルは除く） */
   .qbox,.qbox *,.qcard,.qcard *{font-family:var(--fserif)}
@@ -223,6 +223,10 @@
   .nav:hover{background:var(--bh,#cbb0b8)}
   .nav.on{background:var(--bo,var(--panel));color:var(--ink);font-weight:500;box-shadow:var(--shadow)}
   .nav .ico{width:18px;text-align:center;flex:0 0 18px;font-size:14px}
+  /* 旗とえんぴつはインクが少なくて薄く見えるので、この2つだけ少し強く */
+  #navIssue > span:not(.ico):not(.cnt),
+  #navLearn > span:not(.ico):not(.cnt){font-weight:500}
+  #navIssue .nico,#navLearn .nico{stroke-width:1.55}
   /* Tasks はカーソルを置いたときだけ、くすんだ赤系に */
   #navTasks:hover{background:#c48f95;color:#fff}
   #navTasks:hover .cnt{background:#a96f78;color:#fff}
@@ -10716,17 +10720,21 @@ const boot2 = () => {
   function addPups(){
     const n = 1 + Math.floor(Math.random() * 3);
     for(let i = 0; i < n; i++){
+      /* クラスと位置を先に決めてから置く。順番が逆だと、置いた瞬間の1コマだけ
+         大きさも場所も決まっていない犬が見えてしまう */
+      const cls = COATS[Math.floor(Math.random() * COATS.length)] + TAGS[i];
       const el = document.createElement('span');
+      el.className = 'walker pup ' + cls;
       el.innerHTML = DOG;
       st.appendChild(el);
-      const w = new Walker(el, SIZES[i], 1, rnd(.006, .010),
-        COATS[Math.floor(Math.random() * COATS.length)] + TAGS[i]);
+      const w = new Walker(el, SIZES[i], 1, rnd(.006, .010), cls);
       w.gap = .05 + i * .035;
       w.follow = Math.random() < .5;             /* 半分は親のうしろについて歩く */
       w.decide = Date.now() + rnd(20000, 60000);
       w.x = Math.min(1, Math.max(0, big.x - big.dir * w.gap));
       w.dir = big.dir;
       wire(w);
+      w.paint(st.clientWidth || st.offsetWidth || 0);   /* 置いた瞬間から正しい場所に */
       pups.push(w);
     }
     pupUntil = Date.now() + rnd(90000, 260000);      /* 1分半〜4分半 いっしょ */
