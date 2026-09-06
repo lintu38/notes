@@ -1864,6 +1864,18 @@
   @media (prefers-reduced-motion: reduce){
     .walker .bob,.walker .leg-a,.walker .leg-b,.walker .tail{animation:none}
     .walker.pup{animation:none}}
+
+  /* ---------- Issue ---------- */
+  .isu{background:#f5edd6;border-radius:3px;padding:0 2px;
+    -webkit-box-decoration-break:clone;box-decoration-break:clone}
+  .rtbar .isu-btn{background:#e8dcb4;color:#3b3324;font-weight:600}
+  .rtbar .isu-btn:hover{background:#f0e6c6}
+  .isucard{cursor:pointer;border-left:3px solid #e2d3a4}
+  .isucard:hover{border-color:#cdc1c3;box-shadow:var(--shadow);border-left-color:#d4c08a}
+  .isutext{font-size:13px;line-height:1.85;color:#2a2426;word-break:break-word;
+    background:#f9f3e2;border-radius:8px;padding:9px 11px;margin-top:2px}
+  .isufrom{font-size:11px;color:var(--muted);margin-top:7px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -1887,6 +1899,7 @@
     <div class="nav" id="navTasks" data-nav="tasks" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><circle cx="10.2" cy="2.9" r="1.5"/><path d="M4.2 14.2l2.1-3.4 1.6-1.1-1-3.1-2.4 1.5-1 2.1"/><path d="M6.9 6.6l2.6-1.3 1.6 2.4 2.4.9"/><path d="M11.6 13.9l-1.4-3.1-2.3-1.3"/></svg></span><span id="navTasksLb">Tasks</span><span class="cnt" id="cntAll">0</span></div>
     <div class="nav" id="navPin" data-nav="pin" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M9.6 1.9l4.5 4.5-1.6.5-1 1-.4 3.1-4.7-4.7 3.1-.4 1-1z"/><path d="M6.4 6.3L2.2 13.8l7.5-4.2"/></svg></span><span>Pin Memo</span><span class="cnt" id="cntPin">0</span></div>
     <div class="nav" id="navLearn" data-nav="learn" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M2.6 13.4V11l7.6-7.6 2.4 2.4L5 13.4z"/><path d="M9.4 4.2l2.4 2.4"/><path d="M2.6 13.4h10.8"/></svg></span><span>D Discoveries</span><span class="cnt" id="cntLearn">0</span></div>
+    <div class="nav" id="navIssue" data-nav="issue" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M3 2.2v12.4"/><path d="M3 2.8h8.6l-1.7 2.6 1.7 2.6H3z"/></svg></span><span>Issue</span><span class="cnt" id="cntIssue">0</span></div>
     <div class="nav" id="navTimes" data-nav="times" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 4.6V8l2.4 1.6"/></svg></span><span id="navTimesLb">Time Log</span><span class="cnt" id="cntTime"></span></div>
     <div class="nav" id="navDone" data-nav="done" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M2.6 8.4l3.3 3.3 7.5-7.6"/></svg></span><span id="navDoneLb">Done Task</span><span class="cnt" id="cntDone">0</span></div>
     <div class="nav" id="navRep" data-nav="replog" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M2.4 4.2h6.4M2.4 8h9.6M2.4 11.8h4.8"/><path d="M11.4 3.2v2M14 6.9v2.2M9.4 10.7v2.2"/></svg></span><span>Timeline</span></div>
@@ -3008,8 +3021,8 @@ function boardNav(b, inFolder){
 }
 const NAVKEYS = APP === 'task'
   ? ['search', 'tasks', 'replog', 'done', 'times']
-  : ['search', 'tasks', 'pin', 'learn', 'read', 'times', 'quote', 'cards'];
-const NAVALL = ['search','tasks','times','done','read','quote','cards','pin','learn'];
+  : ['search', 'tasks', 'pin', 'learn', 'issue', 'read', 'times', 'quote', 'cards'];
+const NAVALL = ['search','tasks','times','done','read','quote','cards','pin','learn','issue'];
 let dragNav = null;
 /* サイドバー上部メニューの並び替え */
 function renderNavOrder(){
@@ -3033,6 +3046,12 @@ function renderNavOrder(){
     const i2 = S.navOrder.indexOf('pin');
     if(i2 >= 0) S.navOrder.splice(i2 + 1, 0, 'learn'); else S.navOrder.push('learn');
     S.navLearn1 = true;
+  }
+  if(APP === 'note' && !S.navIssue1){     /* Issue は D Discoveries の下に */
+    S.navOrder = (S.navOrder || []).filter(k => k !== 'issue');
+    const i3 = S.navOrder.indexOf('learn');
+    if(i3 >= 0) S.navOrder.splice(i3 + 1, 0, 'issue'); else S.navOrder.push('issue');
+    S.navIssue1 = true;
   }
   S.navOrder = (S.navOrder || []).filter(k => NAVKEYS.includes(k));
   NAVKEYS.forEach(k => { if(!S.navOrder.includes(k)) S.navOrder.push(k); });
@@ -3190,6 +3209,13 @@ function renderSide(){
   }
   paintWork();
   document.getElementById('navSearch').classList.toggle('on', view.type === 'search');
+  const nvI = document.getElementById('navIssue');
+  if(nvI){
+    nvI.classList.toggle('on', view.type === 'issue');
+    const nI = issueItems().length;
+    const ib = document.getElementById('cntIssue');
+    if(ib){ ib.textContent = nI; ib.style.display = nI ? '' : 'none'; }
+  }
   const nvL = document.getElementById('navLearn');
   if(nvL){
     nvL.classList.toggle('on', view.type === 'learn');
@@ -4634,6 +4660,35 @@ function applySize(cls){
   });
   saveBody(rtEl);
 }
+/* えらんだところを Issue にする（もう一度押すと外す） */
+function applyIssue(){
+  if(!rtEl) return;
+  const sel = window.getSelection();
+  let n = sel && sel.anchorNode;
+  n = n && (n.nodeType === 1 ? n : n.parentElement);
+  const cur = n && n.closest ? n.closest('.isu') : null;
+  if(cur && rtEl.contains(cur)){
+    const f = document.createDocumentFragment();
+    while(cur.firstChild) f.appendChild(cur.firstChild);
+    cur.replaceWith(f);
+    saveBody(rtEl); hideRT(); return;
+  }
+  document.execCommand('styleWithCSS', false, false);
+  document.execCommand('fontSize', false, '7');   /* いったん目印を付ける */
+  rtEl.querySelectorAll('font[size="7"]').forEach(f => {
+    const sp = document.createElement('span');
+    sp.className = 'isu';
+    sp.innerHTML = f.innerHTML;
+    sp.querySelectorAll('.isu').forEach(x => {
+      const g = document.createDocumentFragment();
+      while(x.firstChild) g.appendChild(x.firstChild);
+      x.replaceWith(g);
+    });
+    f.replaceWith(sp);
+  });
+  saveBody(rtEl);
+  hideRT();
+}
 /* 書式が使える編集領域に共通の挙動を付ける */
 /* 箇条書き・チェックリスト・引用 */
 const FMTICO = {
@@ -4850,6 +4905,8 @@ function showRT(el){
       <button data-fmt2="check" title="チェックボックス">☑</button>
       <button data-fmt2="quote" title="引用">❝</button>
       <span class="sep"></span>
+      <button class="w isu-btn" data-issue="1" title="Issue にする（もう一度押すと外す）">Issue</button>
+      <span class="sep"></span>
       <button data-cmd="removeFormat" title="書式をクリア">✕</button>`;
     bar.onmousedown = e => e.preventDefault(); // 選択を保持
     bar.addEventListener('pointerdown', e => e.preventDefault());
@@ -4865,6 +4922,7 @@ function showRT(el){
     });
     bar.querySelectorAll('[data-fmt2]').forEach(b => b.onclick = () => applyFmt(b.dataset.fmt2, rtEl));
     bar.querySelectorAll('[data-size]').forEach(b => b.onclick = () => applySize(b.dataset.size));
+    bar.querySelectorAll('[data-issue]').forEach(b => b.onclick = () => applyIssue());
     bar.dataset.ready = '1';
   }
   const r = sel.getRangeAt(0).getBoundingClientRect();
@@ -7954,6 +8012,76 @@ function pinCardHTML(x){
         </div>`}
   </div>`;
 }
+/* ---------------- Issue ---------------- */
+/* 黄色にしたところを、メモの中から拾い集める */
+function issueItems(){
+  const out = [];
+  const grab = (html, x, where) => {
+    if(!html || String(html).indexOf('isu') < 0) return;
+    const d = document.createElement('div');
+    d.innerHTML = html;
+    d.querySelectorAll('.isu').forEach(n => {
+      const t = (n.textContent || '').trim();
+      if(t) out.push({text:t, board:x.board, card:x.card, where:where});
+    });
+  };
+  allCards().forEach(x => {
+    const k = x.card;
+    grab(k.body, x, 'Memo');
+    grab(k.note, x, '説明');
+    grab(k.head, x, '見出し');
+    if(k.quote){ grab(k.quote.text, x, 'Quote'); grab(k.quote.memo, x, 'Quote のメモ'); }
+    if(k.read) grab(k.read.memo, x, 'Read');
+    (k.logs || []).forEach(g => grab(g.text, x, 'Message Log'));
+    (k.subs || []).forEach(s2 => { grab(s2.title, x, 'サブタスク'); grab(s2.note, x, 'サブタスクの説明'); });
+  });
+  return out;
+}
+function renderIssue(){
+  const t = document.getElementById('pageTitle');
+  t.value = 'Issue'; t.disabled = true; t.oninput = null; t.style.color = '';
+  document.getElementById('topActions').innerHTML = '';
+  let L = issueItems();
+  if(q){
+    const s2 = q.toLowerCase();
+    L = L.filter(i => (i.text + ' ' + i.board.name + ' ' + plain(i.card.title)).toLowerCase().includes(s2));
+  }
+  const v = document.getElementById('view');
+  v.innerHTML = `
+    <div class="tools">
+      <input class="search" id="q" placeholder="Issue を検索…" value="${esc(q)}">
+      <span style="color:var(--muted);font-size:12.5px">${L.length} 件</span>
+    </div>
+    ${L.length ? `<div class="lgrid">${L.map(i => {
+      const ttl = (i.card.bodyTitle || '').trim() || plain(i.card.title).trim();
+      return `<div class="card note colitem isucard" data-jump="${i.board.id}|${i.card.id}">
+        <div class="col-src">
+          <span><span style="${i.board.color?`color:${i.board.color}`:''}">▦</span> ${esc(i.board.name)}</span>
+          <span style="margin-left:auto;font-size:10.5px">${esc(i.where)}</span>
+        </div>
+        <div class="isutext">${esc(i.text)}</div>
+        ${ttl ? `<div class="isufrom">${esc(ttl)}</div>` : ''}
+      </div>`;
+    }).join('')}</div>`
+      : `<div class="empty">Issue はまだありません<br>
+        <span style="font-size:12px">メモの文字をえらんで、出てきたツールの「Issue」を押すと、ここに集まります</span></div>`}`;
+  const qi = document.getElementById('q');
+  wireSearchInput(qi, (val, pos) => { q = val; renderIssue();
+    const n = document.getElementById('q'); if(n){ n.focus(); n.setSelectionRange(pos, pos); } });
+  v.querySelectorAll('[data-jump]').forEach(el => el.onclick = () => {
+    const [bid, cid] = el.dataset.jump.split('|');
+    view = {type:'board', id:bid}; render();
+    setTimeout(() => {
+      const card = document.querySelector(`[data-card="${cid}"]`);
+      if(card){
+        card.scrollIntoView({block:'center', behavior:'smooth'});
+        card.classList.add('flash');
+        setTimeout(() => card.classList.remove('flash'), 1600);
+      }
+    }, 30);
+  });
+}
+
 /* ---------------- Daily Discoveries ---------------- */
 let lRandId = null;
 const learnCards = () => allCards().filter(x => !!x.card.learn);
@@ -8677,6 +8805,7 @@ function render(){
   else if(view.type === 'cards') renderCards();
   else if(view.type === 'pin') renderPins();
   else if(view.type === 'learn') renderLearn();
+  else if(view.type === 'issue') renderIssue();
   else if(view.type === 'card') renderCard();
   else if(view.type === 'shelf') renderShelf();
   else if(view.type === 'replog') renderRepeatLog();
@@ -8703,6 +8832,7 @@ document.getElementById('navRead').onclick = () => { view = {type:'read'}; q = '
 document.getElementById('navCards').onclick = () => { view = {type:'cards'}; deckId = null; render(); };
 document.getElementById('navPin').onclick = () => { view = {type:'pin'}; q = ''; render(); };
 document.getElementById('navLearn').onclick = () => { view = {type:'learn'}; q = ''; render(); };
+document.getElementById('navIssue').onclick = () => { view = {type:'issue'}; q = ''; render(); };
 document.getElementById('navDone').onclick = () => { view = {type:'done'}; q = ''; render(); };
 const nvRep = document.getElementById('navRep');
 if(nvRep) nvRep.onclick = () => { view = {type:'replog'}; render(); };
@@ -10377,6 +10507,85 @@ const boot2 = () => {
   }
   function wire(w){ w.el.addEventListener('click', e => { e.stopPropagation(); say(w); }); }
 
+  /* ---- One Step の今日の予定を、ときどきつぶやく ---- */
+  let osEvents = null, osIdx = 0, osAskAt = 0, osNext = Date.now() + rnd(45000, 90000);
+  window.addEventListener('message', ev => {
+    const d = ev.data;
+    if(d && d.source === 'onestep-cal') osEvents = Array.isArray(d.events) ? d.events : [];
+  });
+  function askCal(){
+    const now = Date.now();
+    if(now - osAskAt < 60000) return;
+    osAskAt = now;
+    const f = document.getElementById('timerFrame');
+    try{ if(f && f.contentWindow) f.contentWindow.postMessage({source:'tasks-req-cal'}, '*'); }catch(e){}
+  }
+  /* 繰り返し・連日の予定から、今日のぶんを取り出す */
+  function todayList(){
+    if(!Array.isArray(osEvents) || !osEvents.length) return [];
+    const p2 = k => { const a = String(k || '').split('-').map(Number);
+      return new Date(a[0] || 2000, (a[1] || 1) - 1, a[2] || 1); };
+    const kf = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0')
+      + '-' + String(d.getDate()).padStart(2, '0');
+    const mid = d => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    const apart = (a, b) => Math.round((mid(b) - mid(a)) / 86400000);
+    const add = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+    const iw = d => (d.getDay() + 6) % 7;
+    const mon = d => add(d, -iw(d));
+    const lastOf = d => new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+    const span = e => (!e.endDate || e.endDate <= e.date) ? 0
+      : Math.max(0, Math.min(365, apart(p2(e.date), p2(e.endDate))));
+    const wd = e => (Array.isArray(e.days) && e.days.length) ? e.days : [iw(p2(e.date))];
+    const onDay = (e, d) => {
+      const a = p2(e.date);
+      if(mid(d) < mid(a)) return false;
+      const rep = e.repeat || 'none';
+      if(rep === 'none') return kf(d) === e.date;
+      if(rep === 'week'){
+        if(wd(e).indexOf(iw(d)) < 0) return false;
+        const n2 = Math.max(1, e.every || 1);
+        const w2 = Math.round(apart(mon(a), mon(d)) / 7);
+        return w2 >= 0 && w2 % n2 === 0;
+      }
+      if(rep === 'month'){
+        if(e.monthEnd) return d.getDate() === lastOf(d);
+        const want = Math.min(31, Math.max(1, e.monthDay || a.getDate()));
+        return d.getDate() === Math.min(want, lastOf(d));
+      }
+      if(rep === 'year') return a.getDate() === d.getDate() && a.getMonth() === d.getMonth();
+      return false;
+    };
+    const dd = new Date(), key = kf(dd), out = [];
+    osEvents.forEach(e => {
+      if(!e || !e.date) return;
+      const sp = span(e);
+      for(let b = 0; b <= sp; b++){
+        if(!onDay(e, add(dd, -b))) continue;
+        const run = sp > 0 && e.cont !== false;
+        const s2 = kf(add(dd, -b)), en = kf(add(add(dd, -b), sp));
+        const time = e.allDay ? '終日'
+          : !run ? (e.start || '')
+          : key === s2 ? (e.start || '') + '〜'
+          : key === en ? '〜' + (e.end || '') : 'つづき';
+        out.push({title:e.title || '', time:time, allDay:!!e.allDay});
+        break;
+      }
+    });
+    return out.sort((a, b) => a.allDay === b.allDay
+      ? String(a.time).localeCompare(String(b.time)) : (a.allDay ? -1 : 1));
+  }
+  function murmurPlan(){
+    const L = todayList();
+    if(!L.length) return false;
+    const e = L[osIdx % L.length]; osIdx++;
+    const t = String(e.title || '予定').slice(0, 16);
+    bub.textContent = (e.time && e.time !== '終日') ? e.time + '　' + t : t;
+    bub.classList.add('on');
+    sayFor = big; sayUntil = Date.now() + 4400;
+    if(!big.mode){ big.mode = 'still'; big.until = Date.now() + 4400; }
+    return true;
+  }
+
   const big = new Walker(dog, 34, .8, .0055);
   big.x = .12; big.dir = 1;
   wire(big);
@@ -10429,6 +10638,11 @@ const boot2 = () => {
     });
     if(!pups.length && now > pupNext) addPups();
     else if(pups.length && now > pupUntil) dropPups();
+    /* 3分おきくらいに、今日の予定をひとつつぶやく */
+    askCal();
+    if(!sayFor && now > osNext){
+      osNext = (big.mode === 'sleep' || !murmurPlan()) ? now + 60000 : now + rnd(150000, 210000);
+    }
     /* ふきだしは、しゃべっている子の上についていく */
     if(sayFor && now < sayUntil){
       const s2 = sayFor.size;
