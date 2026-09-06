@@ -489,7 +489,7 @@
   .qcard{position:relative;background:none;border:0;border-radius:0;box-shadow:none;
     padding:2px 10px 6px;margin-top:6px}
   .card > .qribbon{top:-4px;right:10px}
-  .card > .qribbon.task{background:#c9a227}
+  .card > .qribbon.task{background:#8e4657}
   .qribbon{position:absolute;top:-4px;right:6px;width:15px;height:18px;background:#b06a80;
     border-radius:2px 2px 0 0;clip-path:polygon(0 0, 100% 0, 100% 100%, 50% 74%, 0 100%);
     box-shadow:0 1px 3px rgba(30,25,15,.18)}
@@ -1445,7 +1445,7 @@
   .rwrap::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;
     border-radius:0 3px 3px 0;background:var(--c,transparent)}
   .rwrap > .qribbon{top:-4px;right:14px}
-  .rwrap > .qribbon.task{background:#c9a227}
+  .rwrap > .qribbon.task{background:#8e4657}
   /* Action ページはカードを2枚ずつ並べる */
   .rowgrid{display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:12px;align-items:start}
   .rowgrid .rwrap{margin-bottom:0}
@@ -1811,6 +1811,7 @@
     transform:translateX(-50%) rotate(-45deg);background:#fff;
     border-left:1px solid var(--line);border-bottom:1px solid var(--line)}
   .walker svg{width:100%;height:100%;overflow:visible;display:block}
+  .walker{max-width:40px;max-height:40px}
   .dog-body{fill:#C9A87C}
   .dog-dark{fill:#A6845C}
   .dog-light{fill:#EBDCC4}
@@ -1872,10 +1873,39 @@
   .rtbar .isu-btn:hover{background:#f0e6c6}
   .isucard{cursor:pointer;border-left:3px solid #e2d3a4}
   .isucard:hover{border-color:#cdc1c3;box-shadow:var(--shadow);border-left-color:#d4c08a}
-  .isutext{font-size:13px;line-height:1.85;color:#2a2426;word-break:break-word;
-    background:#f9f3e2;border-radius:8px;padding:9px 11px;margin-top:2px}
+  .isutext{font-family:var(--fserif);font-size:13.5px;line-height:1.95;color:#2a2426;
+    word-break:break-word;background:#f9f3e2;border-radius:8px;padding:9px 11px;margin-top:2px}
   .isufrom{font-size:11px;color:var(--muted);margin-top:7px;
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  /* ---------- Action ---------- */
+  .act{background:#f0dee2;border-radius:3px;padding:0 2px;
+    -webkit-box-decoration-break:clone;box-decoration-break:clone}
+  .rtbar .act-btn{background:#dcbdc6;color:#3d2229;font-weight:600}
+  .rtbar .act-btn:hover{background:#e8cdd4}
+  .actcard{cursor:pointer;border-left:3px solid #d7aab6}
+  .actcard:hover{border-color:#cdc1c3;box-shadow:var(--shadow);border-left-color:#b8798b}
+  .acttext{font-family:var(--fserif);font-size:13.5px;line-height:1.95;color:#2a2426;
+    word-break:break-word;background:#faf0f2;border-radius:8px;padding:9px 11px;margin-top:2px}
+  .actfrom{font-size:11px;color:var(--muted);margin-top:7px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .actsec{margin-top:26px}
+
+  /* ---------- Daily Discoveries（文章につける DD） ---------- */
+  .dd{background:#dfeceb;border-radius:3px;padding:0 2px;
+    -webkit-box-decoration-break:clone;box-decoration-break:clone}
+  .rtbar .dd-btn{background:#b9d5d1;color:#1e3330;font-weight:600}
+  .rtbar .dd-btn:hover{background:#cbe2de}
+  .ddcard{cursor:pointer;border-left:3px solid #a9c9c4}
+  .ddcard:hover{border-color:#cdc1c3;box-shadow:var(--shadow);border-left-color:#7fada6}
+  .ddtext{font-family:var(--fserif);font-size:13.5px;line-height:1.95;color:#2a2426;
+    word-break:break-word;background:#eef5f4;border-radius:8px;padding:9px 11px;margin-top:2px}
+  .ddfrom{font-size:11px;color:var(--muted);margin-top:7px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* Today's one は Quotes と同じように大きく */
+  .qrand .ddbig{padding:22px 22px 18px}
+  .qrand .ddbig .ddtext{font-size:16px;line-height:2.05;padding:18px 20px;background:#f1f8f7}
+  .qrand .ddbig .ddfrom{font-size:11.5px;margin-top:10px}
 </style>
 </head>
 <body>
@@ -1899,7 +1929,7 @@
     <div class="nav" id="navTasks" data-nav="tasks" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><circle cx="10.2" cy="2.9" r="1.5"/><path d="M4.2 14.2l2.1-3.4 1.6-1.1-1-3.1-2.4 1.5-1 2.1"/><path d="M6.9 6.6l2.6-1.3 1.6 2.4 2.4.9"/><path d="M11.6 13.9l-1.4-3.1-2.3-1.3"/></svg></span><span id="navTasksLb">Tasks</span><span class="cnt" id="cntAll">0</span></div>
     <div class="nav" id="navPin" data-nav="pin" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M9.6 1.9l4.5 4.5-1.6.5-1 1-.4 3.1-4.7-4.7 3.1-.4 1-1z"/><path d="M6.4 6.3L2.2 13.8l7.5-4.2"/></svg></span><span>Pin Memo</span><span class="cnt" id="cntPin">0</span></div>
     <div class="nav" id="navLearn" data-nav="learn" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M2.6 13.4V11l7.6-7.6 2.4 2.4L5 13.4z"/><path d="M9.4 4.2l2.4 2.4"/><path d="M2.6 13.4h10.8"/></svg></span><span>D Discoveries</span><span class="cnt" id="cntLearn">0</span></div>
-    <div class="nav" id="navIssue" data-nav="issue" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M3 2.2v12.4"/><path d="M3 2.8h8.6l-1.7 2.6 1.7 2.6H3z"/></svg></span><span>Issue</span><span class="cnt" id="cntIssue">0</span></div>
+    <div class="nav" id="navIssue" data-nav="issue" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M3.2 1.9v12.4"/><path d="M3.2 2.6h9.6l-2 3.1 2 3.1H3.2z"/></svg></span><span>Issue</span><span class="cnt" id="cntIssue">0</span></div>
     <div class="nav" id="navTimes" data-nav="times" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 4.6V8l2.4 1.6"/></svg></span><span id="navTimesLb">Time Log</span><span class="cnt" id="cntTime"></span></div>
     <div class="nav" id="navDone" data-nav="done" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M2.6 8.4l3.3 3.3 7.5-7.6"/></svg></span><span id="navDoneLb">Done Task</span><span class="cnt" id="cntDone">0</span></div>
     <div class="nav" id="navRep" data-nav="replog" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M2.4 4.2h6.4M2.4 8h9.6M2.4 11.8h4.8"/><path d="M11.4 3.2v2M14 6.9v2.2M9.4 10.7v2.2"/></svg></span><span>Timeline</span></div>
@@ -3219,7 +3249,7 @@ function renderSide(){
   const nvL = document.getElementById('navLearn');
   if(nvL){
     nvL.classList.toggle('on', view.type === 'learn');
-    const nL = learnCards().length;
+    const nL = ddItems().length + learnCards().length;
     const lb2 = document.getElementById('cntLearn');
     if(lb2){ lb2.textContent = nL; lb2.style.display = nL ? '' : 'none'; }
   }
@@ -4660,13 +4690,13 @@ function applySize(cls){
   });
   saveBody(rtEl);
 }
-/* えらんだところを Issue にする（もう一度押すと外す） */
-function applyIssue(){
+/* えらんだところに印をつける（もう一度押すと外す）。Issue と Action で共通 */
+function applyMark(cls){
   if(!rtEl) return;
   const sel = window.getSelection();
   let n = sel && sel.anchorNode;
   n = n && (n.nodeType === 1 ? n : n.parentElement);
-  const cur = n && n.closest ? n.closest('.isu') : null;
+  const cur = n && n.closest ? n.closest('.' + cls) : null;
   if(cur && rtEl.contains(cur)){
     const f = document.createDocumentFragment();
     while(cur.firstChild) f.appendChild(cur.firstChild);
@@ -4677,9 +4707,10 @@ function applyIssue(){
   document.execCommand('fontSize', false, '7');   /* いったん目印を付ける */
   rtEl.querySelectorAll('font[size="7"]').forEach(f => {
     const sp = document.createElement('span');
-    sp.className = 'isu';
+    sp.className = cls;
     sp.innerHTML = f.innerHTML;
-    sp.querySelectorAll('.isu').forEach(x => {
+    /* 入れ子になった印は外す（Issue と Action は重ねない） */
+    sp.querySelectorAll('.isu, .act, .dd').forEach(x => {
       const g = document.createDocumentFragment();
       while(x.firstChild) g.appendChild(x.firstChild);
       x.replaceWith(g);
@@ -4689,6 +4720,9 @@ function applyIssue(){
   saveBody(rtEl);
   hideRT();
 }
+function applyIssue(){ applyMark('isu'); }
+function applyAction(){ applyMark('act'); }
+function applyDD(){ applyMark('dd'); }
 /* 書式が使える編集領域に共通の挙動を付ける */
 /* 箇条書き・チェックリスト・引用 */
 const FMTICO = {
@@ -4906,6 +4940,8 @@ function showRT(el){
       <button data-fmt2="quote" title="引用">❝</button>
       <span class="sep"></span>
       <button class="w isu-btn" data-issue="1" title="Issue にする（もう一度押すと外す）">Issue</button>
+      <button class="w act-btn" data-act="1" title="Action にする（もう一度押すと外す）">Action</button>
+      <button class="w dd-btn" data-dd="1" title="Daily Discoveries にする（もう一度押すと外す）">DD</button>
       <span class="sep"></span>
       <button data-cmd="removeFormat" title="書式をクリア">✕</button>`;
     bar.onmousedown = e => e.preventDefault(); // 選択を保持
@@ -4923,6 +4959,8 @@ function showRT(el){
     bar.querySelectorAll('[data-fmt2]').forEach(b => b.onclick = () => applyFmt(b.dataset.fmt2, rtEl));
     bar.querySelectorAll('[data-size]').forEach(b => b.onclick = () => applySize(b.dataset.size));
     bar.querySelectorAll('[data-issue]').forEach(b => b.onclick = () => applyIssue());
+    bar.querySelectorAll('[data-act]').forEach(b => b.onclick = () => applyAction());
+    bar.querySelectorAll('[data-dd]').forEach(b => b.onclick = () => applyDD());
     bar.dataset.ready = '1';
   }
   const r = sel.getRangeAt(0).getBoundingClientRect();
@@ -4982,7 +5020,7 @@ function addMenu(e, colId, parentId){
       ? ['task', 'note', 'quote', 'read']
       : isShelf
       ? ['book', 'readmemo', 'quote', 'task']
-      : ['note', 'learn', 'task', 'read', 'quote']).map(t => NEWBTN[t]).join('')}
+      : ['note', 'task', 'read', 'quote']).map(t => NEWBTN[t]).join('')}
     ${parentId ? '' : `<button data-t="heading"><i class="ic">H</i>見出し</button>`}`);
   p.querySelectorAll('[data-t]').forEach(btn => btn.onclick = () => {
     const bd = S.boards.find(b2 => (b2.cols || []).some(c => c.id === colId)) || board(view.id);
@@ -5687,7 +5725,8 @@ function renderTasks(){
         filter==='done' ? '完了したものはまだありません' :
         filter==='now' ? '「今日必ず」のタスクはありません 🎉' :
         filter==='today' ? '今日やるタスクはありません 🎉' :
-        '該当するタスクはありません'}</div>`}`;
+        '該当するタスクはありません'}</div>`}
+    ${APP === 'note' ? actionSection() : ''}`;
 
   const qi = document.getElementById('q');
   wireSearchInput(qi, (val, p) => { q = val; renderTasks();
@@ -5700,6 +5739,7 @@ function renderTasks(){
 
   wireRows(document.getElementById('view'));
   wireRowDnD(document.getElementById('view'));
+  if(APP === 'note') wireJumps(document.getElementById('view'));
 }
 
 /* タスク一覧の手動並び替え */
@@ -8013,14 +8053,14 @@ function pinCardHTML(x){
   </div>`;
 }
 /* ---------------- Issue ---------------- */
-/* 黄色にしたところを、メモの中から拾い集める */
-function issueItems(){
+/* 印をつけたところを、メモの中から拾い集める（Issue と Action で共通） */
+function markItems(cls){
   const out = [];
   const grab = (html, x, where) => {
-    if(!html || String(html).indexOf('isu') < 0) return;
+    if(!html || String(html).indexOf(cls) < 0) return;
     const d = document.createElement('div');
     d.innerHTML = html;
-    d.querySelectorAll('.isu').forEach(n => {
+    d.querySelectorAll('.' + cls).forEach(n => {
       const t = (n.textContent || '').trim();
       if(t) out.push({text:t, board:x.board, card:x.card, where:where});
     });
@@ -8036,6 +8076,48 @@ function issueItems(){
     (k.subs || []).forEach(s2 => { grab(s2.title, x, 'サブタスク'); grab(s2.note, x, 'サブタスクの説明'); });
   });
   return out;
+}
+function issueItems(){ return markItems('isu'); }
+function actionItems(){ return markItems('act'); }
+function ddItems(){ return markItems('dd'); }
+
+/* Action ページの下段：文章につけた Action を集めてカードで並べる */
+function actionSection(){
+  let L = actionItems();
+  if(q){
+    const s2 = q.toLowerCase();
+    L = L.filter(i => (i.text + ' ' + i.board.name + ' ' + plain(i.card.title)).toLowerCase().includes(s2));
+  }
+  if(!L.length) return '';
+  return `<div class="grp actsec">
+    <div class="grp-h"><b>Action にした文章</b><span>${L.length} 件</span></div>
+    <div class="lgrid">${L.map(i => {
+      const ttl = (i.card.bodyTitle || '').trim() || plain(i.card.title).trim();
+      return `<div class="card note colitem actcard" data-jump="${i.board.id}|${i.card.id}">
+        <div class="col-src">
+          <span><span style="${i.board.color ? `color:${i.board.color}` : ''}">▦</span> ${esc(i.board.name)}</span>
+          <span style="margin-left:auto;font-size:10.5px">${esc(i.where)}</span>
+        </div>
+        <div class="acttext">${esc(i.text)}</div>
+        ${ttl ? `<div class="actfrom">${esc(ttl)}</div>` : ''}
+      </div>`;
+    }).join('')}</div>
+  </div>`;
+}
+/* カードをクリックしたら、もとのメモまで飛んで光らせる */
+function wireJumps(v){
+  v.querySelectorAll('[data-jump]').forEach(el => el.onclick = () => {
+    const [bid, cid] = el.dataset.jump.split('|');
+    view = {type:'board', id:bid}; render();
+    setTimeout(() => {
+      const card = document.querySelector(`[data-card="${cid}"]`);
+      if(card){
+        card.scrollIntoView({block:'center', behavior:'smooth'});
+        card.classList.add('flash');
+        setTimeout(() => card.classList.remove('flash'), 1600);
+      }
+    }, 30);
+  });
 }
 function renderIssue(){
   const t = document.getElementById('pageTitle');
@@ -8102,23 +8184,36 @@ function learnCardHTML(x, big){
     </div>`}
   </div>`;
 }
+function ddKey(i){ return i.card.id + '::' + i.text; }
+function ddCardHTML(i, big){
+  const ttl = (i.card.bodyTitle || '').trim() || plain(i.card.title).trim();
+  return `<div class="card note colitem ddcard${big ? ' ddbig' : ''}" data-jump="${i.board.id}|${i.card.id}">
+    <div class="col-src">
+      <span><span style="${i.board.color ? `color:${i.board.color}` : ''}">▦</span> ${esc(i.board.name)}</span>
+      <span style="margin-left:auto;font-size:10.5px">${esc(i.where)}</span>
+    </div>
+    <div class="ddtext">${esc(i.text)}</div>
+    ${ttl ? `<div class="ddfrom">${esc(ttl)}</div>` : ''}
+  </div>`;
+}
 function renderLearn(){
   const t = document.getElementById('pageTitle');
   t.value = 'Daily Discoveries'; t.disabled = true; t.oninput = null; t.style.color = '';
   document.getElementById('topActions').innerHTML = '';
-  let L = learnCards();
+  let L = ddItems();
+  let old = learnCards();          /* これまでに作った Daily Discoveries カード */
   if(q){
     const s2 = q.toLowerCase();
-    L = L.filter(x => cardHay(x.card).includes(s2));
+    L = L.filter(i => (i.text + ' ' + i.board.name + ' ' + plain(i.card.title)).toLowerCase().includes(s2));
+    old = old.filter(x => cardHay(x.card).includes(s2));
   }
-  L.sort((a, b) => (noteDate(b.card) || '').localeCompare(noteDate(a.card) || ''));
   let rand = '';
   if(L.length){
-    let cur = L.find(x => x.card.id === lRandId);
-    if(!cur){ cur = L[Math.floor(Math.random() * L.length)]; lRandId = cur.card.id; }
+    let cur = L.find(i => ddKey(i) === lRandId);
+    if(!cur){ cur = L[Math.floor(Math.random() * L.length)]; lRandId = ddKey(cur); }
     rand = `<div class="qrand lrand">
       <h5>Today's one</h5>
-      ${learnCardHTML(cur, true)}
+      ${ddCardHTML(cur, true)}
       <div class="dbtn"><button class="btn" id="lRandNext">Next</button></div>
     </div>`;
   }
@@ -8129,21 +8224,26 @@ function renderLearn(){
       <span style="color:var(--muted);font-size:12.5px">${L.length} 件</span>
     </div>
     ${rand}
-    ${L.length ? `<div class="lgrid">${L.map(x => learnCardHTML(x)).join('')}</div>`
+    ${L.length ? `<div class="lgrid">${L.map(i => ddCardHTML(i)).join('')}</div>`
       : `<div class="empty">Daily Discoveries はまだありません<br>
-        <span style="font-size:12px">ボードの「＋ New」から作れます</span></div>`}`;
+        <span style="font-size:12px">メモの文字をえらんで、出てきたツールの「DD」を押すと、ここに集まります</span></div>`}
+    ${old.length ? `<div class="grp actsec">
+      <div class="grp-h"><b>これまでの Daily Discoveries</b><span>${old.length} 件</span></div>
+      <div class="lgrid">${old.map(x => learnCardHTML(x)).join('')}</div>
+    </div>` : ''}`;
   const qi = document.getElementById('q');
   wireSearchInput(qi, (val, pos) => { q = val; renderLearn();
     const n = document.getElementById('q'); if(n){ n.focus(); n.setSelectionRange(pos, pos); } });
   const rn = document.getElementById('lRandNext');
   if(rn) rn.onclick = () => {
     if(L.length > 1){
-      let n; do { n = L[Math.floor(Math.random() * L.length)]; } while(n.card.id === lRandId);
-      lRandId = n.card.id;
+      let n; do { n = L[Math.floor(Math.random() * L.length)]; } while(ddKey(n) === lRandId);
+      lRandId = ddKey(n);
     }
     renderLearn();
   };
   wireCards(v);
+  wireJumps(v);
   v.querySelectorAll('[data-goto]').forEach(el => el.onclick = () => {
     view = {type:'board', id:el.dataset.goto}; render(); });
 }
@@ -10406,7 +10506,7 @@ const boot2 = () => {
   const st = document.getElementById('dogWalk');
   const dog = document.getElementById('pageDog');
   if(!st || !dog) return;
-  const DOG = `<svg viewBox="0 0 34 34" aria-hidden="true">
+  const DOG = `<svg viewBox="0 0 34 34" width="34" height="34" aria-hidden="true">
     <g class="pose"><g class="bob">
       <path class="tail dog-body" d="M7 15 C3 13, 2 9, 4.5 7.5 C5.5 9.5, 6.5 12, 8.5 13.5 Z"/>
       <g class="leg-b"><rect class="dog-dark" x="8.5" y="19" width="3" height="7" rx="1.4"/></g>
@@ -10558,6 +10658,7 @@ const boot2 = () => {
     const dd = new Date(), key = kf(dd), out = [];
     osEvents.forEach(e => {
       if(!e || !e.date) return;
+      if(e.doneOn && e.doneOn === key) return;      /* 済んだ予定は言わない */
       const sp = span(e);
       for(let b = 0; b <= sp; b++){
         if(!onDay(e, add(dd, -b))) continue;
@@ -10574,15 +10675,34 @@ const boot2 = () => {
     return out.sort((a, b) => a.allDay === b.allDay
       ? String(a.time).localeCompare(String(b.time)) : (a.allDay ? -1 : 1));
   }
+  /* 読み上げるのではなく、犬が話しかけてくるように */
+  const PLAN_SAY = [
+    (t, w) => w ? `今日は ${w}「${t}」があるよ` : `今日は「${t}」があるよ`,
+    (t, w) => w ? `${w}「${t}」だね` : `「${t}」の日だね`,
+    (t, w) => w ? `そういえば ${w}「${t}」だよ` : `そういえば「${t}」があるよ`,
+    (t) => `きょうは「${t}」、わすれてない？`,
+    (t, w) => w ? `このあと ${w}「${t}」があるよ` : `このあと「${t}」があるみたい`,
+    (t) => `「${t}」、いっしょに がんばろうね`,
+    (t, w) => w ? `${w}「${t}」、たのしみだね` : `「${t}」、たのしみだね`
+  ];
+  /* 「10:00 から」のような、文になじむ形に */
+  function planWhen(e){
+    const t = String(e.time || '').trim();
+    if(!t || t === '終日' || t === 'つづき') return '';
+    if(t.slice(-1) === '〜') return t.slice(0, -1) + ' から ';
+    if(t.charAt(0) === '〜') return t.slice(1) + ' までに ';
+    return t + ' から ';
+  }
   function murmurPlan(){
     const L = todayList();
     if(!L.length) return false;
     const e = L[osIdx % L.length]; osIdx++;
-    const t = String(e.title || '予定').slice(0, 16);
-    bub.textContent = (e.time && e.time !== '終日') ? e.time + '　' + t : t;
+    const t = String(e.title || '予定').slice(0, 14);
+    const w = planWhen(e);
+    bub.textContent = PLAN_SAY[Math.floor(Math.random() * PLAN_SAY.length)](t, w);
     bub.classList.add('on');
-    sayFor = big; sayUntil = Date.now() + 4400;
-    if(!big.mode){ big.mode = 'still'; big.until = Date.now() + 4400; }
+    sayFor = big; sayUntil = Date.now() + 5400;
+    if(!big.mode){ big.mode = 'still'; big.until = Date.now() + 5400; }
     return true;
   }
 
