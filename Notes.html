@@ -1844,8 +1844,10 @@
   .walker.sleep .pose{transform-box:view-box;transform:translateY(6.5px)}
   .walker.sleep .leg-a,.walker.sleep .leg-b{
     transform-box:fill-box;transform-origin:50% 0;transform:scaleY(.34)}
-  .walker.sleep circle.dog-nose:last-of-type{
-    transform-box:fill-box;transform-origin:50% 50%;transform:scaleY(.22)}
+  /* ねむると、目はにこっとした U 字に */
+  .dog-shut{display:none;fill:none;stroke:#5C4632;stroke-width:.85;stroke-linecap:round}
+  .walker.sleep circle.dog-nose:last-of-type{display:none}
+  .walker.sleep .dog-shut{display:block}
   @keyframes dogBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.4px)}}
   @keyframes legA{0%,100%{transform:translateX(1.6px)}50%{transform:translateX(-1.6px)}}
   @keyframes legB{0%,100%{transform:translateX(-1.6px)}50%{transform:translateX(1.6px)}}
@@ -1866,6 +1868,79 @@
   .walker.pup.coat-brown .dog-light{fill:#C7AC87}
   .walker.pup.leave{opacity:0;transition:opacity .9s ease}
   @keyframes pupJoin{0%{opacity:0}100%{opacity:.94}}
+  /* ときどき遊びに来る子（ねこ・うさぎ） */
+  .walker.guest{width:22px;height:22px;margin-left:-11px;margin-top:-11px;opacity:.96}
+  .walker.guest.sit .pose{transform-box:view-box;transform-origin:24px 26px;transform:rotate(-13deg)}
+  .cat-body{fill:#A79F97}
+  .cat-dark{fill:#8B837B}
+  .cat-light{fill:#E7E2DB}
+  .cat-face{fill:#4E463F}
+  .walker.guest.v2 .cat-body{fill:#5E564D}
+  .walker.guest.v2 .cat-dark{fill:#463F38}
+  .walker.guest.v2 .cat-light{fill:#8B8179}
+  .rab-body{fill:#FDFBF7}
+  .rab-dark{fill:#E6DFD4}
+  .rab-pink{fill:#E4B2B8}
+  .rab-face{fill:#6B5F55}
+  .walker.guest.v2 .rab-body{fill:#C8B096}
+  .walker.guest.v2 .rab-dark{fill:#AF977B}
+  .walker.guest.leave{opacity:0;transition:opacity .9s ease}
+  /* うさぎ・かえる・小鳥は歩かずに、ひと跳びずつ移動する */
+  .walker.guest.rab:not(.gait-walk) .bob,
+  .walker.guest.rab:not(.gait-walk) .leg-a,.walker.guest.rab:not(.gait-walk) .leg-b,
+  .walker.guest.frog .bob,.walker.guest.frog .leg-a,.walker.guest.frog .leg-b,
+  .walker.guest.bird .bob,.walker.guest.bird .leg-a,.walker.guest.bird .leg-b{animation:none}
+  @keyframes rabJump{
+    0%{transform:translateY(0) scaleY(.82) scaleX(1.12)}
+    14%{transform:translateY(-10px) scaleY(1.14) scaleX(.9)}
+    34%{transform:translateY(-18px) scaleY(1.08) scaleX(.95)}
+    64%{transform:translateY(-10px) scaleY(1.02) scaleX(.99)}
+    88%{transform:translateY(-2px) scaleY(.96) scaleX(1.04)}
+    100%{transform:translateY(0) scaleY(1) scaleX(1)}
+  }
+  @keyframes birdJump{
+    0%{transform:translateY(0) scaleY(.9)}
+    32%{transform:translateY(-6px) scaleY(1.06)}
+    100%{transform:translateY(0) scaleY(1)}
+  }
+  @keyframes frogJump{
+    0%{transform:translateY(0) scaleY(.86) scaleX(1.08)}
+    28%{transform:translateY(-10px) scaleY(1.08) scaleX(.95)}
+    62%{transform:translateY(-5px) scaleY(1.02) scaleX(1)}
+    100%{transform:translateY(0) scaleY(1) scaleX(1)}
+  }
+  @keyframes frogJumpS{
+    0%{transform:translateY(0) scaleY(.92) scaleX(1.04)}
+    34%{transform:translateY(-4px) scaleY(1.04) scaleX(.98)}
+    100%{transform:translateY(0) scaleY(1) scaleX(1)}
+  }
+  /* かえる */
+  .fr-body{fill:#8FB47A}
+  .fr-leg{fill:#7CA268}
+  .fr-belly{fill:#D9E4C8}
+  .fr-eye{fill:#3E4A36}
+  .fr-mouth{fill:none;stroke:#5F7A50;stroke-width:.9;stroke-linecap:round}
+  .walker.guest.frog.v2 .fr-body{fill:#A9AF74}
+  .walker.guest.frog.v2 .fr-leg{fill:#959B64}
+  /* 小鳥は小さめ。動くときは羽ばたく絵に入れかわる */
+  .walker.guest.bird{width:17px;height:17px;margin-left:-8.5px;margin-top:-8.5px}
+  .walker.guest.bird .bd-stand,.walker.guest.bird .bd-fly{display:block;width:100%;height:100%}
+  .walker.guest.bird .bd-fly{display:none}
+  .walker.guest.bird.flying .bd-stand{display:none}
+  .walker.guest.bird.flying .bd-fly{display:block}
+  .fw-l{transform-box:fill-box;transform-origin:100% 100%;animation:flapL .3s ease-in-out infinite}
+  .fw-r{transform-box:fill-box;transform-origin:0% 100%;animation:flapR .3s ease-in-out infinite}
+  @keyframes flapL{0%,100%{transform:rotate(-28deg)}50%{transform:rotate(26deg)}}
+  @keyframes flapR{0%,100%{transform:rotate(28deg)}50%{transform:rotate(-26deg)}}
+  /* 小鳥 */
+  .bd-body{fill:#9DB3C4}
+  .bd-wing{fill:#87A0B4}
+  .bd-beak{fill:#D9A768}
+  .bd-eye{fill:#3C4650}
+  .bd-leg{fill:none;stroke:#C08A4E;stroke-width:1.1;stroke-linecap:round}
+  .walker.guest.bird.v2 .bd-body{fill:#C3A987}
+  .walker.guest.bird.v2 .bd-wing{fill:#A98D69}
+  @media (prefers-reduced-motion: reduce){ .walker.guest .pose{animation:none!important} }
   @media (prefers-reduced-motion: reduce){
     .walker .bob,.walker .leg-a,.walker .leg-b,.walker .tail{animation:none}
     .walker.pup{animation:none}}
@@ -10523,6 +10598,7 @@ const boot2 = () => {
       <ellipse class="dog-light" cx="29.6" cy="14.2" rx="3.1" ry="2.3"/>
       <circle class="dog-nose" cx="31.6" cy="13.4" r="1.15"/>
       <circle class="dog-nose" cx="27" cy="11.4" r="0.95"/>
+      <path class="dog-shut" d="M25.8 11.25 A1.2 1.2 0 0 0 28.2 11.25"/>
     </g></g>
   </svg>`;
   dog.innerHTML = DOG;
@@ -10745,6 +10821,202 @@ const boot2 = () => {
     pupNext = Date.now() + rnd(240000, 600000);      /* 4〜10分あけて、また来る */
   }
 
+  /* ---- ときどき、ねこかうさぎが遊びに来る ---- */
+  const CAT_ART = `<svg viewBox="0 0 34 34" width="34" height="34" aria-hidden="true">
+    <g class="pose"><g class="bob">
+      <path class="tail cat-body" d="M8 20.5 C3.6 19.5, 2.6 13.4, 5.8 11.8
+        C6.4 15, 6.8 17.8, 9.6 19.4 Z"/>
+      <g class="leg-b"><rect class="cat-dark" x="10.2" y="20.5" width="2.9" height="6" rx="1.4"/></g>
+      <g class="leg-b"><rect class="cat-dark" x="19.4" y="20.5" width="2.9" height="6" rx="1.4"/></g>
+      <ellipse class="cat-body" cx="16.2" cy="19.4" rx="8.3" ry="5.4"/>
+      <g class="leg-a"><rect class="cat-light" x="12.9" y="21" width="2.9" height="5.5" rx="1.4"/></g>
+      <g class="leg-a"><rect class="cat-light" x="21.7" y="21" width="2.9" height="5.5" rx="1.4"/></g>
+      <path class="cat-body" d="M21.7 12.8 L20.9 8.3 L24.8 10.6 Z"/>
+      <path class="cat-body" d="M28.7 12.6 L29.9 8.6 L25.9 10.4 Z"/>
+      <circle class="cat-body" cx="25.2" cy="14" r="5.1"/>
+      <ellipse class="cat-light" cx="27.6" cy="15.8" rx="2.4" ry="1.9"/>
+      <circle class="cat-face" cx="27.4" cy="12.9" r="1"/>
+      <circle class="cat-face" cx="29.6" cy="15" r="0.8"/>
+    </g></g></svg>`;
+  const RAB_ART = `<svg viewBox="0 0 34 34" width="34" height="34" aria-hidden="true">
+    <g class="pose"><g class="bob">
+      <circle class="tail rab-dark" cx="8.2" cy="19.4" r="3.1"/>
+      <g class="leg-b"><rect class="rab-dark" x="10.6" y="21" width="3" height="5.5" rx="1.4"/></g>
+      <g class="leg-b"><rect class="rab-dark" x="18.8" y="21" width="3" height="5.5" rx="1.4"/></g>
+      <ellipse class="rab-body" cx="16" cy="19.6" rx="8" ry="5.6"/>
+      <g class="leg-a"><rect class="rab-body" x="13.2" y="21.4" width="3.1" height="5.1" rx="1.5"/></g>
+      <g class="leg-a"><rect class="rab-body" x="21.4" y="21.4" width="3.1" height="5.1" rx="1.5"/></g>
+      <ellipse class="rab-body" cx="22.9" cy="8.6" rx="2.1" ry="5.2" transform="rotate(-13 22.9 8.6)"/>
+      <ellipse class="rab-body" cx="26.9" cy="8.9" rx="2.1" ry="5.2" transform="rotate(7 26.9 8.9)"/>
+      <ellipse class="rab-pink" cx="22.9" cy="9" rx="0.9" ry="3.3" transform="rotate(-13 22.9 9)"/>
+      <ellipse class="rab-pink" cx="26.9" cy="9.3" rx="0.9" ry="3.3" transform="rotate(7 26.9 9.3)"/>
+      <circle class="rab-body" cx="25" cy="16.2" r="4.7"/>
+      <circle class="rab-face" cx="27" cy="15.3" r="0.9"/>
+      <circle class="rab-pink" cx="29.2" cy="17" r="0.9"/>
+    </g></g></svg>`;
+  const FROG_ART = `<svg viewBox="0 0 34 34" width="34" height="34" aria-hidden="true">
+    <g class="pose"><g class="bob">
+      <ellipse class="fr-leg" cx="10.5" cy="24.2" rx="5" ry="2.2"/>
+      <ellipse class="fr-leg" cx="21.5" cy="24.4" rx="4.4" ry="2"/>
+      <ellipse class="fr-body" cx="16.5" cy="19.6" rx="10" ry="5.8"/>
+      <ellipse class="fr-belly" cx="17.2" cy="22" rx="7" ry="2.9"/>
+      <ellipse class="fr-body" cx="24" cy="15.4" rx="6.3" ry="5.2"/>
+      <circle class="fr-body" cx="21.6" cy="11.2" r="2.7"/>
+      <circle class="fr-body" cx="27" cy="11" r="2.7"/>
+      <circle class="fr-eye" cx="21.8" cy="11" r="1.25"/>
+      <circle class="fr-eye" cx="27.2" cy="10.8" r="1.25"/>
+      <path class="fr-mouth" d="M20.7 17.2c2 1.3 5 1.3 7.2 0"/>
+    </g></g></svg>`;
+  const BIRD_ART = `<svg viewBox="0 0 34 34" width="34" height="34" aria-hidden="true">
+    <g class="pose"><g class="bob">
+      <path class="bd-wing" d="M7.5 17.6 L1.8 14.2 L2.8 21.4 Z"/>
+      <ellipse class="bd-body" cx="15" cy="18.2" rx="8.2" ry="6.4"/>
+      <ellipse class="bd-wing" cx="14.2" cy="18.8" rx="5.2" ry="3.6" transform="rotate(-8 14.2 18.8)"/>
+      <circle class="bd-body" cx="22.6" cy="12.6" r="5.1"/>
+      <path class="bd-beak" d="M26.8 12.2 L31.6 13.8 L26.8 15.4 Z"/>
+      <circle class="bd-eye" cx="24.2" cy="11.5" r="1"/>
+      <path class="bd-leg" d="M13.4 24.2 v2.3 M17.6 24.2 v2.3"/>
+    </g></g></svg>`;
+  const BIRDFLY_ART = `<svg viewBox="0 0 34 34" width="34" height="34" aria-hidden="true">
+    <g class="pose">
+      <path class="bd-wing" d="M11.4 19.4 L5.4 17 L6.4 22.2 Z"/>
+      <ellipse class="bd-body" cx="17.2" cy="18.8" rx="6.6" ry="3.2"/>
+      <circle class="bd-body" cx="22.8" cy="16.4" r="3"/>
+      <path class="bd-beak" d="M25.4 16 L29.6 17.1 L25.4 18.2 Z"/>
+      <circle class="bd-eye" cx="23.8" cy="15.4" r=".85"/>
+      <path class="fw-l bd-wing" d="M16.6 16.6 C12.6 11.2, 7.6 9, 4.2 10.2
+        C8.2 13, 12.6 15.2, 16.6 17.8 Z"/>
+      <path class="fw-r bd-wing" d="M17.8 16.6 C21.8 11.2, 26.8 9, 30.2 10.2
+        C26.2 13, 21.8 15.2, 17.8 17.8 Z"/>
+    </g></svg>`;
+  const GUEST_ART = { cat:CAT_ART, rab:RAB_ART, frog:FROG_ART, bird:BIRD_ART };
+  const HOPPER = { rab:1, frog:1, bird:1 };
+  function guestJump(el, kind, big){
+    const pose = el.querySelector('.pose');
+    if(!pose) return;
+    /* 横に移動する時間と、跳ねる動きの長さをそろえる */
+    const ms = kind === 'bird' ? 340 : kind === 'frog' ? (big ? 460 : 320) : 500;
+    el.style.transitionProperty = 'transform';
+    el.style.transitionTimingFunction = 'linear';
+    el.style.transitionDuration = (ms / 1000).toFixed(2) + 's';
+    pose.style.animation = 'none';
+    /* SVG の <g> には offsetWidth がないので、外側の要素で描き直しを促す。
+       これをしないと、跳ねる動きが最初の一回しか再生されない */
+    void el.offsetWidth;
+    pose.style.animation = (kind === 'bird' ? 'birdJump .34s'
+      : kind === 'frog' ? (big ? 'frogJump .46s' : 'frogJumpS .32s')
+      : 'rabJump .5s') + ' ease-out';
+  }
+  const G_CAT = ['にゃあ', 'ちょっと おじゃま', 'ここ あったかい', 'なでても いいよ', 'にゃ…'];
+  const G_RAB = ['ぴょん', 'こんにちは', 'はっぱ ある？', 'もふもふ', 'そろそろ 帰ろうかな'];
+  const G_FROG = ['けろ', 'ぴょん', 'あめ、すき', 'けろけろ', 'はっぱの うら すずしい'];
+  const G_BIRD = ['ちゅん', 'ちゅんちゅん', 'いい風だね', 'ここ すきだよ', 'とんでこ！'];
+  const G_LINES = { cat:G_CAT, rab:G_RAB, frog:G_FROG, bird:G_BIRD };
+  let vis = null, visNext = Date.now() + rnd(120000, 360000);
+  function sayGuest(){
+    if(!vis) return;
+    const pool = G_LINES[vis.kind] || G_CAT;
+    bub.textContent = pool[Math.floor(Math.random() * pool.length)];
+    bub.classList.add('on');
+    sayFor = vis; sayUntil = Date.now() + 3600;
+    if(vis.phase === 'stay'){ vis.mode = 'still'; vis.next = Date.now() + 5000; }
+  }
+  function paintVisitor(W){
+    if(!vis) return;
+    const s = vis.size;
+    const px = s / 2 + vis.x * Math.max(0, (W || st.clientWidth || 600) - s);
+    vis.el.className = 'walker guest ' + vis.kind + (vis.v2 ? ' v2' : '')
+      + (Date.now() < (vis.flyUntil || 0) ? ' flying' : '')
+      + (vis.kind === 'rab' && vis.gait === 'walk' ? ' gait-walk' : '')
+      + (vis.mode ? ' ' + vis.mode : '');
+    vis.el.style.transform = `translate(${px.toFixed(1)}px, ${feet(s).toFixed(2)}px)`
+      + (vis.dir < 0 ? ' scaleX(-1)' : '');
+  }
+  function addVisitor(){
+    const rk = Math.random();
+    const kind = rk < .34 ? 'cat' : rk < .64 ? 'rab' : rk < .84 ? 'bird' : 'frog';
+    const v2 = Math.random() < .4;
+    const fromLeft = Math.random() < .5;
+    const el = document.createElement('span');
+    el.className = 'walker guest ' + kind + (v2 ? ' v2' : '');
+    el.innerHTML = kind === 'bird'
+      ? '<span class="bd-stand">' + BIRD_ART + '</span><span class="bd-fly">' + BIRDFLY_ART + '</span>'
+      : (GUEST_ART[kind] || CAT_ART);
+    const W0 = st.clientWidth || 600, x0 = fromLeft ? -.08 : 1.08;
+    /* 置く前に居場所を決めておく。あとから決めると、左上から飛んできてしまう */
+    el.style.transition = 'none';
+    const s0 = kind === 'bird' ? 17 : 22;
+    el.style.transform = `translate(${(s0 / 2 + x0 * Math.max(0, W0 - s0)).toFixed(1)}px, `
+      + `${feet(s0).toFixed(2)}px)` + (fromLeft ? '' : ' scaleX(-1)');
+    st.appendChild(el);
+    vis = { el:el, kind:kind, v2:v2, size: kind === 'bird' ? 17 : 22, scale:1, flyUntil:0,
+            x: x0, dir: fromLeft ? 1 : -1,
+            spot: fromLeft ? .12 + Math.random() * .5 : .38 + Math.random() * .5,
+            phase:'in', mode:'', next:0, until:0, hopAt:0 };
+    el.addEventListener('click', e => { e.stopPropagation(); sayGuest(); });
+    paintVisitor(W0);
+    void el.offsetWidth;
+    el.style.transition = '';
+  }
+  /* ねこはてくてく、うさぎ・かえる・小鳥はひと跳びずつ */
+  function stepOf(now){
+    if(!HOPPER[vis.kind]) return .009;
+    if(vis.kind === 'rab'){
+      /* たいていは跳ねて、ときどき犬のようにてくてく歩く */
+      if(now > (vis.gaitAt || 0)){
+        vis.gait = Math.random() < .72 ? 'hop' : 'walk';
+        vis.gaitAt = now + 3500 + Math.random() * 5200;
+      }
+      if(vis.gait === 'walk') return .0075;
+    }
+    if(now < vis.hopAt) return 0;
+    const big = vis.kind === 'frog' ? Math.random() < .42 : true;
+    const far = vis.kind === 'rab'  ? .04 + Math.random() * .028
+              : vis.kind === 'bird' ? .018 + Math.random() * .016
+              : (big ? .034 + Math.random() * .022 : .012 + Math.random() * .01);
+    if(vis.kind === 'bird') vis.flyUntil = now + 460;   /* ぱたぱた飛ぶ */
+    guestJump(vis.el, vis.kind, big);
+    vis.hopAt = now + (vis.kind === 'rab' ? 560 + Math.random() * 420
+                     : vis.kind === 'bird' ? 420 + Math.random() * 560
+                     : (big ? 620 + Math.random() * 420 : 420 + Math.random() * 300));
+    return far;
+  }
+  function visTick(now, W){
+    if(!vis) return;
+    if(vis.phase === 'in'){
+      const d = vis.spot - vis.x;
+      if(Math.abs(d) > .012){
+        vis.dir = d < 0 ? -1 : 1;
+        vis.x += Math.sign(d) * stepOf(now);
+        vis.mode = '';
+      } else {
+        vis.phase = 'stay'; vis.mode = 'still';
+        vis.next = now + 4000;
+        vis.until = now + rnd(240000, 390000);      /* 4〜6分半 くつろぐ */
+      }
+    } else if(vis.phase === 'stay'){
+      if(now > vis.next){
+        const r = Math.random();
+        vis.mode = r < .45 ? 'lie' : r < .82 ? 'sit' : 'still';
+        vis.next = now + rnd(20000, 80000);
+        if(Math.random() < .3) vis.dir = -vis.dir;
+      }
+      if(now > vis.until){ vis.phase = 'out'; vis.mode = ''; }
+    } else {
+      const target = vis.x > .5 ? 1.12 : -.12;
+      const d = target - vis.x;
+      vis.dir = d < 0 ? -1 : 1;
+      vis.x += Math.sign(d) * stepOf(now);
+      if(vis.x >= 1.1 || vis.x <= -.1){
+        if(sayFor === vis){ bub.classList.remove('on'); sayFor = null; }
+        vis.el.remove(); vis = null;
+        visNext = now + rnd(45 * 60000, 75 * 60000);    /* だいたい1時間おき */
+        return;
+      }
+    }
+    paintVisitor(W);
+  }
+
   function frame(){
     if(document.hidden) return;
     const now = Date.now(), W = st.clientWidth || 600;
@@ -10766,6 +11038,7 @@ const boot2 = () => {
     });
     if(!pups.length && now > pupNext) addPups();
     else if(pups.length && now > pupUntil) dropPups();
+    if(!vis){ if(now > visNext) addVisitor(); } else visTick(now, W);
     /* 3分おきくらいに、今日の予定をひとつつぶやく */
     askCal();
     if(!sayFor && now > osNext){
@@ -10789,7 +11062,7 @@ const boot2 = () => {
   setInterval(frame, 250);
   window.addEventListener('resize', () => {
     const W = st.clientWidth || 600;
-    big.paint(W); pups.forEach(w => w.paint(W));
+    big.paint(W); pups.forEach(w => w.paint(W)); paintVisitor(W);
   });
 })();
 </script>
