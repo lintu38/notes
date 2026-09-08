@@ -8834,9 +8834,38 @@ function aiDialog(rect, msg){
     <div class="quick" style="margin-left:0">${Object.entries(AITONE).map(([k, v]) =>
       `<button data-tone="${k}" ${aiCfg.tone === k
         ? 'style="background:var(--accent-soft);color:var(--accent);font-weight:700"' : ''}>${v.lb}</button>`).join('')}</div>
-    ${msg ? `<div class="hint" style="color:#c0392b;margin-top:8px;white-space:pre-wrap">${esc(msg)}</div>` : ''}
-    <div class="dfoot"><button id="aiOK">閉じる</button></div>
+    <div class="hint" id="aiMsg" style="color:#c0392b;margin-top:8px;white-space:pre-wrap;line-height:1.6">${esc(msg || '')}</div>
+    <div class="dfoot"><button id="aiTest">通信をためす</button><button id="aiOK">閉じる</button></div>
   </div>`);
+  /* どこで止まっているのかを見るための、かんたんな通信テスト */
+  p.querySelector('#aiTest').onclick = async () => {
+    const box = p.querySelector('#aiMsg');
+    const show = t => { if(box) box.textContent = t; };
+    show('ためしています…');
+    const where = '開いている場所：' + location.protocol + (location.host ? '//' + location.host : '');
+    let reach;
+    try{
+      await fetch('https://api.anthropic.com/v1/models', {mode:'no-cors', cache:'no-store'});
+      reach = '① サーバーに届く：OK';
+    }catch(e){
+      reach = '① サーバーに届く：NG（' + ((e && e.name) || 'エラー') + '）';
+    }
+    let api;
+    try{
+      const r = await fetch('https://api.anthropic.com/v1/models?limit=1', {
+        cache:'no-store',
+        headers:{
+          'x-api-key': aiCfg.key || 'none',
+          'anthropic-version':'2023-06-01',
+          'anthropic-dangerous-direct-browser-access':'true',
+        }});
+      api = '② API の応答：' + r.status + (r.ok ? '（OK）' : '');
+    }catch(e){
+      api = '② API の応答：NG（'
+        + ((e && e.name ? e.name + '：' : '') + ((e && e.message) || e)) + '）';
+    }
+    show(where + '\n' + reach + '\n' + api);
+  };
   p.querySelector('#aiK').oninput = e => { aiCfg.key = e.target.value.trim(); aiSave(); };
   p.querySelectorAll('[data-mdl]').forEach(b => b.onclick = () => {
     aiCfg.model = b.dataset.mdl; aiSave(); p.remove(); aiDialog(rect, '');
@@ -8939,11 +8968,14 @@ async function aiAsk(cid, rect, tone){
     if(tag){ tag.textContent = '返事が来ました'; setTimeout(() => tag.classList.remove('on'), 1800); }
   }catch(e){
     if(tag) tag.classList.remove('on');
-    const m = String(e.message || e);
-    aiDialog(rect, /Failed to fetch|NetworkError/i.test(m)
-      ? '通信できませんでした。\nパソコンでファイルを直接開いていると、ブラウザに止められます。\n'
-        + 'スマホと同じ https の住所から開くと通ります。'
-      : m);
+    const m = String((e && e.name ? e.name + '：' : '') + (e && e.message ? e.message : e));
+    const where = location.protocol + (location.host ? '//' + location.host : '');
+    const net = /failed to fetch|load failed|networkerror|typeerror/i.test(m);
+    aiDialog(rect, net
+      ? '通信できませんでした。\n' + m + '\n開いている場所：' + where
+        + '\n\nファイルを直接（file://）開いていると、ブラウザが API への通信を止めます。'
+        + 'https の住所から開くと通ります。'
+      : m + '\n開いている場所：' + where);
   }
 }
 function replyHTML(k){
@@ -10913,6 +10945,14 @@ const boot2 = () => {
   const G_BIRD = ['ちゅん', 'ちゅんちゅん', 'いい風だね', 'ここ すきだよ', 'とんでこ！'];
   const G_LINES = { cat:G_CAT, rab:G_RAB, frog:G_FROG, bird:G_BIRD };
   let vis = null, visNext = Date.now() + rnd(120000, 360000);
+  /* お客さんが来たとき、犬が近づいてくんくんする */
+  const SNIFF_LINES = ['くんくん…', 'いい におい', 'あそぼ'];
+  let curUntil = 0, curNext = Date.now() + rnd(60000, 150000), curSaid = false;
+  function sayText(w, t){
+    bub.textContent = t;
+    bub.classList.add('on');
+    sayFor = w; sayUntil = Date.now() + 3800;
+  }
   function sayGuest(){
     if(!vis) return;
     const pool = G_LINES[vis.kind] || G_CAT;
@@ -11020,7 +11060,30 @@ const boot2 = () => {
   function frame(){
     if(document.hidden) return;
     const now = Date.now(), W = st.clientWidth || 600;
-    big.tick(now); big.paint(W);
+    /* お客さんがいると、ときどき気になって近づいていく */
+    if(vis && now > curNext && now > curUntil && Math.random() < .04){
+      curUntil = now + rnd(12000, 22000);
+      curNext = now + rnd(100000, 200000);
+      curSaid = false;
+    }
+    if(vis && now < curUntil){
+      const gap = .06;
+      const t2 = vis.x + (big.x < vis.x ? -gap : gap);
+      const d2 = t2 - big.x;
+      if(Math.abs(d2) > .014){
+        big.dir = d2 < 0 ? -1 : 1;
+        big.x = Math.min(1, Math.max(0, big.x + Math.sign(d2) * .008));
+        big.mode = '';
+      } else {
+        big.dir = vis.x > big.x ? 1 : -1;
+        big.mode = 'still';
+        if(!curSaid){ curSaid = true; sayText(big, SNIFF_LINES[Math.floor(Math.random() * SNIFF_LINES.length)]); }
+      }
+      big.until = now + 2000;
+      big.paint(W);
+    } else {
+      big.tick(now); big.paint(W);
+    }
     pups.forEach(w => {
       /* ときどき「ついて歩く」と「自由に遊ぶ」が入れ替わる */
       if(now > w.decide){
