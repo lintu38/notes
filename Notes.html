@@ -223,9 +223,7 @@
   .nav:hover{background:var(--bh,#cbb0b8)}
   .nav.on{background:var(--bo,var(--panel));color:var(--ink);font-weight:500;box-shadow:var(--shadow)}
   .nav .ico{width:18px;text-align:center;flex:0 0 18px;font-size:14px}
-  /* 旗とえんぴつはインクが少なくて薄く見えるので、この2つだけ少し強く */
-  #navIssue > span:not(.ico):not(.cnt),
-  #navLearn > span:not(.ico):not(.cnt){font-weight:500}
+  /* 旗とえんぴつはインクが少ないので、線だけ少し強く（文字はほかと同じ太さ） */
   #navIssue .nico,#navLearn .nico{stroke-width:1.55}
   /* Tasks はカーソルを置いたときだけ、くすんだ赤系に */
   #navTasks:hover{background:#c48f95;color:#fff}
@@ -498,6 +496,7 @@
     border-radius:2px 2px 0 0;clip-path:polygon(0 0, 100% 0, 100% 100%, 50% 74%, 0 100%);
     box-shadow:0 1px 3px rgba(30,25,15,.18)}
   .ndate{font-weight:400;cursor:pointer;border-radius:5px;padding:1px 3px}
+  .ntime{font-weight:400;color:#b9b2b3;margin-left:4px}
   .ndate:hover{background:#f4f0ef;color:var(--ink)}
   .qc-h{display:flex;align-items:center;justify-content:space-between;gap:10px;
     font-size:11.5px;letter-spacing:.12em;color:#a7a0a2;
@@ -1868,8 +1867,10 @@
   .walker.pup.coat-brown .dog-light{fill:#C7AC87}
   .walker.pup.leave{opacity:0;transition:opacity .9s ease}
   @keyframes pupJoin{0%{opacity:0}100%{opacity:.94}}
-  /* ときどき遊びに来る子（ねこ・うさぎ） */
+  /* ときどき遊びに来る子（ねこ・小鳥・かえる） */
   .walker.guest{width:22px;height:22px;margin-left:-11px;margin-top:-11px;opacity:.96}
+  /* ねこは犬（34px）とならんでも小さすぎないくらいに */
+  .walker.guest.cat{width:30px;height:30px;margin-left:-15px;margin-top:-15px}
   .walker.guest.sit .pose{transform-box:view-box;transform-origin:24px 26px;transform:rotate(-13deg)}
   .cat-body{fill:#A79F97}
   .cat-dark{fill:#8B837B}
@@ -2510,7 +2511,7 @@ function setDone(cid, checked){
     delete nk.times; delete nk.timer;                // 時間ログは今回の分に残す
     nk.created = today(); nk.updated = today();
     nk.doneCount = (k.doneCount || 0) + 1;
-    if(nk.memoReg){ nk.memoNo = nextNo('memoNo'); nk.memoDate = today(); }
+    if(nk.memoReg){ nk.memoNo = nextNo('memoNo'); nk.memoDate = today(); nk.memoTime = nowHM(); }
     if(nk.quote && nk.quote.registered){ nk.quote.no = nextQuoteNo(); nk.quote.date = today(); }
     if(nk.read && nk.read.registered){
       nk.read.no = Math.max(0, ...allCards().map(x => +((x.card.read && x.card.read.no) || 0))) + 1;
@@ -3976,7 +3977,7 @@ function memoCardHTML(k){
   return `<div class="qcard">
     <div class="qc-h">
       <span>No. ${String(k.memoNo || 1).padStart(3, '0')}　・　<b class="ndate" data-ndate="memo|${k.id}"
-        title="クリックで日付を変更">${k.memoDate || today()}</b>　・　${k.learn ? 'Daily Discoveries' : 'Memo'}</span>
+        title="クリックで日付を変更">${k.memoDate || today()}</b>${k.memoTime ? `<span class="ntime">${esc(k.memoTime)}</span>` : ''}　・　${k.learn ? 'Daily Discoveries' : 'Memo'}</span>
     </div>
     <div class="qc-body live" contenteditable="true" data-body="${k.id}"
       data-ph="メモを書く…" style="font-size:14.5px;line-height:1.95">${clean(k.body)}</div>
@@ -4376,6 +4377,7 @@ function wireCards(root){
     k.memoReg = true;
     k.memoNo ||= nextNo('memoNo');
     k.memoDate ||= k.day || today();
+    k.memoTime ||= nowHM();          /* 24時間表示 */
     touch(k); save(); render();
   });
   root.querySelectorAll('[data-medit]').forEach(el => el.onclick = () => {
@@ -8791,6 +8793,12 @@ const AIKEY = APP === 'task' ? 'tasks.ai' : 'notes.ai';   /* 同期には載せ�
 let aiCfg = {key:'', model:'', tone:'hito'};
 function aiLoad(){
   try{ aiCfg = Object.assign(aiCfg, JSON.parse(localStorage.getItem(AIKEY) || '{}')); }catch(e){}
+  /* 貼り付けで紛れこんだ見えない文字（ゼロ幅スペースなど）を取りのぞく。
+     ひとつでも残っていると、送る前にブラウザが弾いてしまう */
+  if(aiCfg.key){
+    const clean = String(aiCfg.key).replace(/[^\x21-\x7E]/g, '');
+    if(clean !== aiCfg.key){ aiCfg.key = clean; aiSave(); }
+  }
 }
 function aiSave(){ try{ localStorage.setItem(AIKEY, JSON.stringify(aiCfg)); }catch(e){} }
 /* ヘッダーに入れられるのは半角の英数字と記号だけ。
@@ -8891,8 +8899,10 @@ function aiDialog(rect, msg){
     show(where + '\n' + reach + '\n' + api + '\n' + env + '\n' + keyInfo);
   };
   p.querySelector('#aiK').oninput = e => {
-    /* 貼り付けで紛れこむ空白・改行はここで落とす */
-    aiCfg.key = e.target.value.replace(/\s/g, '');
+    /* 貼り付けで紛れこむ空白・改行・見えない文字は、ここで全部落とす */
+    const clean = e.target.value.replace(/[^\x21-\x7E]/g, '');
+    if(clean !== e.target.value) e.target.value = clean;
+    aiCfg.key = clean;
     aiSave();
   };
   p.querySelectorAll('[data-mdl]').forEach(b => b.onclick = () => {
@@ -10897,7 +10907,7 @@ const boot2 = () => {
     pupNext = Date.now() + rnd(240000, 600000);      /* 4〜10分あけて、また来る */
   }
 
-  /* ---- ときどき、ねこかうさぎが遊びに来る ---- */
+  /* ---- ときどき、ねこか小鳥、かえるが遊びに来る ---- */
   const CAT_ART = `<svg viewBox="0 0 34 34" width="34" height="34" aria-hidden="true">
     <g class="pose"><g class="bob">
       <path class="tail cat-body" d="M8 20.5 C3.6 19.5, 2.6 13.4, 5.8 11.8
@@ -11018,7 +11028,7 @@ const boot2 = () => {
   }
   function addVisitor(){
     const rk = Math.random();
-    const kind = rk < .34 ? 'cat' : rk < .64 ? 'rab' : rk < .84 ? 'bird' : 'frog';
+    const kind = rk < .45 ? 'cat' : rk < .75 ? 'bird' : 'frog';
     const v2 = Math.random() < .4;
     const fromLeft = Math.random() < .5;
     const el = document.createElement('span');
@@ -11042,7 +11052,7 @@ const boot2 = () => {
     void el.offsetWidth;
     el.style.transition = '';
   }
-  /* ねこはてくてく、うさぎ・かえる・小鳥はひと跳びずつ */
+  /* ねこはてくてく、かえると小鳥はひと跳びずつ */
   function stepOf(now){
     if(!HOPPER[vis.kind]) return .009;
     if(vis.kind === 'rab'){
