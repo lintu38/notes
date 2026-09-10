@@ -610,13 +610,24 @@
   .dbtn .btn{padding:9px 22px;border-radius:10px;letter-spacing:.06em;
     font-family:var(--fdisp);font-size:12.5px}
   /* 時間計測 */
-  .chip.timer{cursor:pointer;background:#f4eefb;color:#7b52c0;padding:0 9px;font-size:10px}
+  /* 計測ボタン（タイマー）— Tasks と同じ見た目 */
+  .chip.timer{cursor:pointer;padding:0;width:25px;height:25px;min-height:25px;max-height:25px;
+    border-radius:8px;justify-content:center;color:#6d6250;font-size:10px;
+    background:linear-gradient(155deg,#f7f3ea 0%,#ece5d6 55%,#ded5c3 100%);
+    border:1px solid #d6cbb6;
+    box-shadow:0 1px 2px rgba(90,70,30,.16),inset 0 1px 0 rgba(255,255,255,.75)}
+  .chip.timer .tmico{width:15px;height:15px;stroke-width:1.5}
   .tmico{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.4;
     stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px}
   .chip.tot .tmico{opacity:.7}
-  .chip.timer:hover{background:#ece0f7}
-  .chip.timer.on{background:#fdeeee;color:#c0392b;font-weight:700;font-size:11px}
+  .chip.timer:hover{filter:brightness(1.03) saturate(1.05);
+    box-shadow:0 2px 5px rgba(90,70,30,.22),inset 0 1px 0 rgba(255,255,255,.75)}
+  .chip.timer.on{width:auto;padding:0 10px;gap:5px;font-weight:700;font-size:11px;color:#b23f2e;
+    background:linear-gradient(155deg,#fdf0ee,#f6d6d0);border-color:#ecbdb5}
   .chip.tot{cursor:pointer}
+  /* カードの右上に置くぶん */
+  .card-top .tmwrap{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px}
+  .col-src .tmwrap{display:inline-flex;align-items:center;gap:6px}
   .chip.done{background:#eef6ee;color:#3f8046;cursor:pointer}
   .pdfs{display:flex;flex-direction:column;gap:6px;margin-top:6px}
   .pdfrow{display:flex;align-items:center;gap:7px;font-size:12px;color:#5f585a;
@@ -883,8 +894,9 @@
   .bstat-row{justify-content:flex-start}
   .bstat-row .btime{margin-left:auto}
   .btime{display:inline-flex;gap:6px;align-items:center}
-  .btime .chip.timer{height:26px;min-height:26px;max-height:26px;padding:0 13px;font-size:13px}
-  .btime .chip.timer.on{font-size:13px}
+  .btime .chip.timer{width:32px;height:32px;min-height:32px;max-height:32px;border-radius:10px;padding:0}
+  .btime .chip.timer.on{width:auto;padding:0 13px;font-size:13px}
+  .btime .chip.timer .tmico{width:18px;height:18px}
   .btime .tmico{width:15px;height:15px}
   .btime .chip.tot{height:26px;min-height:26px;max-height:26px;font-size:12px;padding:0 11px}
   .bsb:hover{border-color:var(--brown);color:var(--brown)}
@@ -1869,8 +1881,10 @@
   @keyframes pupJoin{0%{opacity:0}100%{opacity:.94}}
   /* ときどき遊びに来る子（ねこ・小鳥・かえる） */
   .walker.guest{width:22px;height:22px;margin-left:-11px;margin-top:-11px;opacity:.96}
-  /* ねこは犬（34px）とならんでも小さすぎないくらいに */
-  .walker.guest.cat{width:30px;height:30px;margin-left:-15px;margin-top:-15px}
+  /* ねこは犬（34px）とならんでも小さすぎないくらいに。
+     絵は箱いっぱいに広げる（% だと縮んでしまうことがあるので px で） */
+  .walker.guest.cat{width:32px;height:32px;margin-left:-16px;margin-top:-16px}
+  .walker.guest.cat > svg{width:32px;height:32px}
   .walker.guest.sit .pose{transform-box:view-box;transform-origin:24px 26px;transform:rotate(-13deg)}
   .cat-body{fill:#A79F97}
   .cat-dark{fill:#8B837B}
@@ -1953,7 +1967,7 @@
   .rtbar .isu-btn:hover{background:#f0e6c6}
   .isucard{cursor:pointer;border-left:3px solid #e2d3a4}
   .isucard:hover{border-color:#cdc1c3;box-shadow:var(--shadow);border-left-color:#d4c08a}
-  .isutext{font-family:var(--fserif);font-size:13.5px;line-height:1.95;color:#2a2426;
+  .isutext{white-space:pre-wrap;font-family:var(--fserif);font-size:13.5px;line-height:1.95;color:#2a2426;
     word-break:break-word;background:#f9f3e2;border-radius:8px;padding:9px 11px;margin-top:2px}
   .isufrom{font-size:11px;color:var(--muted);margin-top:7px;
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1965,7 +1979,8 @@
   .rtbar .act-btn:hover{background:#e8cdd4}
   .actcard{cursor:pointer;border-left:3px solid #d7aab6}
   .actcard:hover{border-color:#cdc1c3;box-shadow:var(--shadow);border-left-color:#b8798b}
-  .acttext{font-family:var(--fserif);font-size:13.5px;line-height:1.95;color:#2a2426;
+  .jumphint{color:#b8798b;font-size:10.5px;letter-spacing:.04em;white-space:nowrap}
+  .acttext{white-space:pre-wrap;font-family:var(--fserif);font-size:13.5px;line-height:1.95;color:#2a2426;
     word-break:break-word;background:#faf0f2;border-radius:8px;padding:9px 11px;margin-top:2px}
   .actfrom{font-size:11px;color:var(--muted);margin-top:7px;
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1978,7 +1993,7 @@
   .rtbar .dd-btn:hover{background:#cbe2de}
   .ddcard{cursor:pointer;border-left:3px solid #a9c9c4}
   .ddcard:hover{border-color:#cdc1c3;box-shadow:var(--shadow);border-left-color:#7fada6}
-  .ddtext{font-family:var(--fserif);font-size:13.5px;line-height:1.95;color:#2a2426;
+  .ddtext{white-space:pre-wrap;font-family:var(--fserif);font-size:13.5px;line-height:1.95;color:#2a2426;
     word-break:break-word;background:#eef5f4;border-radius:8px;padding:9px 11px;margin-top:2px}
   .ddfrom{font-size:11px;color:var(--muted);margin-top:7px;
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -2264,7 +2279,7 @@ const totalSec = k => (k.times || []).reduce((a, e) => a + (e.sec || 0), 0);
 const runSec = k => k.timer ? (Date.now() - k.timer.t0) / 1000 : 0;
 const runningCard = () => allCards().find(x => x.card.timer);
 /* 計測のあとに残す「したこと」（Notes のみ） */
-const ACTS = ['読んだ', 'メモした', '調べた'];
+const ACTS = ['読んだ', '読み終えた', 'メモした', '調べた'];
 const actArr = e => (e && Array.isArray(e.acts)) ? e.acts : [];
 const pageLabel = e => {
   const a = (e && e.p1 !== undefined && e.p1 !== '') ? e.p1 : '';
@@ -3647,6 +3662,7 @@ function cardHTML(k){
       : k.type === 'read' ? cardTgl('read', k, k.read && k.read.card) : ''}
     ${k.type === 'book' ? `<button class="pkmini ${pickOn(k)?'on':''}" data-bpick="${k.id}"
       title="ランダム選書候補">${PICKICO}</button>` : pinTgl(k)}
+    ${canTime(k) && k.type !== 'book' ? `<span class="tmwrap">${totChip(k)}${timerBtn(k)}</span>` : ''}
     <button class="menu" data-menu="${k.id}">⋯</button></div>`;
 
   /* タイトルのすぐ下: 説明・注意事項 */
@@ -3673,9 +3689,6 @@ function cardHTML(k){
   }
   inner += citeLine(k);
   if(chips.filter(Boolean).length) inner += `<div class="meta">${chips.join('')}</div>`;
-  if(canTime(k) && k.type !== 'book')
-    inner += `<div class="meta meta2${k.type === 'read' ? ' right' : ''}">${timerChip(k)}</div>`;
-
   if(k.type === 'quote') inner += quoteSection(k, true);
   if(k.type === 'read') inner += readSection(k, true) + (onPage(k) ? timeSection(k) : '') + pdfSection(k);
   if(k.type === 'book') inner += bookSection(k, true) + (onPage(k) ? timeSection(k) : '') + pdfSection(k);
@@ -3911,13 +3924,19 @@ const backView = (k, b) => (k.parent && findCard(k.parent))
 const canTime = k => APP === 'task'
   ? (k.type === 'task' || (view && view.type === 'card'))
   : (k.type === 'book' || (k.type === 'read' && !k.parent));
-function timerChip(k){
-  const tot = totalSec(k);
+const TMICO = `<svg class="tmico" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 4.4V8l2.5 1.6"/></svg>`;
+/* 計測ボタン */
+function timerBtn(k){
   const run = !!k.timer;
   return `<span class="chip timer ${run?'on':''}" data-timer="${k.id}" title="${run?'計測を止める':'計測を開始'}">
-    ${run ? `■ <span data-elapsed="${k.id}">${fmtClock(runSec(k))}</span>` : `<svg class="tmico" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 4.4V8l2.5 1.6"/></svg>`}</span>
-    ${tot || run ? `<span class="chip tot" data-timeopen="${k.id}" title="${TIMELB} を開く"><svg class="tmico" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 4.4V8l2.5 1.6"/></svg> <span data-runtot="${k.id}">${fmtDur(tot + runSec(k))}</span></span>` : ''}`;
+    ${run ? `■ <span data-elapsed="${k.id}">${fmtClock(runSec(k))}</span>` : TMICO}</span>`;
 }
+/* 合計時間 */
+function totChip(k){
+  const tot = totalSec(k), run = !!k.timer;
+  return (tot || run) ? `<span class="chip tot" data-timeopen="${k.id}" title="${TIMELB} を開く">${TMICO} <span data-runtot="${k.id}">${fmtDur(tot + runSec(k))}</span></span>` : '';
+}
+function timerChip(k){ return totChip(k) + timerBtn(k); }
 
 function timeSection(k){
   if(!canTime(k)) return '';
@@ -5937,7 +5956,7 @@ function rowHTML({board:b, col:c, card:k}, gi){
         ${isOpen && (k.headOn || plain(k.head).trim()) ? `<div class="thead row-head" contenteditable="true"
           data-head="${k.id}" data-ph="見出し…">${clean(k.head)}</div>` : ''}
         <div class="bdrow">
-          <div class="bdline" data-goto="${b.id}" title="Board を開く">
+          <div class="bdline" data-jump="${b.id}|${k.id}" title="もとのメモへ">
             <span><span style="${b.color?`color:${b.color}`:''}">▦</span> ${esc(b.name)}</span>
             <span style="color:var(--muted)">/ ${esc(c.title)}</span>
           </div>
@@ -7280,11 +7299,10 @@ function listHTML(items, kind){
         <span data-goto="${x.board.id}" style="cursor:pointer">
           <span style="${x.board.color?`color:${x.board.color}`:''}">▦</span> ${esc(x.board.name)}</span>
         ${plain(k.title).trim() ? `<span>／ ${esc(plain(k.title).trim())}</span>` : ''}
-        <span style="margin-left:auto">${cardTgl(kd, k,
+        <span class="tmwrap" style="margin-left:auto">${canTime(k) ? totChip(k) + timerBtn(k) : ''}${cardTgl(kd, k,
           kd === 'quote' ? (k.quote && k.quote.card) : (k.read && k.read.card))}</span>
       </div>
       ${citeLine(k)}
-      ${canTime(k) ? `<div class="meta meta2">${timerChip(k)}</div>` : ''}
       ${kd === 'quote' ? quoteSection(k, true) : readSection(k, true)}
     </div>`;
   }).join('')}</div>`;
@@ -8135,15 +8153,33 @@ function pinCardHTML(x){
 }
 /* ---------------- Issue ---------------- */
 /* 印をつけたところを、メモの中から拾い集める（Issue と Action で共通） */
+/* ふたつの印のあいだに、字が何もない（改行だけ）なら、ひとつづきとみなす */
+function markGapEmpty(a, b){
+  try{
+    const r = document.createRange();
+    r.setStartAfter(a);
+    r.setEndBefore(b);
+    return r.toString().replace(/[\s\u00a0]/g, '') === '';
+  }catch(e){ return false; }
+}
 function markItems(cls){
   const out = [];
   const grab = (html, x, where) => {
     if(!html || String(html).indexOf(cls) < 0) return;
     const d = document.createElement('div');
     d.innerHTML = html;
+    /* 改行のたびに印が分かれてしまうので、続いているものはつなげて1件にする */
+    let prev = null, cur = null;
     d.querySelectorAll('.' + cls).forEach(n => {
       const t = (n.textContent || '').trim();
-      if(t) out.push({text:t, board:x.board, card:x.card, where:where});
+      if(!t){ return; }
+      if(cur && prev && markGapEmpty(prev, n)){
+        cur.text += '\n' + t;
+      } else {
+        cur = {text:t, board:x.board, card:x.card, where:where};
+        out.push(cur);
+      }
+      prev = n;
     });
   };
   allCards().forEach(x => {
@@ -8180,7 +8216,7 @@ function actionSection(){
           <span style="margin-left:auto;font-size:10.5px">${esc(i.where)}</span>
         </div>
         <div class="acttext">${esc(i.text)}</div>
-        ${ttl ? `<div class="actfrom">${esc(ttl)}</div>` : ''}
+        <div class="actfrom">${ttl ? esc(ttl) + '　' : ''}<span class="jumphint">メモへ →</span></div>
       </div>`;
     }).join('')}</div>
   </div>`;
@@ -11039,11 +11075,12 @@ const boot2 = () => {
     const W0 = st.clientWidth || 600, x0 = fromLeft ? -.08 : 1.08;
     /* 置く前に居場所を決めておく。あとから決めると、左上から飛んできてしまう */
     el.style.transition = 'none';
-    const s0 = kind === 'bird' ? 17 : 22;
+    const GSIZE = { bird:17, cat:32 };     /* 見た目の大きさと、足もとの位置をそろえる */
+    const s0 = GSIZE[kind] || 22;
     el.style.transform = `translate(${(s0 / 2 + x0 * Math.max(0, W0 - s0)).toFixed(1)}px, `
       + `${feet(s0).toFixed(2)}px)` + (fromLeft ? '' : ' scaleX(-1)');
     st.appendChild(el);
-    vis = { el:el, kind:kind, v2:v2, size: kind === 'bird' ? 17 : 22, scale:1, flyUntil:0,
+    vis = { el:el, kind:kind, v2:v2, size: GSIZE[kind] || 22, scale:1, flyUntil:0,
             x: x0, dir: fromLeft ? 1 : -1,
             spot: fromLeft ? .12 + Math.random() * .5 : .38 + Math.random() * .5,
             phase:'in', mode:'', next:0, until:0, hopAt:0 };
