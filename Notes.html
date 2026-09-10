@@ -8236,6 +8236,13 @@ function wireJumps(v){
   v.querySelectorAll('[data-jump]').forEach(el => el.onclick = () => {
     const [bid, cid] = el.dataset.jump.split('|');
     const f = findCard(cid);
+    /* Daily のボードは、そのメモの日にカレンダーを合わせておく
+       （合わせないと、戻ったときに今日のページが出てしまう） */
+    if(f && f.board && f.board.daily && f.card && f.card.day){
+      dailySel = f.card.day;
+      dailyMonth = f.card.day.slice(0, 7);
+      dailyAll = false;
+    }
     const pageId = (f && f.card && f.card.parent) ? f.card.parent : (f ? cid : null);
     if(pageId){
       view = {type:'card', id:pageId};
@@ -8290,18 +8297,7 @@ function renderIssue(){
   const qi = document.getElementById('q');
   wireSearchInput(qi, (val, pos) => { q = val; renderIssue();
     const n = document.getElementById('q'); if(n){ n.focus(); n.setSelectionRange(pos, pos); } });
-  v.querySelectorAll('[data-jump]').forEach(el => el.onclick = () => {
-    const [bid, cid] = el.dataset.jump.split('|');
-    view = {type:'board', id:bid}; render();
-    setTimeout(() => {
-      const card = document.querySelector(`[data-card="${cid}"]`);
-      if(card){
-        card.scrollIntoView({block:'center', behavior:'smooth'});
-        card.classList.add('flash');
-        setTimeout(() => card.classList.remove('flash'), 1600);
-      }
-    }, 30);
-  });
+  wireJumps(v);
 }
 
 /* ---------------- Daily Discoveries ---------------- */
@@ -9797,18 +9793,7 @@ function renderRight(){
     const [y, m] = rsMonth.split('-').map(Number);
     const d = new Date(y, m - 1 + (+b.dataset.cm), 1);
     rsMonth = `${d.getFullYear()}-${pad2(d.getMonth()+1)}`; renderRight(); });
-  box.querySelectorAll('[data-jump]').forEach(el => el.onclick = () => {
-    const [bid, cid] = el.dataset.jump.split('|');
-    view = {type:'board', id:bid}; render();
-    setTimeout(() => {
-      const card = document.querySelector(`[data-card="${cid}"]`);
-      if(card){
-        card.scrollIntoView({block:'center', behavior:'smooth'});
-        card.classList.add('flash');
-        setTimeout(() => card.classList.remove('flash'), 1600);
-      }
-    }, 30);
-  });
+  wireJumps(box);
 }
 function applyRight(){
   const el = document.getElementById('rside');
