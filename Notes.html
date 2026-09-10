@@ -1967,7 +1967,7 @@
   .rtbar .isu-btn:hover{background:#f0e6c6}
   .isucard{cursor:pointer;border-left:3px solid #e2d3a4}
   .isucard:hover{border-color:#cdc1c3;box-shadow:var(--shadow);border-left-color:#d4c08a}
-  .isutext{white-space:pre-wrap;font-family:var(--fserif);font-size:13.5px;line-height:1.95;color:#2a2426;
+  .isutext{font-family:var(--fserif);font-size:13.5px;line-height:1.95;color:#2a2426;
     word-break:break-word;background:#f9f3e2;border-radius:8px;padding:9px 11px;margin-top:2px}
   .isufrom{font-size:11px;color:var(--muted);margin-top:7px;
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1980,10 +1980,11 @@
   .actcard{cursor:pointer;border-left:3px solid #d7aab6}
   .actcard:hover{border-color:#cdc1c3;box-shadow:var(--shadow);border-left-color:#b8798b}
   .jumphint{color:#b8798b;font-size:10.5px;letter-spacing:.04em;white-space:nowrap}
-  .acttext{white-space:pre-wrap;font-family:var(--fserif);font-size:13.5px;line-height:1.95;color:#2a2426;
+  .acttext{font-family:var(--fserif);font-size:13.5px;line-height:1.95;color:#2a2426;
     word-break:break-word;background:#faf0f2;border-radius:8px;padding:9px 11px;margin-top:2px}
   .actfrom{font-size:11px;color:var(--muted);margin-top:7px;
-    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    display:flex;align-items:baseline;gap:8px}
+  .actfrom .aft-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .actsec{margin-top:26px}
 
   /* ---------- Daily Discoveries（文章につける DD） ---------- */
@@ -1993,7 +1994,7 @@
   .rtbar .dd-btn:hover{background:#cbe2de}
   .ddcard{cursor:pointer;border-left:3px solid #a9c9c4}
   .ddcard:hover{border-color:#cdc1c3;box-shadow:var(--shadow);border-left-color:#7fada6}
-  .ddtext{white-space:pre-wrap;font-family:var(--fserif);font-size:13.5px;line-height:1.95;color:#2a2426;
+  .ddtext{font-family:var(--fserif);font-size:13.5px;line-height:1.95;color:#2a2426;
     word-break:break-word;background:#eef5f4;border-radius:8px;padding:9px 11px;margin-top:2px}
   .ddfrom{font-size:11px;color:var(--muted);margin-top:7px;
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -8173,10 +8174,13 @@ function markItems(cls){
     d.querySelectorAll('.' + cls).forEach(n => {
       const t = (n.textContent || '').trim();
       if(!t){ return; }
+      /* 中身の書式（太字・下線・色など）ごと持って帰る */
+      const h = String(n.innerHTML || '').trim();
       if(cur && prev && markGapEmpty(prev, n)){
         cur.text += '\n' + t;
+        cur.html += '<br>' + h;
       } else {
-        cur = {text:t, board:x.board, card:x.card, where:where};
+        cur = {text:t, html:h, board:x.board, card:x.card, where:where};
         out.push(cur);
       }
       prev = n;
@@ -8193,6 +8197,10 @@ function markItems(cls){
     (k.subs || []).forEach(s2 => { grab(s2.title, x, 'サブタスク'); grab(s2.note, x, 'サブタスクの説明'); });
   });
   return out;
+}
+/* カードに出すぶん。書式は残し、危ないものは clean() で落とす */
+function markHTML(i){
+  return i && i.html ? clean(i.html) : esc((i && i.text) || '').replace(/\n/g, '<br>');
 }
 function issueItems(){ return markItems('isu'); }
 function actionItems(){ return markItems('act'); }
@@ -8215,26 +8223,41 @@ function actionSection(){
           <span><span style="${i.board.color ? `color:${i.board.color}` : ''}">▦</span> ${esc(i.board.name)}</span>
           <span style="margin-left:auto;font-size:10.5px">${esc(i.where)}</span>
         </div>
-        <div class="acttext">${esc(i.text)}</div>
-        <div class="actfrom">${ttl ? esc(ttl) + '　' : ''}<span class="jumphint">メモへ →</span></div>
+        <div class="acttext">${markHTML(i)}</div>
+        <div class="actfrom"><span class="aft-t">${ttl ? esc(ttl) : ''}</span><span class="jumphint">メモへ →</span></div>
       </div>`;
     }).join('')}</div>
   </div>`;
 }
 /* カードをクリックしたら、もとのメモまで飛んで光らせる */
+/* ボードではなく、そのメモそのものを開く。
+   （サブカードなら親のページへ。ページが無いものだけ、ボードまで戻る） */
 function wireJumps(v){
   v.querySelectorAll('[data-jump]').forEach(el => el.onclick = () => {
     const [bid, cid] = el.dataset.jump.split('|');
-    view = {type:'board', id:bid}; render();
-    setTimeout(() => {
-      const card = document.querySelector(`[data-card="${cid}"]`);
-      if(card){
-        card.scrollIntoView({block:'center', behavior:'smooth'});
-        card.classList.add('flash');
-        setTimeout(() => card.classList.remove('flash'), 1600);
-      }
-    }, 30);
+    const f = findCard(cid);
+    const pageId = (f && f.card && f.card.parent) ? f.card.parent : (f ? cid : null);
+    if(pageId){
+      view = {type:'card', id:pageId};
+      render();
+      if(pageId !== cid) flashCard(cid);
+      return;
+    }
+    view = {type:'board', id:bid};
+    render();
+    flashCard(cid);
   });
+}
+/* 開いたページのなかで、その場所を少しだけ光らせる */
+function flashCard(cid){
+  setTimeout(() => {
+    const card = document.querySelector(`[data-card="${cid}"]`);
+    if(card){
+      card.scrollIntoView({block:'center', behavior:'smooth'});
+      card.classList.add('flash');
+      setTimeout(() => card.classList.remove('flash'), 1600);
+    }
+  }, 30);
 }
 function renderIssue(){
   const t = document.getElementById('pageTitle');
@@ -8258,7 +8281,7 @@ function renderIssue(){
           <span><span style="${i.board.color?`color:${i.board.color}`:''}">▦</span> ${esc(i.board.name)}</span>
           <span style="margin-left:auto;font-size:10.5px">${esc(i.where)}</span>
         </div>
-        <div class="isutext">${esc(i.text)}</div>
+        <div class="isutext">${markHTML(i)}</div>
         ${ttl ? `<div class="isufrom">${esc(ttl)}</div>` : ''}
       </div>`;
     }).join('')}</div>`
@@ -8309,7 +8332,7 @@ function ddCardHTML(i, big){
       <span><span style="${i.board.color ? `color:${i.board.color}` : ''}">▦</span> ${esc(i.board.name)}</span>
       <span style="margin-left:auto;font-size:10.5px">${esc(i.where)}</span>
     </div>
-    <div class="ddtext">${esc(i.text)}</div>
+    <div class="ddtext">${markHTML(i)}</div>
     ${ttl ? `<div class="ddfrom">${esc(ttl)}</div>` : ''}
   </div>`;
 }
