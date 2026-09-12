@@ -1827,9 +1827,9 @@
     border-left:1px solid var(--line);border-bottom:1px solid var(--line)}
   .walker svg{width:100%;height:100%;overflow:visible;display:block}
   .walker{max-width:40px;max-height:40px}
-  .dog-body{fill:#C9A87C}
-  .dog-dark{fill:#A6845C}
-  .dog-light{fill:#EBDCC4}
+  .dog-body{fill:url(#gDogB) #C9A87C}
+  .dog-dark{fill:url(#gDogD) #A6845C}
+  .dog-light{fill:url(#gDogL) #EBDCC4}
   .dog-nose{fill:#5C4632}
   .walker .bob{animation:dogBob .52s ease-in-out infinite;transform-origin:17px 24px}
   .walker .leg-a{animation:legA .52s ease-in-out infinite}
@@ -1868,15 +1868,15 @@
     animation:pupJoin .6s cubic-bezier(.2,1.4,.35,1)}
   .walker.pup.p2{width:18px;height:18px;margin-left:-9px;margin-top:-9px}
   .walker.pup.p3{width:16px;height:16px;margin-left:-8px;margin-top:-8px}
-  .walker.pup.coat-beige .dog-body{fill:#C6A97F}
-  .walker.pup.coat-beige .dog-dark{fill:#A98B5F}
-  .walker.pup.coat-beige .dog-light{fill:#E2D0B2}
-  .walker.pup.coat-black .dog-body{fill:#4C4239}
-  .walker.pup.coat-black .dog-dark{fill:#332C25}
-  .walker.pup.coat-black .dog-light{fill:#7A6E62}
-  .walker.pup.coat-brown .dog-body{fill:#8A6C4F}
-  .walker.pup.coat-brown .dog-dark{fill:#6E5339}
-  .walker.pup.coat-brown .dog-light{fill:#C7AC87}
+  .walker.pup.coat-beige .dog-body{fill:url(#gPbB) #C6A97F}
+  .walker.pup.coat-beige .dog-dark{fill:url(#gPbD) #A98B5F}
+  .walker.pup.coat-beige .dog-light{fill:url(#gPbL) #E2D0B2}
+  .walker.pup.coat-black .dog-body{fill:url(#gPkB) #4C4239}
+  .walker.pup.coat-black .dog-dark{fill:url(#gPkD) #332C25}
+  .walker.pup.coat-black .dog-light{fill:url(#gPkL) #7A6E62}
+  .walker.pup.coat-brown .dog-body{fill:url(#gPrB) #8A6C4F}
+  .walker.pup.coat-brown .dog-dark{fill:url(#gPrD) #6E5339}
+  .walker.pup.coat-brown .dog-light{fill:url(#gPrL) #C7AC87}
   .walker.pup.leave{opacity:0;transition:opacity .9s ease}
   @keyframes pupJoin{0%{opacity:0}100%{opacity:.94}}
   /* ときどき遊びに来る子（ねこ・小鳥・かえる） */
@@ -1886,19 +1886,19 @@
   .walker.guest.cat{width:32px;height:32px;margin-left:-16px;margin-top:-16px}
   .walker.guest.cat > svg{width:32px;height:32px}
   .walker.guest.sit .pose{transform-box:view-box;transform-origin:24px 26px;transform:rotate(-13deg)}
-  .cat-body{fill:#A79F97}
-  .cat-dark{fill:#8B837B}
-  .cat-light{fill:#E7E2DB}
+  .cat-body{fill:url(#gCatB) #A79F97}
+  .cat-dark{fill:url(#gCatD) #8B837B}
+  .cat-light{fill:url(#gCatL) #E7E2DB}
   .cat-face{fill:#4E463F}
-  .walker.guest.v2 .cat-body{fill:#5E564D}
-  .walker.guest.v2 .cat-dark{fill:#463F38}
-  .walker.guest.v2 .cat-light{fill:#8B8179}
-  .rab-body{fill:#FDFBF7}
-  .rab-dark{fill:#E6DFD4}
+  .walker.guest.v2 .cat-body{fill:url(#gCat2B) #5E564D}
+  .walker.guest.v2 .cat-dark{fill:url(#gCat2D) #463F38}
+  .walker.guest.v2 .cat-light{fill:url(#gCat2L) #8B8179}
+  .rab-body{fill:url(#gRabB) #FDFBF7}
+  .rab-dark{fill:url(#gRabD) #E6DFD4}
   .rab-pink{fill:#E4B2B8}
   .rab-face{fill:#6B5F55}
-  .walker.guest.v2 .rab-body{fill:#C8B096}
-  .walker.guest.v2 .rab-dark{fill:#AF977B}
+  .walker.guest.v2 .rab-body{fill:url(#gRab2B) #C8B096}
+  .walker.guest.v2 .rab-dark{fill:url(#gRab2D) #AF977B}
   .walker.guest.leave{opacity:0;transition:opacity .9s ease}
   /* うさぎ・かえる・小鳥は歩かずに、ひと跳びずつ移動する */
   .walker.guest.rab:not(.gait-walk) .bob,
@@ -1930,13 +1930,13 @@
     100%{transform:translateY(0) scaleY(1) scaleX(1)}
   }
   /* かえる */
-  .fr-body{fill:#8FB47A}
-  .fr-leg{fill:#7CA268}
-  .fr-belly{fill:#D9E4C8}
+  .fr-body{fill:url(#gFrB) #8FB47A}
+  .fr-leg{fill:url(#gFrD) #7CA268}
+  .fr-belly{fill:url(#gFrL) #D9E4C8}
   .fr-eye{fill:#3E4A36}
   .fr-mouth{fill:none;stroke:#5F7A50;stroke-width:.9;stroke-linecap:round}
-  .walker.guest.frog.v2 .fr-body{fill:#A9AF74}
-  .walker.guest.frog.v2 .fr-leg{fill:#959B64}
+  .walker.guest.frog.v2 .fr-body{fill:url(#gFr2B) #A9AF74}
+  .walker.guest.frog.v2 .fr-leg{fill:url(#gFr2D) #959B64}
   /* 小鳥は小さめ。動くときは羽ばたく絵に入れかわる */
   .walker.guest.bird{width:17px;height:17px;margin-left:-8.5px;margin-top:-8.5px}
   .walker.guest.bird .bd-stand,.walker.guest.bird .bd-fly{display:block;width:100%;height:100%}
@@ -1948,13 +1948,13 @@
   @keyframes flapL{0%,100%{transform:rotate(-28deg)}50%{transform:rotate(26deg)}}
   @keyframes flapR{0%,100%{transform:rotate(28deg)}50%{transform:rotate(-26deg)}}
   /* 小鳥 */
-  .bd-body{fill:#9DB3C4}
-  .bd-wing{fill:#87A0B4}
+  .bd-body{fill:url(#gBdB) #9DB3C4}
+  .bd-wing{fill:url(#gBdW) #87A0B4}
   .bd-beak{fill:#D9A768}
   .bd-eye{fill:#3C4650}
   .bd-leg{fill:none;stroke:#C08A4E;stroke-width:1.1;stroke-linecap:round}
-  .walker.guest.bird.v2 .bd-body{fill:#C3A987}
-  .walker.guest.bird.v2 .bd-wing{fill:#A98D69}
+  .walker.guest.bird.v2 .bd-body{fill:url(#gBd2B) #C3A987}
+  .walker.guest.bird.v2 .bd-wing{fill:url(#gBd2W) #A98D69}
   @media (prefers-reduced-motion: reduce){ .walker.guest .pose{animation:none!important} }
   @media (prefers-reduced-motion: reduce){
     .walker .bob,.walker .leg-a,.walker .leg-b,.walker .tail{animation:none}
@@ -2005,6 +2005,40 @@
 </style>
 </head>
 <body>
+<!-- 動物たちの、まるみを出すための塗り -->
+<svg width="0" height="0" style="position:absolute;pointer-events:none" aria-hidden="true"><defs>
+<radialGradient id="gDogB" cx="33%" cy="24%" r="88%"><stop offset="0" stop-color="#D4B996"/><stop offset=".52" stop-color="#C9A87C"/><stop offset="1" stop-color="#AF926C"/></radialGradient>
+<radialGradient id="gDogD" cx="33%" cy="24%" r="88%"><stop offset="0" stop-color="#B89D7D"/><stop offset=".52" stop-color="#A6845C"/><stop offset="1" stop-color="#907350"/></radialGradient>
+<radialGradient id="gDogL" cx="33%" cy="24%" r="88%"><stop offset="0" stop-color="#EFE3D0"/><stop offset=".52" stop-color="#EBDCC4"/><stop offset="1" stop-color="#CCBFAB"/></radialGradient>
+<radialGradient id="gPbB" cx="33%" cy="24%" r="88%"><stop offset="0" stop-color="#D1BA99"/><stop offset=".52" stop-color="#C6A97F"/><stop offset="1" stop-color="#AC936E"/></radialGradient>
+<radialGradient id="gPbD" cx="33%" cy="24%" r="88%"><stop offset="0" stop-color="#BAA27F"/><stop offset=".52" stop-color="#A98B5F"/><stop offset="1" stop-color="#937953"/></radialGradient>
+<radialGradient id="gPbL" cx="33%" cy="24%" r="88%"><stop offset="0" stop-color="#E8D9C1"/><stop offset=".52" stop-color="#E2D0B2"/><stop offset="1" stop-color="#C5B59B"/></radialGradient>
+<radialGradient id="gPkB" cx="33%" cy="24%" r="88%"><stop offset="0" stop-color="#706861"/><stop offset=".52" stop-color="#4C4239"/><stop offset="1" stop-color="#423932"/></radialGradient>
+<radialGradient id="gPkD" cx="33%" cy="24%" r="88%"><stop offset="0" stop-color="#5C5651"/><stop offset=".52" stop-color="#332C25"/><stop offset="1" stop-color="#2C2620"/></radialGradient>
+<radialGradient id="gPkL" cx="33%" cy="24%" r="88%"><stop offset="0" stop-color="#958B81"/><stop offset=".52" stop-color="#7A6E62"/><stop offset="1" stop-color="#6A6055"/></radialGradient>
+<radialGradient id="gPrB" cx="33%" cy="24%" r="88%"><stop offset="0" stop-color="#A18972"/><stop offset=".52" stop-color="#8A6C4F"/><stop offset="1" stop-color="#785E45"/></radialGradient>
+<radialGradient id="gPrD" cx="33%" cy="24%" r="88%"><stop offset="0" stop-color="#8B7561"/><stop offset=".52" stop-color="#6E5339"/><stop offset="1" stop-color="#604832"/></radialGradient>
+<radialGradient id="gPrL" cx="33%" cy="24%" r="88%"><stop offset="0" stop-color="#D2BD9F"/><stop offset=".52" stop-color="#C7AC87"/><stop offset="1" stop-color="#AD9675"/></radialGradient>
+<radialGradient id="gCatB" cx="33%" cy="24%" r="88%"><stop offset="0" stop-color="#B9B2AC"/><stop offset=".52" stop-color="#A79F97"/><stop offset="1" stop-color="#918A83"/></radialGradient>
+<radialGradient id="gCatD" cx="33%" cy="24%" r="88%"><stop offset="0" stop-color="#A29C95"/><stop offset=".52" stop-color="#8B837B"/><stop offset="1" stop-color="#79726B"/></radialGradient>
+<radialGradient id="gCatL" cx="33%" cy="24%" r="88%"><stop offset="0" stop-color="#E9E5DF"/><stop offset=".52" stop-color="#E7E2DB"/><stop offset="1" stop-color="#D0CBC5"/></radialGradient>
+<radialGradient id="gCat2B" cx="33%" cy="24%" r="88%"><stop offset="0" stop-color="#7E7871"/><stop offset=".52" stop-color="#5E564D"/><stop offset="1" stop-color="#524B43"/></radialGradient>
+<radialGradient id="gCat2D" cx="33%" cy="24%" r="88%"><stop offset="0" stop-color="#6B6560"/><stop offset=".52" stop-color="#463F38"/><stop offset="1" stop-color="#3D3731"/></radialGradient>
+<radialGradient id="gCat2L" cx="33%" cy="24%" r="88%"><stop offset="0" stop-color="#A29A94"/><stop offset=".52" stop-color="#8B8179"/><stop offset="1" stop-color="#797069"/></radialGradient>
+<radialGradient id="gRabB" cx="33%" cy="24%" r="88%"><stop offset="0" stop-color="#FDFBF8"/><stop offset=".52" stop-color="#FDFBF7"/><stop offset="1" stop-color="#E4E2DE"/></radialGradient>
+<radialGradient id="gRabD" cx="33%" cy="24%" r="88%"><stop offset="0" stop-color="#EBE5DD"/><stop offset=".52" stop-color="#E6DFD4"/><stop offset="1" stop-color="#C8C2B8"/></radialGradient>
+<radialGradient id="gRab2B" cx="33%" cy="24%" r="88%"><stop offset="0" stop-color="#D3C0AB"/><stop offset=".52" stop-color="#C8B096"/><stop offset="1" stop-color="#AE9982"/></radialGradient>
+<radialGradient id="gRab2D" cx="33%" cy="24%" r="88%"><stop offset="0" stop-color="#BFAC95"/><stop offset=".52" stop-color="#AF977B"/><stop offset="1" stop-color="#98836B"/></radialGradient>
+<radialGradient id="gFrB" cx="33%" cy="24%" r="88%"><stop offset="0" stop-color="#A5C395"/><stop offset=".52" stop-color="#8FB47A"/><stop offset="1" stop-color="#7C9D6A"/></radialGradient>
+<radialGradient id="gFrD" cx="33%" cy="24%" r="88%"><stop offset="0" stop-color="#96B586"/><stop offset=".52" stop-color="#7CA268"/><stop offset="1" stop-color="#6C8D5A"/></radialGradient>
+<radialGradient id="gFrL" cx="33%" cy="24%" r="88%"><stop offset="0" stop-color="#E1E9D3"/><stop offset=".52" stop-color="#D9E4C8"/><stop offset="1" stop-color="#BDC6AE"/></radialGradient>
+<radialGradient id="gFr2B" cx="33%" cy="24%" r="88%"><stop offset="0" stop-color="#BABF90"/><stop offset=".52" stop-color="#A9AF74"/><stop offset="1" stop-color="#939865"/></radialGradient>
+<radialGradient id="gFr2D" cx="33%" cy="24%" r="88%"><stop offset="0" stop-color="#AAAF83"/><stop offset=".52" stop-color="#959B64"/><stop offset="1" stop-color="#828757"/></radialGradient>
+<radialGradient id="gBdB" cx="33%" cy="24%" r="88%"><stop offset="0" stop-color="#B1C2D0"/><stop offset=".52" stop-color="#9DB3C4"/><stop offset="1" stop-color="#899CAB"/></radialGradient>
+<radialGradient id="gBdW" cx="33%" cy="24%" r="88%"><stop offset="0" stop-color="#9FB3C3"/><stop offset=".52" stop-color="#87A0B4"/><stop offset="1" stop-color="#758B9D"/></radialGradient>
+<radialGradient id="gBd2B" cx="33%" cy="24%" r="88%"><stop offset="0" stop-color="#CFBA9F"/><stop offset=".52" stop-color="#C3A987"/><stop offset="1" stop-color="#AA9375"/></radialGradient>
+<radialGradient id="gBd2W" cx="33%" cy="24%" r="88%"><stop offset="0" stop-color="#BAA487"/><stop offset=".52" stop-color="#A98D69"/><stop offset="1" stop-color="#937B5B"/></radialGradient>
+</defs></svg>
 <div class="app">
   <aside class="side" id="side">
     <div class="brand"><span id="brandName">Notes</span><button id="sideTgl" title="サイドバーを隠す">«</button></div>
@@ -10719,10 +10753,10 @@ const boot2 = () => {
     <g class="pose"><g class="bob">
       <path class="tail dog-body" d="M7 15 C3 13, 2 9, 4.5 7.5 C5.5 9.5, 6.5 12, 8.5 13.5 Z"/>
       <g class="leg-b"><rect class="dog-dark" x="8.5" y="19" width="3" height="7" rx="1.4"/></g>
-      <g class="leg-a"><rect class="dog-dark" x="20" y="19" width="3" height="7" rx="1.4"/></g>
+      <g class="leg-a"><rect class="dog-dark" x="18.2" y="19" width="3" height="7" rx="1.4"/></g>
       <rect class="dog-body" x="6.5" y="12" width="18" height="9" rx="4.5"/>
       <g class="leg-a"><rect class="dog-body" x="11.5" y="19" width="3" height="7" rx="1.4"/></g>
-      <g class="leg-b"><rect class="dog-body" x="23" y="19" width="3" height="7" rx="1.4"/></g>
+      <g class="leg-b"><rect class="dog-body" x="20.6" y="19" width="3" height="7" rx="1.4"/></g>
       <circle class="dog-body" cx="26" cy="12.5" r="5.4"/>
       <path class="dog-dark" d="M23.4 8.4 C22.4 6.2, 23.6 4.6, 25.4 5.2 C26.2 6.2, 26 7.6, 25.4 9 Z"/>
       <ellipse class="dog-light" cx="29.6" cy="14.2" rx="3.1" ry="2.3"/>
@@ -10957,10 +10991,10 @@ const boot2 = () => {
       <path class="tail cat-body" d="M8 20.5 C3.6 19.5, 2.6 13.4, 5.8 11.8
         C6.4 15, 6.8 17.8, 9.6 19.4 Z"/>
       <g class="leg-b"><rect class="cat-dark" x="10.2" y="20.5" width="2.9" height="6" rx="1.4"/></g>
-      <g class="leg-b"><rect class="cat-dark" x="19.4" y="20.5" width="2.9" height="6" rx="1.4"/></g>
+      <g class="leg-b"><rect class="cat-dark" x="18.6" y="20.5" width="2.9" height="6" rx="1.4"/></g>
       <ellipse class="cat-body" cx="16.2" cy="19.4" rx="8.3" ry="5.4"/>
       <g class="leg-a"><rect class="cat-light" x="12.9" y="21" width="2.9" height="5.5" rx="1.4"/></g>
-      <g class="leg-a"><rect class="cat-light" x="21.7" y="21" width="2.9" height="5.5" rx="1.4"/></g>
+      <g class="leg-a"><rect class="cat-light" x="20.8" y="21" width="2.9" height="5.5" rx="1.4"/></g>
       <path class="cat-body" d="M21.7 12.8 L20.9 8.3 L24.8 10.6 Z"/>
       <path class="cat-body" d="M28.7 12.6 L29.9 8.6 L25.9 10.4 Z"/>
       <circle class="cat-body" cx="25.2" cy="14" r="5.1"/>
@@ -10972,10 +11006,10 @@ const boot2 = () => {
     <g class="pose"><g class="bob">
       <circle class="tail rab-dark" cx="8.2" cy="19.4" r="3.1"/>
       <g class="leg-b"><rect class="rab-dark" x="10.6" y="21" width="3" height="5.5" rx="1.4"/></g>
-      <g class="leg-b"><rect class="rab-dark" x="18.8" y="21" width="3" height="5.5" rx="1.4"/></g>
+      <g class="leg-b"><rect class="rab-dark" x="18" y="21" width="3" height="5.5" rx="1.4"/></g>
       <ellipse class="rab-body" cx="16" cy="19.6" rx="8" ry="5.6"/>
       <g class="leg-a"><rect class="rab-body" x="13.2" y="21.4" width="3.1" height="5.1" rx="1.5"/></g>
-      <g class="leg-a"><rect class="rab-body" x="21.4" y="21.4" width="3.1" height="5.1" rx="1.5"/></g>
+      <g class="leg-a"><rect class="rab-body" x="20.6" y="21.4" width="3.1" height="5.1" rx="1.5"/></g>
       <ellipse class="rab-body" cx="22.9" cy="8.6" rx="2.1" ry="5.2" transform="rotate(-13 22.9 8.6)"/>
       <ellipse class="rab-body" cx="26.9" cy="8.9" rx="2.1" ry="5.2" transform="rotate(7 26.9 8.9)"/>
       <ellipse class="rab-pink" cx="22.9" cy="9" rx="0.9" ry="3.3" transform="rotate(-13 22.9 9)"/>
