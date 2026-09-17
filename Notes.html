@@ -1810,8 +1810,8 @@
 
   /* ---------- ページの線の上を歩く犬 ---------- */
   .dogwalk{position:relative;height:0;overflow:visible;pointer-events:none;z-index:6}
-  .walker{position:absolute;left:0;top:0;width:34px;height:34px;
-    margin-left:-17px;margin-top:-17px;pointer-events:auto;cursor:pointer;
+  .walker{position:absolute;left:0;top:0;width:39px;height:39px;
+    margin-left:-19.5px;margin-top:-19.5px;pointer-events:auto;cursor:pointer;
     transition:transform .25s linear}
   /* ふきだしは One Step と同じ書体・同じ色づかい */
   .dogsay{position:absolute;left:0;top:0;transform:translate(-50%,-100%) scale(.8);
@@ -1826,7 +1826,9 @@
     transform:translateX(-50%) rotate(-45deg);background:#fff;
     border-left:1px solid var(--line);border-bottom:1px solid var(--line)}
   .walker svg{width:100%;height:100%;overflow:visible;display:block}
-  .walker{max-width:40px;max-height:40px}
+  .walker{max-width:46px;max-height:46px}
+  /* One Step の HOME の子と同じ見た目の大きさに */
+  #pageDog > svg{transform:scale(1.09);transform-origin:50% 76%}
   .dog-body{fill:url(#gDogB) #C9A87C}
   .dog-dark{fill:url(#gDogD) #A6845C}
   .dog-light{fill:url(#gDogL) #EBDCC4}
@@ -1839,12 +1841,12 @@
   .walker.still .bob,.walker.still .leg-a,.walker.still .leg-b{animation:none}
   .walker.sit .bob,.walker.sit .leg-a,.walker.sit .leg-b{animation:none}
   .walker.sit .pose{transform-box:view-box;transform-origin:24px 26px;transform:rotate(-20deg)}
-  .walker.sit rect[x="8.5"],.walker.sit rect[x="11.5"]{
+  .walker.sit .lg-h1,.walker.sit .lg-h2{
     transform-box:fill-box;transform-origin:50% 0;transform:translateY(2px) rotate(-72deg)}
-  .walker.sit rect[x="11.5"]{fill:#A6845C}
-  .walker.sit.coat-beige rect[x="11.5"]{fill:#A98B5F}
-  .walker.sit.coat-black rect[x="11.5"]{fill:#332C25}
-  .walker.sit.coat-brown rect[x="11.5"]{fill:#6E5339}
+  .walker.sit .lg-h2{fill:#A6845C}
+  .walker.sit.coat-beige .lg-h2{fill:#A98B5F}
+  .walker.sit.coat-black .lg-h2{fill:#332C25}
+  .walker.sit.coat-brown .lg-h2{fill:#6E5339}
   .walker.sit .tail{animation-duration:.75s}
   .walker.lie .bob,.walker.lie .leg-a,.walker.lie .leg-b{animation:none}
   .walker.lie .pose{transform-box:view-box;transform:translateY(6.5px)}
@@ -1857,7 +1859,7 @@
     transform-box:fill-box;transform-origin:50% 0;transform:scaleY(.34)}
   /* ねむると、目はにこっとした U 字に */
   .dog-shut{display:none;fill:none;stroke:#5C4632;stroke-width:.85;stroke-linecap:round}
-  .walker.sleep circle.dog-nose:last-of-type{display:none}
+  .walker.sleep .dog-eye,.walker.sleep .dog-glint{display:none}
   .walker.sleep .dog-shut{display:block}
   @keyframes dogBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.4px)}}
   @keyframes legA{0%,100%{transform:translateX(1.6px)}50%{transform:translateX(-1.6px)}}
@@ -2007,6 +2009,8 @@
 <body>
 <!-- 動物たちの、まるみを出すための塗り -->
 <svg width="0" height="0" style="position:absolute;pointer-events:none" aria-hidden="true"><defs>
+<clipPath id="dgHead"><circle cx="26" cy="12.5" r="5.4"/></clipPath>
+<clipPath id="dgNeck"><rect x="6.5" y="12" width="18" height="9" rx="4.5"/></clipPath>
 <radialGradient id="gDogB" cx="33%" cy="24%" r="88%"><stop offset="0" stop-color="#D4B996"/><stop offset=".52" stop-color="#C9A87C"/><stop offset="1" stop-color="#AF926C"/></radialGradient>
 <radialGradient id="gDogD" cx="33%" cy="24%" r="88%"><stop offset="0" stop-color="#B89D7D"/><stop offset=".52" stop-color="#A6845C"/><stop offset="1" stop-color="#907350"/></radialGradient>
 <radialGradient id="gDogL" cx="33%" cy="24%" r="88%"><stop offset="0" stop-color="#EFE3D0"/><stop offset=".52" stop-color="#EBDCC4"/><stop offset="1" stop-color="#CCBFAB"/></radialGradient>
@@ -10752,16 +10756,21 @@ const boot2 = () => {
   const DOG = `<svg viewBox="0 0 34 34" width="34" height="34" aria-hidden="true">
     <g class="pose"><g class="bob">
       <path class="tail dog-body" d="M7 15 C3 13, 2 9, 4.5 7.5 C5.5 9.5, 6.5 12, 8.5 13.5 Z"/>
-      <g class="leg-b"><rect class="dog-dark" x="8.5" y="19" width="3" height="7" rx="1.4"/></g>
-      <g class="leg-a"><rect class="dog-dark" x="18.2" y="19" width="3" height="7" rx="1.4"/></g>
+      <g class="leg-b"><path class="dog-dark lg-h1" d="M8.5 20.4A1.4 1.4 0 0 1 9.9 19L10.1 19A1.4 1.4 0 0 1 11.5 20.4L11.5 23.4C12.35 23.8 12.35 25.35 11.55 25.8C10.85 26.2 9.35 26.15 8.82 25.45C8.54 25.1 8.5 24.55 8.5 23.95Z"/></g>
+      <g class="leg-a"><path class="dog-dark" d="M18.2 20.4A1.4 1.4 0 0 1 19.6 19L19.8 19A1.4 1.4 0 0 1 21.2 20.4L21.2 23.4C22.05 23.8 22.05 25.35 21.25 25.8C20.55 26.2 19.05 26.15 18.52 25.45C18.24 25.1 18.2 24.55 18.2 23.95Z"/></g>
       <rect class="dog-body" x="6.5" y="12" width="18" height="9" rx="4.5"/>
-      <g class="leg-a"><rect class="dog-body" x="11.5" y="19" width="3" height="7" rx="1.4"/></g>
-      <g class="leg-b"><rect class="dog-body" x="20.6" y="19" width="3" height="7" rx="1.4"/></g>
+      <g class="leg-a"><path class="dog-body lg-h2" d="M11.5 20.4A1.4 1.4 0 0 1 12.9 19L13.1 19A1.4 1.4 0 0 1 14.5 20.4L14.5 23.4C15.35 23.8 15.35 25.35 14.55 25.8C13.85 26.2 12.35 26.15 11.82 25.45C11.54 25.1 11.5 24.55 11.5 23.95Z"/></g>
+      <g class="leg-b"><path class="dog-body" d="M20.6 20.4A1.4 1.4 0 0 1 22 19L22.2 19A1.4 1.4 0 0 1 23.6 20.4L23.6 23.4C24.45 23.8 24.45 25.35 23.65 25.8C22.95 26.2 21.45 26.15 20.92 25.45C20.64 25.1 20.6 24.55 20.6 23.95Z"/></g>
       <circle class="dog-body" cx="26" cy="12.5" r="5.4"/>
-      <path class="dog-dark" d="M23.4 8.4 C22.4 6.2, 23.6 4.6, 25.4 5.2 C26.2 6.2, 26 7.6, 25.4 9 Z"/>
-      <ellipse class="dog-light" cx="29.6" cy="14.2" rx="3.1" ry="2.3"/>
-      <circle class="dog-nose" cx="31.6" cy="13.4" r="1.15"/>
-      <circle class="dog-nose" cx="27" cy="11.4" r="0.95"/>
+      <g clip-path="url(#dgHead)"><path class="dog-light" d="M33.2 11.5C32 12.4 30.6 12.85 29.2 12.95C27.8 13.05 26.8 13.45 25.6 13.6C23.4 14 21 13.8 18.8 13.2L18.8 20 L33.2 20Z"/></g>
+      <path class="dog-dark" d="M23.4 8.4 C23.2 6.4, 23.95 4.9, 25.4 5.2 C26.2 6.2, 26 7.6, 25.4 9 Z"/>
+      <ellipse class="dog-light" cx="27.2" cy="9.8" rx=".95" ry=".55"/>
+      <circle class="dog-nose dog-eye" cx="27" cy="11.4" r="0.95"/>
+      <ellipse class="dog-glint" cx="26.68" cy="11.03" rx=".28" ry=".33" fill="#fff" opacity=".9"/>
+      <ellipse class="dog-light" cx="29.75" cy="13.95" rx="2.35" ry="1.95"/>
+      <ellipse class="dog-nose" cx="31.25" cy="13.1" rx=".92" ry=".76"/>
+      <g class="dog-collar" clip-path="url(#dgNeck)"><circle cx="26" cy="12.5" r="5.85"
+        fill="none" stroke="#9E3742" stroke-width="1.35"/></g>
       <path class="dog-shut" d="M25.8 11.25 A1.2 1.2 0 0 0 28.2 11.25"/>
     </g></g>
   </svg>`;
@@ -10950,7 +10959,7 @@ const boot2 = () => {
     return true;
   }
 
-  const big = new Walker(dog, 34, .8, .0055);
+  const big = new Walker(dog, 39, 1, .0055);
   big.x = .12; big.dir = 1;
   wire(big);
   let pups = [], pupUntil = 0, pupNext = Date.now() + rnd(90000, 240000);
