@@ -2111,7 +2111,7 @@
   .drop.tlv > .card.tl::before{display:none}
   .card.tl > *, .card.tl .qcard > *{flex:0 0 100%;min-width:0}
   .card.tl > .tl-time{position:absolute;left:calc(-1 * var(--tl-pad));width:var(--tl-gut);top:calc(var(--tl-y) - 11px);
-    text-align:right;font:400 13px/22px 'Montserrat',sans-serif;color:var(--tl-time);
+    text-align:right;font:400 12px/22px 'Montserrat',sans-serif;color:var(--tl-time);
     font-variant-numeric:tabular-nums;letter-spacing:.02em;flex:none}
   .card.tl.notime > .tl-time{visibility:hidden}
   .card.tl > .tl-line{position:absolute;left:calc(-1 * var(--tl-pad) + var(--tl-gut) + 15px);width:1px;
@@ -2254,7 +2254,7 @@
     .drop.tlv > .card.tl{--tl-gut:36px;--tl-pad:54px}
     .card.tl > .tl-time{white-space:nowrap;text-align:right}
     .ocside .drop.tlv > .card.tl{--tl-gut:0px;--tl-pad:26px}
-    .card.tl > .tl-time{font-size:11px;letter-spacing:0}
+    .card.tl > .tl-time{font-size:10.5px;letter-spacing:0}
     .card.tl > .tl-dot{left:calc(-1 * var(--tl-pad) + var(--tl-gut) + 6px)}
     .card.tl > .tl-ck{left:calc(-1 * var(--tl-pad) + var(--tl-gut) + 3.5px)}
     .card.tl > .tl-dot.tl-bm{left:calc(-1 * var(--tl-pad) + var(--tl-gut) + 5.5px)}
@@ -8087,7 +8087,35 @@ function renderCard(){
    元に戻すときは Notes-backup-before-timeline.html を使う。 */
 const tlDateOf = k => k.memoDate || (k.quote && k.quote.date) || (k.read && k.read.date) || k.day || k.created || '';
 const tlTimeOf = k => k.memoTime || k.ctime || '';
-const tlDateKind = k => k.type === 'note' ? 'memo' : k.type === 'quote' ? 'quote' : k.type === 'read' ? 'read' : '';
+const tlDateKind = k => k.type === 'note' ? 'memo' : k.type === 'quote' ? 'quote' : k.type === 'read' ? 'read'
+  : k.type === 'task' ? 'task' : '';
+/* 時刻・点を押すと開く：日付と時刻をあとから直す */
+function tlDateMenu(rect, kind, cid){
+  const f = findCard(cid); if(!f) return;
+  const k = f.card;
+  const curD = tlDateOf(k) || today(), curT = tlTimeOf(k);
+  const p = popup(rect.left - 20, rect.bottom + 6, `<div class="dpanel" style="width:220px">
+    <h4>日付と時刻</h4>
+    <div class="drow"><label>日付</label><input type="date" id="tlD" value="${curD}"></div>
+    <div class="drow"><label>時刻</label><input type="time" id="tlT" value="${curT}"></div>
+    <div class="hint" style="margin-left:0">時刻を消すと、時刻なしになります</div>
+  </div>`);
+  p.querySelector('#tlD').onchange = e => {
+    const v = e.target.value || today();
+    if(kind === 'memo') k.memoDate = v;
+    else if(kind === 'read') (k.read ||= {}).date = v;
+    else if(kind === 'quote') (k.quote ||= {}).date = v;
+    if(f.board.daily) k.day = v;                 /* Daily ではカレンダーの日付も動かす */
+    else if(kind === 'task') k.created = v;
+    touch(k); save(); render();
+  };
+  p.querySelector('#tlT').onchange = e => {
+    const v = e.target.value || '';
+    if(k.type === 'note' || k.memoTime) { if(v) k.memoTime = v; else delete k.memoTime; }
+    if(v) k.ctime = v; else delete k.ctime;
+    touch(k); save(); render();
+  };
+}
 function tlRel(d){
   const t = parse(today()), x = parse(d);
   const n = Math.round((t - x) / 864e5);
@@ -8180,7 +8208,7 @@ function tlDeco(root){
       el.classList.add('tl');
       if(!el.querySelector(':scope > .tl-time')){
         const t = tlTimeOf(k), dk = tlDateKind(k);
-        const can = dk ? ` can" title="クリックで日付を変更" data-tldate="${dk}|${k.id}` : '';
+        const can = dk ? ` can" title="クリックで日付・時刻を変更" data-tldate="${dk}|${k.id}` : '';
         const mark = k.type === 'task'
           ? `<input type="checkbox" class="tl-ck" data-tlck="${k.id}" ${k.done ? 'checked' : ''} title="完了">`
           : `<span class="tl-dot${k.type === 'quote' ? ' tl-bm' : ''}${can}"></span>`;   /* 引用は栞マーク */
@@ -8225,7 +8253,7 @@ function tlDeco(root){
     drop.querySelectorAll('[data-tldate]').forEach(b => b.onclick = e => {
       e.stopPropagation();
       const [kind, cid] = b.dataset.tldate.split('|');
-      ndateMenu(e.currentTarget.getBoundingClientRect(), kind, cid);
+      tlDateMenu(e.currentTarget.getBoundingClientRect(), kind, cid);
     });
   });
 }
