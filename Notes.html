@@ -2287,6 +2287,10 @@
     .dailyside .pinlist.open .dl-h::after, .tlside .pinlist.open .dl-h::after{content:" ▾"}
     .dailyside .pinlist:not(.open) > :not(.dl-h), .tlside .pinlist:not(.open) > :not(.dl-h){display:none}
     .tlside{position:static;width:auto;flex:none;max-height:none;overflow:visible}
+    /* 1週間のカレンダーは、下へ移動しても画面の上に残す */
+    .tlside:has(.cal.wk):not(:has(.pinlist.open)){position:sticky;top:-12px;z-index:5;background:var(--bg);
+      padding-top:12px;margin-top:-12px;padding-bottom:6px;box-shadow:0 6px 10px -8px rgba(30,25,15,.18)}
+    .tlside:has(.cal.wk) .pinlist{margin-top:6px}
     .tl-where{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}
   }
 </style>
@@ -7611,7 +7615,7 @@ function renderCollection(kind){
     /* その日（なければ、それより前でいちばん近い日）の区切りへ */
     const days = [...document.querySelectorAll('.rdtl .tl-day[data-d]')];
     const hit = days.find(x => x.dataset.d <= keep) || days[days.length - 1];
-    if(hit) hit.scrollIntoView({behavior: 'smooth', block: 'start'});
+    if(hit) tlScrollTo(hit);
   });
   v.querySelectorAll('[data-cm]').forEach(b => b.onclick = () => {
     const [y, m] = readMonth.split('-').map(Number);
@@ -8291,6 +8295,13 @@ function tlDeco(root){
     });
   });
 }
+/* 日付の区切りまで移動する（スマホでは上に残るカレンダーの下に来るように） */
+function tlScrollTo(el){
+  const side = document.querySelector('.tlside');
+  const stuck = side && tlPhone() && getComputedStyle(side).position === 'sticky';
+  el.style.scrollMarginTop = (stuck ? side.offsetHeight + 10 : 12) + 'px';
+  el.scrollIntoView({behavior: 'smooth', block: 'start'});
+}
 /* スマホ：カレンダーは1週間だけ（月の名前を押すと1か月）、Pin Memo は閉じておく */
 let tlCalOpen = false, tlPinOpen = false, tlLastView = '';
 const tlPhone = () => window.matchMedia && matchMedia('(max-width:760px)').matches;
@@ -8358,7 +8369,7 @@ function tlPaintCal(items){
     /* その日（なければ、それより前でいちばん近い日）の区切りへ */
     const days = [...document.querySelectorAll('.tlpage .tl-day[data-d]')];
     const hit = days.find(x => x.dataset.d <= tlCalSel) || days[days.length - 1];
-    if(hit) hit.scrollIntoView({behavior: 'smooth', block: 'start'});
+    if(hit) tlScrollTo(hit);
   });
 }
 let tlSel = 'daily';          /* 書く場所：'daily' か 本のカード id */
