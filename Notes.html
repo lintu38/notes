@@ -2117,21 +2117,27 @@
   .card.tl > .tl-line{position:absolute;left:calc(-1 * var(--tl-pad) + var(--tl-gut) + 15px);width:1px;
     top:0;bottom:calc(-1 * var(--tl-gap));background:var(--tl-line);flex:none}
   .card.tl.tl-first > .tl-line{top:var(--tl-y)}
-  .card.tl.tl-last > .tl-line{bottom:auto;height:var(--tl-y)}
-  .card.tl.tl-first.tl-last > .tl-line{display:none}
+  .card.tl.tl-last > .tl-line{bottom:0}             /* 最後のメモ・1つだけのメモも、下まで線を引く */
   .card.tl > .tl-dot{position:absolute;left:calc(-1 * var(--tl-pad) + var(--tl-gut) + 11px);top:calc(var(--tl-y) - 4.5px);
-    width:9px;height:9px;border-radius:50%;background:var(--tl-dot);box-shadow:0 0 0 4px var(--tl-panel);z-index:1;flex:none}
+    width:9px;height:9px;border-radius:50%;background:var(--tl-c, var(--tl-dot));box-shadow:0 0 0 4px var(--tl-panel);z-index:1;flex:none}
+  /* Action は丸いチェックボックス（ボードの色） */
+  .card.tl > .tl-ck{appearance:none;-webkit-appearance:none;position:absolute;margin:0;cursor:pointer;z-index:1;flex:none;
+    left:calc(-1 * var(--tl-pad) + var(--tl-gut) + 8.5px);top:calc(var(--tl-y) - 7px);width:14px;height:14px;border-radius:50%;
+    border:1.5px solid var(--tl-c, var(--tl-dot));background:var(--tl-panel);box-shadow:0 0 0 3px var(--tl-panel)}
+  .card.tl > .tl-ck:hover{background:#f3eeec}
+  .card.tl > .tl-ck:checked{background:var(--tl-c, var(--tl-dot))}
+  .card.tl > .tl-ck:checked::after{content:"";position:absolute;left:3.6px;top:1.2px;width:3px;height:6.5px;
+    border:solid #fff;border-width:0 1.6px 1.6px 0;transform:rotate(42deg)}
+  .card.tl.task > .card-top{order:1;flex:1 1 100%;margin:0!important}
+  .card.tl.task > .card-top .ck{display:none}
   .card.tl > .tl-time.can, .card.tl > .tl-dot.can{cursor:pointer}
   .card.tl > .tl-time.can:hover{color:var(--ink)}
-  .card.tl > .tl-dot.can:hover{background:var(--brown)}
+  .card.tl > .tl-dot.can:hover{box-shadow:0 0 0 4px var(--tl-panel), 0 0 0 5.5px var(--tl-c, var(--tl-dot))}
 
   /* 並び：種別（ポッチの行）→ 本文 → ＋画像・書式 → タグ → ボタン */
   .card.tl .qcard, .card.tl > .sec.bare, .card.tl > .sec.bare > .qcard{display:contents}
   .card.tl > *{order:6}
   .card.tl > .qribbon{order:0;flex:none}
-  .card.tl > .tl-kind{order:0;margin:0 0 6px;padding-left:8px;font:500 11px/22px 'Montserrat',sans-serif;
-    letter-spacing:.1em;color:#b3aaa6}
-  .ocside .card.tl > .tl-kind{padding-left:14px}
   .card.tl .qcard > *{order:3}
   .card.tl > .sec.bare > *:not(.qcard){flex:0 0 100%;min-width:0;order:3}
   .card.tl > .kidcite{order:2}
@@ -2142,7 +2148,7 @@
   .card.tl .qcard > .qc-h > span:first-child{display:none}      /* No.・日付は出さない（日付は時刻・点から変更） */
   .card.tl > .card-top > div[style*="flex:1"]{display:none}
   .card.tl > .card-top .grip{order:-1}
-  .card.tl > :empty:not(.tl-line):not(.tl-dot):not(.qribbon){display:none}
+  .card.tl > :empty:not(.tl-line):not(.tl-dot):not(.tl-ck):not(.qribbon){display:none}
   .card.tl > .meta-b:not(:has(*)){display:none}
   .card.tl .qc-body{border-top:0!important;margin-top:0!important;padding-top:0!important}
   .card.tl .qc-body.qbg{margin:0 0 0 14px!important;padding:12px 16px!important}
@@ -2163,6 +2169,46 @@
   .tl-day b{font-size:14px;font-weight:600;color:var(--brown);letter-spacing:.04em}
   .tl-day span{font-size:12px;color:var(--tl-time)}
   .tl-day i{font-style:normal;color:#d4ccc8}
+
+  /* Claude と会話したメモ：最初のメモは囲まない（返事から下は今のまま） */
+  .card.tl.chat .qc-body:not(.qbg){max-width:none;width:auto;min-width:0;background:none!important;
+    border:0;border-radius:0;padding:0 0 0 8px}
+  .card.tl.chat .qcard{padding:0}
+
+  /* 日付の下：祝日・月齢・天気 */
+  .tl-dsub{display:flex;align-items:center;justify-content:center;gap:12px;font:400 11.5px 'Montserrat',sans-serif;
+    color:var(--tl-time);margin:-8px 0 16px}
+  .tl-dsub.tl-dh{order:99;flex:0 0 100%;justify-content:flex-start;margin:6px 0 0;font-family:var(--fdisp)}
+  .daily-h:has(.tl-dsub), .db-h:has(.tl-dsub){flex-wrap:wrap}
+  .tl-hol{color:#8e3a4f;font-weight:500;letter-spacing:.04em}
+  :root{--wd-sat:#5f7d99;--wd-sun:#8e3a4f}
+  /* カレンダーも同じ色に（日曜日・祝日はワイン色、土曜日はくすんだブルー） */
+  .cal .cd.sun, .cal .cal-w .sun{color:var(--wd-sun)!important}
+  .cal .cd.sat, .cal .cal-w .sat{color:var(--wd-sat)!important}
+  .wdn.wd-sat, .daily-h .wdn.wd-sat, .db-h .wdn.wd-sat, .tl-day .wdn.wd-sat{color:var(--wd-sat)}
+  .wdn.wd-sun, .daily-h .wdn.wd-sun, .db-h .wdn.wd-sun, .tl-day .wdn.wd-sun{color:var(--wd-sun)}
+  .tl-age{display:inline-flex;align-items:center;gap:4px;font-variant-numeric:tabular-nums}
+  .tl-moon{width:14px;height:14px}
+  .tl-moon .mn-d{fill:#ece6e3;stroke:#d6ccc8;stroke-width:.7}
+  .tl-moon .mn-l{fill:#e2c977}
+  .tl-wx{display:inline-flex}
+  .tl-wx .wxico{width:15px;height:15px}
+  .tl-wxsel{display:inline-flex;gap:2px}
+  /* 書くときも枠を出さず、そのまま書き込む見た目に */
+  .card.tl .qc-body.live:hover, .card.tl .qc-body.live:focus{background:transparent!important;box-shadow:none!important}
+  button.tl-wx{width:24px;height:24px;border-radius:7px;align-items:center;justify-content:center;color:#d3cac6}
+  button.tl-wx:hover{background:#efe9e7;color:#8b8285}
+  button.tl-wx.on{background:#fbf4ea;color:#b98a3c}
+  button.tl-wx.on.wx-rain, button.tl-wx.on.wx-snow{background:#eef3fb;color:#5b86c9}
+  button.tl-wx.on.wx-cloud, button.tl-wx.on.wx-wind{background:#f0f2f4;color:#7e8892}
+  /* Daily のページ：日付・曜日の右横に祝日と月齢、その下の行に天気 */
+  .tl-dsub.tl-dh{font-size:13px;gap:14px;margin:0 0 0 4px;order:1;flex:0 0 auto;align-self:center}
+  .daily-h > .btn, .db-h > .btn{order:2}
+  .daily-h:has(.tl-dsub) > .wx, .db-h:has(.tl-dsub) > .wx{order:3;flex:0 0 100%;margin-left:-6px;margin-top:2px}
+  .daily-h .tl-dsub span, .db-h .tl-dsub span{font-size:13px;color:var(--muted)}
+  .daily-h .tl-dsub .tl-hol, .db-h .tl-dsub .tl-hol{color:var(--wd-sun);font-weight:600}
+  .tl-dsub.tl-dh .tl-moon{width:17px;height:17px}
+  .tl-dsub.tl-dh .tl-age::before{content:"月齢";margin-right:2px;font-size:11.5px;letter-spacing:.06em}
 
   /* Timeline ページ */
   .tlpage{max-width:820px;margin:0 auto;background:var(--tl-panel);border:1px solid var(--line);border-radius:14px;
@@ -2189,6 +2235,7 @@
     .ocside .drop.tlv > .card.tl{--tl-gut:0px;--tl-pad:26px}
     .card.tl > .tl-time{font-size:11px;letter-spacing:0}
     .card.tl > .tl-dot{left:calc(-1 * var(--tl-pad) + var(--tl-gut) + 6px)}
+    .card.tl > .tl-ck{left:calc(-1 * var(--tl-pad) + var(--tl-gut) + 3.5px)}
     .card.tl > .tl-line{left:calc(-1 * var(--tl-pad) + var(--tl-gut) + 10px)}
     .card.tl > .card-top{gap:3px}
     .card.tl > .card-top .cardtg, .card.tl > .card-top .pintg, .card.tl > .card-top .mkact{font-size:10px;padding:0 7px}
@@ -5376,6 +5423,10 @@ function addMenu(e, colId, parentId, opts){
       met:'', buy:'', media:'', startOn:false, startAt:'', doneOn:false, doneAt:'', stars:0, memo:''};
     if(bd.daily) k.day = (opts && opts.day) || dailySel || today();
     k.ctime = nowHM();          /* 作った時刻（タイムラインの並びと表示に使う） */
+    /* Daily のメモは、編集画面を通さずそのまま書き込む形にする */
+    if(bd.daily && k.type === 'note'){
+      k.memoReg = true; k.memoNo = nextNo('memoNo'); k.memoDate = k.day; k.memoTime = k.ctime; k.tlNew = true;
+    }
     if(parentId) k.parent = parentId;
     k.created = today(); k.updated = today();
     if(bd.daily || parentId) col.cards.unshift(k); else col.cards.push(k);
@@ -6941,7 +6992,7 @@ function renderDaily(b){
   if(!b.cols || !b.cols.length) b.cols = [{id:uid(), title:'Daily', w:288, cards:[]}];
   const col = b.cols[0];
   const dayCards = col.cards.filter(k => (k.day || '') === sel
-    && !(k.type === 'task' && k.done) && !k.parent);
+    && !k.parent);              /* 完了した Action も記録として残す */
   const cardDays = new Set(col.cards.map(k => k.day).filter(Boolean));
   const allDays = [...new Set([
     ...Object.keys(b.days).filter(dd => plain(b.days[dd]).trim() || (b.days[dd] || '').includes('<img')),
@@ -6966,16 +7017,16 @@ function renderDaily(b){
         </div>
         ${allDays.length ? allDays.map(dd => `
           <div class="dayblock">
-            <div class="db-h"><b>${dd}</b><span>${WD[parse(dd).getDay()]}曜</span>
+            <div class="db-h"><b>${dd}</b>${tlWDay(dd)}
               ${dd === today() ? '<span class="dl-today">今日</span>' : ''}
               ${weatherHTML(b, dd)}
               <button class="btn db-open" data-cal="${dd}">開く</button></div>
             ${plain(b.days[dd] || '').trim() || (b.days[dd] || '').includes('<img')
               ? `<div class="body dailybody" contenteditable="true" data-daily="${dd}"
                    data-ph="今日のこと…">${clean(b.days[dd] || '')}</div>` : ''}
-            ${col.cards.filter(k => (k.day || '') === dd && !(k.type === 'task' && k.done)).length
+            ${col.cards.filter(k => (k.day || '') === dd && !k.parent).length
               ? `<div class="dailycards"><div class="drop">${col.cards
-                  .filter(k => (k.day || '') === dd && !(k.type === 'task' && k.done))
+                  .filter(k => (k.day || '') === dd && !k.parent)
                   .map(cardHTML).join('')}</div></div>` : ''}
           </div>`).join('') : `<div class="empty">まだ記録がありません</div>`}
         ` : dailyBack !== 'today' ? (() => {
@@ -6983,7 +7034,7 @@ function renderDaily(b){
           const L = cardsOn(bd);
           return `
         <div class="daily-h">
-          <b>${bd}</b><span>${WD[parse(bd).getDay()]}曜</span>
+          <b>${bd}</b>${tlWDay(bd)}
           ${weatherHTML(b, bd)}
           <button class="btn" id="dailyAllBtn" style="margin-left:auto;padding:4px 12px;font-size:12px">All</button>
           <button class="btn" id="dailyToday" style="padding:4px 12px;font-size:12px">今日へ</button>
@@ -6993,7 +7044,7 @@ function renderDaily(b){
           : `<div class="empty">この日に書いたメモはありません</div>`}`;
         })() : `
         <div class="daily-h">
-          <b>${sel}</b><span>${WD[parse(sel).getDay()]}曜</span>
+          <b>${sel}</b>${tlWDay(sel)}
           ${sel === today() ? '<span class="dl-today">今日</span>' : ''}
           ${weatherHTML(b, sel)}
           <button class="btn" id="dailyAllBtn" style="margin-left:auto;padding:4px 12px;font-size:12px">All</button>
@@ -8012,36 +8063,90 @@ function renderCard(){
    元に戻すときは Notes-backup-before-timeline.html を使う。 */
 const tlDateOf = k => k.memoDate || (k.quote && k.quote.date) || (k.read && k.read.date) || k.day || k.created || '';
 const tlTimeOf = k => k.memoTime || k.ctime || '';
-const tlKindOf = k => k.type === 'task' ? TASKONE
-  : k.type === 'quote' ? 'Quote'
-  : k.type === 'read' ? (k.parent ? 'Memo' : 'Read')
-  : k.learn ? 'Daily Discoveries' : 'Memo';
 const tlDateKind = k => k.type === 'note' ? 'memo' : k.type === 'quote' ? 'quote' : k.type === 'read' ? 'read' : '';
 function tlRel(d){
   const t = parse(today()), x = parse(d);
   const n = Math.round((t - x) / 864e5);
   return n === 0 ? '今日' : n === 1 ? '昨日' : n === 2 ? '一昨日' : (n > 2 && n < 7) ? `${n}日前` : '';
 }
-const tlMD = d => { const x = parse(d); return `${x.getMonth() + 1}月${x.getDate()}日(${WD[x.getDay()]})`; };
+const tlMD = d => { const x = parse(d); return `${x.getFullYear()}年${x.getMonth() + 1}月${x.getDate()}日 ${tlWDay(d)}`; };
+/* 曜日（土曜日はくすんだブルー、日曜日はワイン色。祝日名もワイン色） */
+function tlWDay(d){
+  const w = parse(d).getDay();
+  const c = w === 0 ? 'wd-sun' : w === 6 ? 'wd-sat' : '';
+  return `<span class="wdn ${c}">${WD[w]}曜日</span>`;
+}
 /* このメモから Action を作ってあるか */
 function tlHasAct(id){
   return S.boards.some(b => (b.cols || []).some(c => c.cards.some(x =>
     x.type === 'task' && (x.links || []).includes(id))));
 }
 /* 書き出し行の中心の高さを測って、時刻・点・線をそこにそろえる */
+const TL_SKIP = '.tl-time,.tl-dot,.tl-ck,button,.grip,.menu,.chip,.tmwrap,.qc-h,.qribbon,.tl-day,.ck';
 function tlAlign(c){
-  const top = c.getBoundingClientRect().top;
-  const kd = c.querySelector(':scope > .tl-kind');
-  if(kd && kd.offsetParent){
-    const r = kd.getBoundingClientRect();
-    c.style.setProperty('--tl-y', ((r.top + r.bottom) / 2 - top).toFixed(1) + 'px');
+  const w = document.createTreeWalker(c, NodeFilter.SHOW_TEXT, {acceptNode: n =>
+    n.textContent.trim() && !n.parentElement.closest(TL_SKIP) && n.parentElement.offsetParent
+      ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP});
+  const n = w.nextNode();
+  let r = null;
+  if(n){ const rg = document.createRange(); rg.setStart(n, 0); rg.setEnd(n, 1); r = rg.getClientRects()[0]; }
+  if(!r){                                        /* 文字がないとき（書きかけ）は入力欄の1行目 */
+    const ed = c.querySelector('[contenteditable="true"]');
+    if(!ed || !ed.offsetParent) return;
+    const er = ed.getBoundingClientRect(), cs = getComputedStyle(ed);
+    const lh = parseFloat(cs.lineHeight) || 24, pt = parseFloat(cs.paddingTop) || 0;
+    r = {top: er.top + pt, bottom: er.top + pt + lh};
   }
+  c.style.setProperty('--tl-y', ((r.top + r.bottom) / 2 - c.getBoundingClientRect().top).toFixed(1) + 'px');
+}
+/* 月齢：その日の正午（日本時間）に、直前の新月から何日たったか（新月の時刻は Meeus の式） */
+function tlNewMoonJD(k){
+  const T = k / 1236.85, r = Math.PI / 180;
+  const JDE = 2451550.09766 + 29.530588861 * k + 0.00015437 * T * T - 0.00000015 * T ** 3 + 0.00000000073 * T ** 4;
+  const E = 1 - 0.002516 * T - 0.0000074 * T * T;
+  const M = (2.5534 + 29.1053567 * k - 0.0000014 * T * T) * r;
+  const Mp = (201.5643 + 385.81693528 * k + 0.0107582 * T * T + 0.00001238 * T ** 3) * r;
+  const F = (160.7108 + 390.67050284 * k - 0.0016118 * T * T - 0.00000227 * T ** 3) * r;
+  const Om = (124.7746 - 1.56375588 * k + 0.0020672 * T * T) * r;
+  const s = Math.sin;
+  return JDE - 0.4072 * s(Mp) + 0.17241 * E * s(M) + 0.01608 * s(2 * Mp) + 0.01039 * s(2 * F)
+    + 0.00739 * E * s(Mp - M) - 0.00514 * E * s(Mp + M) + 0.00208 * E * E * s(2 * M)
+    - 0.00111 * s(Mp - 2 * F) - 0.00057 * s(Mp + 2 * F) + 0.00056 * E * s(2 * Mp + M)
+    - 0.00042 * s(3 * Mp) + 0.00042 * E * s(M + 2 * F) + 0.00038 * E * s(M - 2 * F)
+    - 0.00024 * E * s(2 * Mp - M) - 0.00017 * s(Om);
+}
+function tlMoonAge(d){
+  const jd = Date.UTC(+d.slice(0, 4), +d.slice(5, 7) - 1, +d.slice(8, 10), 3) / 864e5 + 2440587.5;
+  let k = Math.floor((jd - 2451550.09766) / 29.530588861);
+  if(tlNewMoonJD(k) > jd) k--;
+  if(tlNewMoonJD(k + 1) <= jd) k++;
+  return jd - tlNewMoonJD(k);
+}
+function tlMoonSVG(age){
+  const p = age / 29.530588853, rx = Math.abs(Math.cos(2 * Math.PI * p)) * 6;
+  const wax = p < .5, cres = p < .25 || p > .75;
+  const outer = `M8 2A6 6 0 0 ${wax ? 1 : 0} 8 14`;
+  const term = `A${rx.toFixed(2)} 6 0 0 ${wax ? (cres ? 0 : 1) : (cres ? 1 : 0)} 8 2`;
+  return `<svg class="tl-moon" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" class="mn-d"/><path d="${outer}${term}Z" class="mn-l"/></svg>`;
+}
+/* 日付の下に出す：祝日・月齢・選んだ天気 */
+function tlDaySub(d, withWx){
+  const hol = holName(d), age = tlMoonAge(d);
+  const dm = S.boards.find(b => b.daily);
+  const wx = withWx && dm ? ((dm.weather || {})[d] || []) : [];
+  /* Timeline・本のページでは、Daily の天気をここから選べる */
+  const wxs = withWx ? `<span class="tl-wxsel">${WEATHER.map(([k, lb, path]) =>
+    `<button class="tl-wx wx-${k} ${wx.includes(k) ? 'on' : ''}" data-tlwx="${k}|${d}" title="${lb}">`
+    + `<svg class="wxico" viewBox="0 0 16 16">${path}</svg></button>`).join('')}</span>` : '';
+  return `<div class="tl-dsub">${hol ? `<span class="tl-hol">${esc(hol)}</span>` : ''}`
+    + `<span class="tl-age" title="月齢">${tlMoonSVG(age)}${age.toFixed(1)}</span>${wxs}</div>`;
 }
 const tlRO = ('ResizeObserver' in window) ? new ResizeObserver(es => es.forEach(e => tlAlign(e.target))) : null;
 function tlDeco(root){
+  tlDailyHeads(root);
   (root || document).querySelectorAll('.dailycards .drop, .ocside .drop, .tlpage .drop').forEach(drop => {
     drop.classList.add('tlv');
-    drop.querySelectorAll(':scope > .tl-day').forEach(n => n.remove());
+    drop.querySelectorAll(':scope > .tl-day, :scope > .tl-dayx').forEach(n => n.remove());
     const cards = [...drop.querySelectorAll(':scope > .card')].filter(el => el.dataset.card);
     const split = !!drop.closest('.ocside, .tlpage');     /* 日付ごとに区切る */
     let prev = null;
@@ -8052,17 +8157,22 @@ function tlDeco(root){
       if(!el.querySelector(':scope > .tl-time')){
         const t = tlTimeOf(k), dk = tlDateKind(k);
         const can = dk ? ` can" title="クリックで日付を変更" data-tldate="${dk}|${k.id}` : '';
+        const mark = k.type === 'task'
+          ? `<input type="checkbox" class="tl-ck" data-tlck="${k.id}" ${k.done ? 'checked' : ''} title="完了">`
+          : `<span class="tl-dot${can}"></span>`;
         el.insertAdjacentHTML('afterbegin',
-          `<div class="tl-time${can}">${esc(t || '—')}</div><span class="tl-line"></span><span class="tl-dot${can}"></span>`
-          + `<div class="tl-kind">${esc(tlKindOf(k))}</div>`);
+          `<div class="tl-time${can}">${esc(t || '—')}</div><span class="tl-line"></span>${mark}`);
         if(!t) el.classList.add('notime');
       }
+      const bc = findCard(k.id)?.board?.color;           /* ポッチはボードの色 */
+      if(bc) el.style.setProperty('--tl-c', bc); else el.style.removeProperty('--tl-c');
       el.querySelector('.card-top .mkact')?.classList.toggle('on', tlHasAct(k.id));
       const d = tlDateOf(k);
       if(split && d !== prev){
         const r = tlRel(d);
         el.insertAdjacentHTML('beforebegin', `<div class="tl-day">${r
-          ? `<b>${r}</b><i>·</i><span>${tlMD(d)}</span>` : `<b>${tlMD(d)}</b>`}</div>`);
+          ? `<b>${r}</b><i>·</i><span>${tlMD(d)}</span>` : `<b>${tlMD(d)}</b>`}</div>`
+          + tlDaySub(d, true).replace('tl-dsub', 'tl-dsub tl-dayx'));
       }
       const nx = cards[i + 1] && findCard(cards[i + 1].dataset.card)?.card;
       el.classList.toggle('tl-first', split ? d !== prev : i === 0);
@@ -8071,11 +8181,35 @@ function tlDeco(root){
       tlAlign(el);
       if(tlRO) tlRO.observe(el);
     });
+    drop.querySelectorAll('[data-tlck]').forEach(b => b.onchange = () => setDone(b.dataset.tlck, b.checked));
+    drop.querySelectorAll('[data-tlwx]').forEach(el => el.onclick = () => {
+      const dm = S.boards.find(b => b.daily); if(!dm) return;
+      const [k, dd] = el.dataset.tlwx.split('|');
+      const cur = wxOf(dm, dd), i = cur.indexOf(k);
+      if(i >= 0) cur.splice(i, 1); else cur.push(k);
+      if(!cur.length) delete dm.weather[dd];
+      save(); el.classList.toggle('on', i < 0);
+    });
+    /* 書いてすぐ、何も書かずに離れた新しいメモは消す */
+    drop.querySelectorAll('.card.tl.note [data-body]').forEach(ed => ed.addEventListener('blur', () => setTimeout(() => {
+      const f = findCard(ed.dataset.body); if(!f) return;
+      const k = f.card;
+      if(!k.tlNew || plain(k.body || '').trim() || (k.body || '').includes('<img')) { if(k.tlNew && plain(k.body || '').trim()){ delete k.tlNew; save(); } return; }
+      if(document.activeElement === ed) return;
+      f.col.cards.splice(f.idx, 1); save(); render();
+    }, 250)));
     drop.querySelectorAll('[data-tldate]').forEach(b => b.onclick = e => {
       e.stopPropagation();
       const [kind, cid] = b.dataset.tldate.split('|');
       ndateMenu(e.currentTarget.getBoundingClientRect(), kind, cid);
     });
+  });
+}
+function tlDailyHeads(root){
+  (root || document).querySelectorAll('.dailymain .daily-h, .dailymain .db-h').forEach(h => {
+    if(h.querySelector(':scope > .tl-dsub')) return;
+    const m = (h.querySelector('b')?.textContent || '').trim().match(/^\d{4}-\d{2}-\d{2}$/);
+    if(m) h.insertAdjacentHTML('beforeend', tlDaySub(m[0], false).replace('tl-dsub', 'tl-dsub tl-dh'));
   });
 }
 window.addEventListener('resize', () =>
@@ -8097,7 +8231,7 @@ function tlItems(){
   const out = [];
   const dm = S.boards.find(b => b.daily);
   if(dm) (dm.cols || []).forEach(c => c.cards.forEach(k => {
-    if(!k.day || k.parent || k.tpl || (k.type === 'task' && k.done)) return;
+    if(!k.day || k.parent || k.tpl) return;
     if(k.type === 'note' && !k.memoReg && !plain(k.body || '').trim() && !(k.body || '').includes('<img')
       && k.created !== today()) return;          /* 中身が空の書きかけは出さない（今日のものは出す） */
     out.push(k);
@@ -8106,7 +8240,7 @@ function tlItems(){
   if(sh){
     const all = sh.cols.flatMap(c => c.cards);
     const books = new Set(all.filter(k => k.type === 'book').map(k => k.id));
-    all.forEach(k => { if(k.parent && books.has(k.parent) && !(k.type === 'task' && k.done)) out.push(k); });
+    all.forEach(k => { if(k.parent && books.has(k.parent)) out.push(k); });
   }
   return out.map(k => ({k, key: tlDateOf(k) + ' ' + (tlTimeOf(k) || '')}))
     .sort((a, b) => b.key.localeCompare(a.key)).map(x => x.k);
@@ -11083,9 +11217,8 @@ const boot = () => {
   if(APP === 'task'){
     view = {type:'tasks'}; filter = 'today';
   } else {
-    /* 起動時は Daily Memo を開く */
-    const startB = S.boards.find(b2 => b2.daily) || S.boards.find(b2 => b2.name === 'Daily Memo') || S.boards[0];
-    view = {type:'board', id:startB?.id};
+    /* 起動時は Timeline を開く */
+    view = {type:'timeline'};
   }
   render();
 };
@@ -11745,8 +11878,8 @@ const boot2 = () => {
     panel.classList.contains('open') ? close() : open('home');
   });
 
-  /* 起動したときは HOME */
-  setTimeout(() => open('home'), 300);
+  /* 起動したときはパネルを閉じたまま、裏で HOME を読み込んでおく（計測中の表示のため） */
+  setTimeout(() => { if(!loaded){ frame.src = SRC('home'); loaded = true; curTab = 'home'; } }, 300);
   shut.addEventListener('click', close);
 
   /* タイマーが動いていることを、パネルを閉じていても分かるようにする */
