@@ -2100,7 +2100,7 @@
 
   /* ================= タイムライン表示（Daily・本のメモ・Timeline） =================
      元に戻すときは Notes-backup-before-timeline.html を使ってください */
-  :root{ --tl-panel:#fdfbf8; --tl-line:#e3dbd6; --tl-dot:#b9aea9; --tl-time:#a69d99; --tl-gap:30px; }
+  :root{ --tl-panel:#fdfbf8; --tl-line:#e3dbd6; --tl-dot:#b9aea9; --tl-time:#a69d99; --tl-gap:22px; }
   .dailymain{background:var(--tl-panel)}
   /* 本のページの右の列：白いパネルを1枚だけ敷く */
   .ocside .drop.tlv:not(:empty){background:var(--tl-panel);border:1px solid var(--line);border-radius:var(--radius);
@@ -2109,7 +2109,7 @@
 
   /* カードの枠を外して、左に時刻・線・点の列をあける */
   .drop.tlv > .card.tl{--tl-gut:52px;--tl-pad:84px;--tl-y:15px;
-    margin:0 0 var(--tl-gap) var(--tl-pad)!important;padding-left:0;padding-right:0;
+    margin:0 0 var(--tl-gap) var(--tl-pad)!important;padding-left:0;padding-right:0;padding-bottom:2px;
     border:0!important;box-shadow:none!important;background:transparent!important;border-radius:0;
     display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;overflow:visible}
   .ocside .drop.tlv > .card.tl{--tl-gut:0px;--tl-pad:26px}
@@ -2154,7 +2154,9 @@
   .card.tl > .kidcite{order:2}
   .card.tl .qcard > .qc-foot{order:4}
   .card.tl > .meta-b{order:5}
-  .card.tl > .card-top{order:9;flex:0 0 auto;margin:12px 0 0 auto!important;padding:0;border:0}
+  .card.tl > .card-top{order:9;flex:0 0 auto;margin:4px 0 0 auto!important;padding:0;border:0}
+  .card.tl .qc-foot .meta-b{margin:0 auto 0 6px!important;display:inline-flex;align-items:center;flex:0 1 auto;width:auto}
+  .card.tl .qc-foot{margin-bottom:0}
   .card.tl .qcard > .qc-h{order:10;flex:0 0 auto;margin:12px 0 0 6px;padding:0;border:0}
   .card.tl .qcard > .qc-h > span:first-child{display:none}      /* No.・日付は出さない（日付は時刻・点から変更） */
   .card.tl > .card-top > div[style*="flex:1"]{display:none}
@@ -8257,6 +8259,9 @@ function tlDeco(root){
       const bc = findCard(k.id)?.board?.color;           /* ポッチはボードの色 */
       if(bc) el.style.setProperty('--tl-c', bc); else el.style.removeProperty('--tl-c');
       el.querySelector('.card-top .mkact')?.classList.toggle('on', tlHasAct(k.id));
+      /* Tag は ＋画像 と同じ行に */
+      const mb = el.querySelector(':scope > .meta-b'), ft = el.querySelector('.qc-foot');
+      if(mb && ft){ const ia = ft.querySelector('.imgadd'); ia ? ia.after(mb) : ft.prepend(mb); }
       const d = tlDateOf(k);
       if(split && d !== prev){
         const r = tlRel(d);
