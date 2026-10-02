@@ -2220,16 +2220,18 @@
   .tl-dsub.tl-dh .tl-age::before{content:"月齢";margin-right:2px;font-size:11.5px;letter-spacing:.06em}
 
   /* Timeline ページ */
-  .tlwrap{display:flex;gap:20px;align-items:flex-start;justify-content:center}
-  .tlside{flex:0 0 300px;width:300px;position:sticky;top:0}
+  /* Daily のページと同じ幅（左の列 352px、メモは残りいっぱい） */
+  .tlwrap{display:flex;gap:20px;align-items:flex-start;justify-content:flex-start}
+  .tlside{flex:0 0 352px;width:352px;position:sticky;top:0;max-height:calc(100vh - 110px);overflow-y:auto}
   .tlside .cal{width:auto;flex:1 1 auto;border:1px solid var(--line);border-radius:11px;padding:12px 14px 10px}
-  .tlside .cd{height:38px;font-size:13px}
+  .tlside .cd{height:42px;font-size:13.5px}
+  .tlside .cd.tdy{width:42px;justify-self:center}
   .tlside .cal-w{font-size:11px}
   .tlside .cal-h b{font-size:14px}
   .tlside .cd.tdy{background:#d8b3bf;border-radius:50%;color:#fff}
   .tlside .cd.tdy:hover{background:#cda3b1}
   .tlpage .tl-day{scroll-margin-top:12px}
-  .tlpage{flex:1 1 auto;min-width:0;max-width:820px;margin:0;background:var(--tl-panel);border:1px solid var(--line);border-radius:14px;
+  .tlpage{flex:1 1 auto;min-width:0;margin:0;background:var(--tl-panel);border:1px solid var(--line);border-radius:14px;
     padding:18px 26px 22px;box-shadow:var(--shadow)}
   .tl-compose{display:flex;flex-direction:column;gap:12px;margin-bottom:26px}
   .tl-where{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
@@ -2262,7 +2264,7 @@
     .card.tl > .card-top .grip{display:none}
     .tlpage{padding:14px 6px 18px 10px;border-radius:12px}
     .tlwrap{flex-direction:column;align-items:stretch;gap:12px}
-    .tlside{position:static;width:auto;flex:none}
+    .tlside{position:static;width:auto;flex:none;max-height:none;overflow:visible}
     .tl-where{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}
   }
 </style>
@@ -8248,7 +8250,12 @@ function tlPaintCal(items){
     if(d && !marks[d]) marks[d] = (plain(k.title || '').trim() || plain(k.body || '').trim()
       || plain((k.quote && k.quote.text) || '').trim() || plain((k.read && k.read.memo) || '').trim() || 'メモ').slice(0, 40);
   });
-  side.innerHTML = calendarHTML(marks, tlCalSel || '', tlCalMonth, false, '');
+  /* カレンダーの下に Pin Memo（Daily と Bookshelf のメモ） */
+  const ids = S.boards.filter(b => b.daily || b.name === 'Bookshelf').map(b => b.id);
+  const pins = pinnedCards().filter(x => ids.includes(x.board.id));
+  side.innerHTML = calendarHTML(marks, tlCalSel || '', tlCalMonth, false, '')
+    + `<div class="pinlist"><div class="dl-h">Pin Memo</div>${pins.length ? pins.map(pinPreview).join('')
+      : '<div class="dl-empty">ピン留めしたメモがここに並びます</div>'}</div>`;
   side.querySelectorAll('[data-cm]').forEach(b => b.onclick = () => {
     const [y, m] = tlCalMonth.split('-').map(Number);
     const d = new Date(y, m - 1 + (+b.dataset.cm), 1);
@@ -11121,10 +11128,40 @@ function showLock(done){
   const err = document.getElementById('lockErr');
   w.classList.add('on');
   document.body.classList.add('locked');
-  setTimeout(() => inp.focus(), 60);
+  /* 開いてすぐ数字を打てるように：入力欄にカーソルを置き続ける。
+     ほかの場所（タイマーの枠など）にカーソルが移っても、数字キーはここで受け取る */
+  const locked = () => document.body.classList.contains('locked');
+  const grab = () => { if(locked() && document.activeElement !== inp) inp.focus({preventScroll: true}); };
+  setTimeout(grab, 0); setTimeout(grab, 60);
+  const tries = setInterval(grab, 250);
+  setTimeout(() => clearInterval(tries), 4000);
+  const onWinFocus = () => setTimeout(grab, 0);
+  const onWinBlur = () => setTimeout(grab, 0);
+  const onVis = () => { if(!document.hidden) setTimeout(grab, 0); };
+  const onKey = e => {
+    if(!locked() || e.target === inp) return;
+    if(/^[0-9]$/.test(e.key)){ e.preventDefault(); inp.value = (inp.value + e.key).slice(0, 4); inp.focus(); check(); }
+    else if(e.key === 'Backspace'){ e.preventDefault(); inp.value = inp.value.slice(0, -1); inp.focus(); }
+    else if(e.key === 'Enter'){ e.preventDefault(); check(); }
+  };
+  const onDown = () => setTimeout(grab, 0);
+  window.addEventListener('focus', onWinFocus);
+  window.addEventListener('blur', onWinBlur);
+  document.addEventListener('visibilitychange', onVis);
+  document.addEventListener('keydown', onKey, true);
+  w.addEventListener('mousedown', onDown);
+  const unhook = () => {
+    clearInterval(tries);
+    window.removeEventListener('focus', onWinFocus);
+    window.removeEventListener('blur', onWinBlur);
+    document.removeEventListener('visibilitychange', onVis);
+    document.removeEventListener('keydown', onKey, true);
+    w.removeEventListener('mousedown', onDown);
+  };
   const check = () => {
     if(inp.value.length < 4) return;
     if(pinHash(inp.value) === S.pin){
+      unhook();
       w.classList.remove('on');
       document.body.classList.remove('locked');
       inp.value = ''; err.textContent = '';
@@ -11933,7 +11970,12 @@ const boot2 = () => {
   });
 
   /* 起動したときはパネルを閉じたまま、裏で HOME を読み込んでおく（計測中の表示のため） */
-  setTimeout(() => { if(!loaded){ frame.src = SRC('home'); loaded = true; curTab = 'home'; } }, 300);
+  /* ロック中は読み込まない（タイマーの画面がカーソルを持っていかないように） */
+  const preload = () => {
+    if(document.body.classList.contains('locked')) return setTimeout(preload, 300);
+    if(!loaded){ frame.src = SRC('home'); loaded = true; curTab = 'home'; }
+  };
+  setTimeout(preload, 300);
   shut.addEventListener('click', close);
 
   /* タイマーが動いていることを、パネルを閉じていても分かるようにする */
