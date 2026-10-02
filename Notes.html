@@ -1834,9 +1834,13 @@
   .dog-light{fill:url(#gDogL) #EBDCC4}
   .dog-nose{fill:#5C4632}
   .walker .bob{animation:dogBob .52s ease-in-out infinite;transform-origin:17px 24px}
+  .walker .leg-a,.walker .leg-b,
+  .walker .gp-h1,.walker .gp-f1,.walker .gp-h2,.walker .gp-f2{
+    transform-box:fill-box;transform-origin:50% 0}
+  .walker .ear{transform-origin:24.6px 8.8px}
   .walker .leg-a{animation:legA .52s ease-in-out infinite}
   .walker .leg-b{animation:legB .52s ease-in-out infinite}
-  .walker .tail{animation:tailWag .42s ease-in-out infinite;transform-origin:6px 15px}
+  .walker .tail{animation:tailWag .42s ease-in-out infinite;transform-origin:8.6px 13.9px}
   .walker .pose{transition:transform .35s ease}
   .walker.still .bob,.walker.still .leg-a,.walker.still .leg-b{animation:none}
   .walker.sit .bob,.walker.sit .leg-a,.walker.sit .leg-b{animation:none}
@@ -1861,10 +1865,94 @@
   .dog-shut{display:none;fill:none;stroke:#5C4632;stroke-width:.85;stroke-linecap:round}
   .walker.sleep .dog-eye,.walker.sleep .dog-glint{display:none}
   .walker.sleep .dog-shut{display:block}
+  /* 体は まっすぐのまま。あたまだけ 地面まで おろして、ほおを ぺたりとつける */
+  /* 首輪の 輪だけ さげる。切りぬきは そのまま */
+  .walker.sleep .dog-collar circle{transform-box:view-box;transform:translate(0,3.4px)}
+  .walker.sleep .ear,.walker.sleep .bob > .dog-shut,
+  .walker.sleep circle.dog-body,
+  .walker.sleep .bob > g[clip-path="url(#dgHead)"],
+  .walker.sleep .dog-front,
+  .walker.sleep ellipse.dog-light[cx="27.2"],
+  .walker.sleep ellipse.dog-light[cx="29.75"],
+  .walker.sleep ellipse.dog-nose{transform-box:view-box;transform:translate(0,3.4px)}
+  /* ぐっすり。耳が たれて、口もとが ゆるむ */
+  .walker.sleep.zz2 .ear{transform:translate(0,3.4px) rotate(-17deg);
+    transform-origin:24.6px 8.8px}
+  .walker.sleep.zz2 ellipse.dog-light[cx="29.75"]{transform:translate(.3px,3.95px)}
+  .walker.sleep.zz2 ellipse.dog-nose{transform:translate(.35px,4px)}
+  .walker.sleep.zz2 .bob > .dog-shut{transform:translate(0,3.85px)}
+  /* こちらを向いて ねむっている子。両目とも 閉じて、鼻は まんなかに */
+  .dog-front{display:none}
+  .walker.sleep.zz3 .dog-front{display:block}
+  /* こてん、と 顔をかしげている。耳は ふつうのまま */
+  .walker.sleep.zz3 .dogf-face{transform-box:view-box;
+    transform:rotate(21deg);transform-origin:26px 12.5px}
+  .walker.sleep.zz3 .bob > .dog-shut,
+  .walker.sleep.zz3 path.dog-light,
+  .walker.sleep.zz3 ellipse.dog-light[cx="27.2"],
+  .walker.sleep.zz3 ellipse.dog-light[cx="29.75"],
+  .walker.sleep.zz3 ellipse.dog-nose[cx="31.25"]{display:none}
+  .walker.sleep.zz3 .ear{transform:translate(-1.25px,3.4px) rotate(21deg);
+    transform-origin:26px 7px}
+  .walker.sleep.zz3 .dogf-ear{transform-box:view-box;
+    transform:translate(1.25px,0) rotate(21deg);transform-origin:26px 7px}
   @keyframes dogBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.4px)}}
-  @keyframes legA{0%,100%{transform:translateX(1.6px)}50%{transform:translateX(-1.6px)}}
-  @keyframes legB{0%,100%{transform:translateX(-1.6px)}50%{transform:translateX(1.6px)}}
-  @keyframes tailWag{0%,100%{transform:rotate(-14deg)}50%{transform:rotate(16deg)}}
+  @keyframes legA{0%,100%{transform:rotate(13deg)}50%{transform:rotate(-13deg)}}
+  @keyframes legB{0%,100%{transform:rotate(-13deg)}50%{transform:rotate(13deg)}}
+  /* ---------- 歩きかた 三つ ---------- */
+  /* ① 歩く */
+  .walker.gt-walk .leg-a,.walker.gt-walk .leg-b{animation-duration:.88s}
+  .walker.gt-walk .bob{animation-duration:.44s}
+  .walker.gt-walk .tail{animation-duration:.74s}
+  /* ② 走る — 足の運びは ① と同じ。速さだけ */
+  .walker.gt-run .leg-a,.walker.gt-run .leg-b{animation-duration:.28s}
+  .walker.gt-run .bob{animation-duration:.14s}
+  .walker.gt-run .tail{animation-duration:.25s}
+  /* ③ 駆ける — «タタッ» のリズム */
+  .walker.gt-gallop .gp-h1{animation:gaitHind .42s linear infinite}
+  .walker.gt-gallop .gp-h2{animation:gaitHind .42s linear infinite;animation-delay:-.055s}
+  .walker.gt-gallop .gp-f1{animation:gaitFore .42s linear infinite}
+  .walker.gt-gallop .gp-f2{animation:gaitFore .42s linear infinite;animation-delay:-.055s}
+  @keyframes gaitHind{
+    0%{transform:rotate(-34deg);animation-timing-function:cubic-bezier(.2,0,.35,1)}
+    16%{transform:rotate(26deg);animation-timing-function:cubic-bezier(.4,.05,.65,1)}
+    30%{transform:rotate(33deg);animation-timing-function:cubic-bezier(.5,0,.7,.55)}
+    52%{transform:rotate(6deg);animation-timing-function:cubic-bezier(.35,0,.75,.5)}
+    78%{transform:rotate(-30deg);animation-timing-function:cubic-bezier(.4,0,.6,1)}
+    100%{transform:rotate(-34deg)}}
+  @keyframes gaitFore{
+    0%{transform:rotate(33deg);animation-timing-function:cubic-bezier(.45,0,.7,.5)}
+    20%{transform:rotate(2deg);animation-timing-function:cubic-bezier(.4,0,.7,.5)}
+    36%{transform:rotate(-28deg);animation-timing-function:cubic-bezier(.35,0,.6,1)}
+    52%{transform:rotate(-31deg);animation-timing-function:cubic-bezier(.2,0,.4,1)}
+    76%{transform:rotate(16deg);animation-timing-function:cubic-bezier(.4,0,.65,1)}
+    100%{transform:rotate(33deg)}}
+  .walker.gt-gallop .bob{animation:gaitBob .42s linear infinite}
+  @keyframes gaitBob{
+    0%{transform:translateY(-2.5px) scaleY(1.03) scaleX(.98);
+       animation-timing-function:cubic-bezier(.45,0,.8,.45)}
+    10%{transform:translateY(0) scaleY(.94) scaleX(1.05);
+       animation-timing-function:cubic-bezier(.25,.8,.45,1)}
+    18%{transform:translateY(-1px) scaleY(1.01) scaleX(.99);
+       animation-timing-function:cubic-bezier(.5,0,.85,.45)}
+    26%{transform:translateY(.1px) scaleY(.95) scaleX(1.04);
+       animation-timing-function:cubic-bezier(.25,.8,.45,1)}
+    34%{transform:translateY(-.6px) scaleY(1) scaleX(1);
+       animation-timing-function:cubic-bezier(.5,0,.85,.5)}
+    41%{transform:translateY(.4px) scaleY(.93) scaleX(1.06);
+       animation-timing-function:cubic-bezier(.16,.78,.36,1)}
+    100%{transform:translateY(-2.5px) scaleY(1.03) scaleX(.98)}}
+  .walker.gt-gallop .pose{animation:gaitLean .42s ease-in-out infinite;
+    transform-origin:14px 22px;transition:none}
+  @keyframes gaitLean{0%,100%{transform:rotate(3.5deg)}
+    30%{transform:rotate(-1.5deg)}64%{transform:rotate(4.5deg)}}
+  .walker.gt-gallop .tail{animation:gaitTail .42s ease-in-out infinite}
+  @keyframes gaitTail{0%,100%{transform:rotate(-11deg)}
+    22%{transform:rotate(5deg)}52%{transform:rotate(-8deg)}}
+  .walker.gt-gallop .ear{animation:gaitEar .42s ease-in-out infinite}
+  @keyframes gaitEar{0%,100%{transform:rotate(-24deg)}
+    30%{transform:rotate(-13deg)}64%{transform:rotate(-21deg)}}
+  @keyframes tailWag{0%,100%{transform:rotate(-11deg)}50%{transform:rotate(13deg)}}
   /* 子犬 */
   .walker.pup{width:20px;height:20px;margin-left:-10px;margin-top:-10px;opacity:.94;
     animation:pupJoin .6s cubic-bezier(.2,1.4,.35,1)}
@@ -2004,6 +2092,110 @@
   .qrand .ddbig{padding:22px 22px 18px}
   .qrand .ddbig .ddtext{font-size:16px;line-height:2.05;padding:18px 20px;background:#f1f8f7}
   .qrand .ddbig .ddfrom{font-size:11.5px;margin-top:10px}
+
+  /* ================= タイムライン表示（Daily・本のメモ・Timeline） =================
+     元に戻すときは Notes-backup-before-timeline.html を使ってください */
+  :root{ --tl-panel:#fdfbf8; --tl-line:#e3dbd6; --tl-dot:#b9aea9; --tl-time:#a69d99; --tl-gap:30px; }
+  .dailymain{background:var(--tl-panel)}
+  /* 本のページの右の列：白いパネルを1枚だけ敷く */
+  .ocside .drop.tlv:not(:empty){background:var(--tl-panel);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:22px 26px 6px 8px}
+  .drop.tlv{display:block}
+
+  /* カードの枠を外して、左に時刻・線・点の列をあける */
+  .drop.tlv > .card.tl{--tl-gut:52px;--tl-pad:84px;--tl-y:15px;
+    margin:0 0 var(--tl-gap) var(--tl-pad)!important;padding-left:0;padding-right:0;
+    border:0!important;box-shadow:none!important;background:transparent!important;border-radius:0;
+    display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;overflow:visible}
+  .ocside .drop.tlv > .card.tl{--tl-gut:0px;--tl-pad:26px}
+  .drop.tlv > .card.tl::before{display:none}
+  .card.tl > *, .card.tl .qcard > *{flex:0 0 100%;min-width:0}
+  .card.tl > .tl-time{position:absolute;left:calc(-1 * var(--tl-pad));width:var(--tl-gut);top:calc(var(--tl-y) - 11px);
+    text-align:right;font:400 13px/22px 'Montserrat',sans-serif;color:var(--tl-time);
+    font-variant-numeric:tabular-nums;letter-spacing:.02em;flex:none}
+  .card.tl.notime > .tl-time{visibility:hidden}
+  .card.tl > .tl-line{position:absolute;left:calc(-1 * var(--tl-pad) + var(--tl-gut) + 15px);width:1px;
+    top:0;bottom:calc(-1 * var(--tl-gap));background:var(--tl-line);flex:none}
+  .card.tl.tl-first > .tl-line{top:var(--tl-y)}
+  .card.tl.tl-last > .tl-line{bottom:auto;height:var(--tl-y)}
+  .card.tl.tl-first.tl-last > .tl-line{display:none}
+  .card.tl > .tl-dot{position:absolute;left:calc(-1 * var(--tl-pad) + var(--tl-gut) + 11px);top:calc(var(--tl-y) - 4.5px);
+    width:9px;height:9px;border-radius:50%;background:var(--tl-dot);box-shadow:0 0 0 4px var(--tl-panel);z-index:1;flex:none}
+  .card.tl > .tl-time.can, .card.tl > .tl-dot.can{cursor:pointer}
+  .card.tl > .tl-time.can:hover{color:var(--ink)}
+  .card.tl > .tl-dot.can:hover{background:var(--brown)}
+
+  /* 並び：種別（ポッチの行）→ 本文 → ＋画像・書式 → タグ → ボタン */
+  .card.tl .qcard, .card.tl > .sec.bare, .card.tl > .sec.bare > .qcard{display:contents}
+  .card.tl > *{order:6}
+  .card.tl > .qribbon{order:0;flex:none}
+  .card.tl > .tl-kind{order:0;margin:0 0 6px;padding-left:8px;font:500 11px/22px 'Montserrat',sans-serif;
+    letter-spacing:.1em;color:#b3aaa6}
+  .ocside .card.tl > .tl-kind{padding-left:14px}
+  .card.tl .qcard > *{order:3}
+  .card.tl > .sec.bare > *:not(.qcard){flex:0 0 100%;min-width:0;order:3}
+  .card.tl > .kidcite{order:2}
+  .card.tl .qcard > .qc-foot{order:4}
+  .card.tl > .meta-b{order:5}
+  .card.tl > .card-top{order:9;flex:0 0 auto;margin:12px 0 0 auto!important;padding:0;border:0}
+  .card.tl .qcard > .qc-h{order:10;flex:0 0 auto;margin:12px 0 0 6px;padding:0;border:0}
+  .card.tl .qcard > .qc-h > span:first-child{display:none}      /* No.・日付は出さない（日付は時刻・点から変更） */
+  .card.tl > .card-top > div[style*="flex:1"]{display:none}
+  .card.tl > .card-top .grip{order:-1}
+  .card.tl > :empty:not(.tl-line):not(.tl-dot):not(.qribbon){display:none}
+  .card.tl > .meta-b:not(:has(*)){display:none}
+  .card.tl .qc-body{border-top:0!important;margin-top:0!important;padding-top:0!important}
+  .card.tl .qc-body.qbg{margin:0 0 0 14px!important;padding:12px 16px!important}
+  .card.tl .qc-ttl{margin-top:0}
+  /* 本のページでは、上の書名の行を出さない（下の出典に書名があるため） */
+  .ocside .card.tl > .kidcite{display:none}
+  .card.tl > .kidcite{margin:0 0 6px;padding-left:8px}
+
+  /* Action：OFF は他のボタンと同じグレー、この メモから Action を作ってあれば ON */
+  .card.tl > .card-top .mkact:not(.on){background:#f4f0ef;color:#a7a0a2;border-color:transparent;font-weight:400}
+  .card.tl > .card-top .mkact:not(.on):hover{background:#eae5e4;color:#8b8285}
+  .card.tl > .card-top .mkact.on{background:none;color:#b9702f;border-color:#d98a3f;font-weight:600}
+
+  /* 日付の区切り */
+  .tl-day{display:flex;align-items:center;gap:12px;margin:26px 0 16px;font-family:'Montserrat',sans-serif}
+  .tl-day:first-child{margin-top:4px}
+  .tl-day::before,.tl-day::after{content:"";flex:1;height:1px;background:var(--tl-line)}
+  .tl-day b{font-size:14px;font-weight:600;color:var(--brown);letter-spacing:.04em}
+  .tl-day span{font-size:12px;color:var(--tl-time)}
+  .tl-day i{font-style:normal;color:#d4ccc8}
+
+  /* Timeline ページ */
+  .tlpage{max-width:820px;margin:0 auto;background:var(--tl-panel);border:1px solid var(--line);border-radius:14px;
+    padding:18px 26px 22px;box-shadow:var(--shadow)}
+  .tl-compose{display:flex;flex-direction:column;gap:12px;margin-bottom:26px}
+  .tl-where{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+  .tl-wlb{font:500 10.5px 'Montserrat',sans-serif;letter-spacing:.1em;color:#b3aaa6;margin-right:4px;white-space:nowrap;flex:0 0 auto}
+  .tl-chip{display:inline-flex;align-items:center;gap:5px;height:26px;padding:0 11px;border-radius:20px;font-size:12px;
+    background:#f4f0ef;color:#8b8285;border:1.5px solid transparent;white-space:nowrap;flex:0 0 auto}
+  .tl-chip:hover{background:#eae5e4}
+  .tl-chip svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.2}
+  .tl-chip.on{background:none;color:var(--brown);border-color:var(--brown);font-weight:600}
+  .tl-chip.more{background:none;border:1px dashed #d8cfcc;color:#a7a0a2}
+  .tl-new{width:100%}
+  .tl-newto{margin-left:10px;font-size:12px;color:var(--brown)}
+  .tl-books{max-height:60vh;overflow:auto;width:260px}
+  .tl-books input{width:100%;margin-bottom:6px}
+  .tl-books button{display:block;width:100%;text-align:left;padding:6px 8px;border-radius:7px;font-size:13px}
+  .tl-books button:hover{background:#f6f2f1}
+  .tl-empty{color:var(--muted);font-size:13px;padding:20px 0;text-align:center}
+
+  @media (max-width:760px){
+    .drop.tlv > .card.tl{--tl-gut:30px;--tl-pad:50px}
+    .ocside .drop.tlv > .card.tl{--tl-gut:0px;--tl-pad:26px}
+    .card.tl > .tl-time{font-size:11px;letter-spacing:0}
+    .card.tl > .tl-dot{left:calc(-1 * var(--tl-pad) + var(--tl-gut) + 6px)}
+    .card.tl > .tl-line{left:calc(-1 * var(--tl-pad) + var(--tl-gut) + 10px)}
+    .card.tl > .card-top{gap:3px}
+    .card.tl > .card-top .cardtg, .card.tl > .card-top .pintg, .card.tl > .card-top .mkact{font-size:10px;padding:0 7px}
+    .card.tl > .card-top .grip{display:none}
+    .tlpage{padding:14px 14px 18px;border-radius:12px}
+    .tl-where{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}
+  }
 </style>
 </head>
 <body>
@@ -2060,6 +2252,7 @@
     <div class="nav" id="navTimer" title="One Step を開く"><span class="ico"><svg class="nico paw" viewBox="0 0 40 34"><ellipse cx="20" cy="25" rx="8.6" ry="7"/><ellipse cx="9.5" cy="14.5" rx="4" ry="5.2" transform="rotate(-18 9.5 14.5)"/><ellipse cx="16.5" cy="8" rx="3.7" ry="5"/><ellipse cx="24.5" cy="8" rx="3.7" ry="5"/><ellipse cx="31" cy="14.5" rx="4" ry="5.2" transform="rotate(18 31 14.5)"/></svg></span><span>One Step</span><span class="cnt tm-badge" id="timerBadge" hidden></span></div>
     <div id="navList">
     <div class="nav" id="navSearch" data-nav="search" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><circle cx="7.2" cy="7.2" r="4.6"/><path d="M10.6 10.6l3.2 3.2"/></svg></span><span>Search</span></div>
+    <div class="nav" id="navTline" data-nav="tline" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M4.2 1.8v12.4"/><circle cx="4.2" cy="4.2" r="1.6"/><circle cx="4.2" cy="10.4" r="1.6"/><path d="M7.4 4.2h6M7.4 10.4h6"/></svg></span><span>Timeline</span></div>
     <div class="nav" id="navTasks" data-nav="tasks" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><circle cx="10.2" cy="2.9" r="1.5"/><path d="M4.2 14.2l2.1-3.4 1.6-1.1-1-3.1-2.4 1.5-1 2.1"/><path d="M6.9 6.6l2.6-1.3 1.6 2.4 2.4.9"/><path d="M11.6 13.9l-1.4-3.1-2.3-1.3"/></svg></span><span id="navTasksLb">Tasks</span><span class="cnt" id="cntAll">0</span></div>
     <div class="nav" id="navPin" data-nav="pin" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M9.6 1.9l4.5 4.5-1.6.5-1 1-.4 3.1-4.7-4.7 3.1-.4 1-1z"/><path d="M6.4 6.3L2.2 13.8l7.5-4.2"/></svg></span><span>Pin Memo</span><span class="cnt" id="cntPin">0</span></div>
     <div class="nav" id="navLearn" data-nav="learn" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M2.6 13.4V11l7.6-7.6 2.4 2.4L5 13.4z"/><path d="M9.4 4.2l2.4 2.4"/><path d="M2.6 13.4h10.8"/></svg></span><span>D Discoveries</span><span class="cnt" id="cntLearn">0</span></div>
@@ -3185,8 +3378,8 @@ function boardNav(b, inFolder){
 }
 const NAVKEYS = APP === 'task'
   ? ['search', 'tasks', 'replog', 'done', 'times']
-  : ['search', 'tasks', 'pin', 'learn', 'issue', 'read', 'times', 'quote', 'cards'];
-const NAVALL = ['search','tasks','times','done','read','quote','cards','pin','learn','issue'];
+  : ['search', 'tline', 'tasks', 'pin', 'learn', 'issue', 'read', 'times', 'quote', 'cards'];
+const NAVALL = ['search','tline','tasks','times','done','read','quote','cards','pin','learn','issue'];
 let dragNav = null;
 /* サイドバー上部メニューの並び替え */
 function renderNavOrder(){
@@ -3216,6 +3409,12 @@ function renderNavOrder(){
     const i3 = S.navOrder.indexOf('learn');
     if(i3 >= 0) S.navOrder.splice(i3 + 1, 0, 'issue'); else S.navOrder.push('issue');
     S.navIssue1 = true;
+  }
+  if(APP === 'note' && !S.navTline1){     /* Timeline は Search の下に */
+    S.navOrder = (S.navOrder || []).filter(k => k !== 'tline');
+    const i4 = S.navOrder.indexOf('search');
+    S.navOrder.splice(i4 >= 0 ? i4 + 1 : 0, 0, 'tline');
+    S.navTline1 = true;
   }
   S.navOrder = (S.navOrder || []).filter(k => NAVKEYS.includes(k));
   NAVKEYS.forEach(k => { if(!S.navOrder.includes(k)) S.navOrder.push(k); });
@@ -3373,6 +3572,7 @@ function renderSide(){
   }
   paintWork();
   document.getElementById('navSearch').classList.toggle('on', view.type === 'search');
+  document.getElementById('navTline')?.classList.toggle('on', view.type === 'timeline');
   const nvI = document.getElementById('navIssue');
   if(nvI){
     nvI.classList.toggle('on', view.type === 'issue');
@@ -3816,7 +4016,7 @@ function makeLinked(cid, kind){
     || plain(k.body || '').trim().split('\n')[0].trim() || '').slice(0, 40);
   const nk = {id:uid(), type:kind, title:kind === 'task' ? t : '', body:'', color:k.color || '',
     start:'', due:'', repeat:{unit:'', n:1, days:[]}, done:false, subs:[], tags:[],
-    links:[k.id], created:today(), updated:today()};
+    links:[k.id], created:today(), updated:today(), ctime:nowHM()};
   if(kind === 'note'){ nk.hasMemo = true; nk.bodyTitle = t; nk.day = k.day || today(); }
   /* 本や親メモの中で押したときは、その中の一番上に置く */
   const pid = k.parent || (k.type === 'book' ? k.id : '');
@@ -5147,7 +5347,7 @@ const NEWBTN = {
   learn: `<button data-t="learn"><i class="ic"><svg class="mico" viewBox="0 0 16 16"><path d="M2.6 13.4V11l7.6-7.6 2.4 2.4L5 13.4z"/><path d="M9.4 4.2l2.4 2.4"/><path d="M2.6 13.4h10.8"/></svg></i>Daily Discoveries</button>`,
   read: `<button data-t="read"><i class="ic"><svg class="mico" viewBox="0 0 16 16"><path d="M2.6 3.1h4.1c.9 0 1.3.5 1.3 1.2v8.6c0-.6-.5-1-1.3-1H2.6z"/><path d="M13.4 3.1H9.3c-.9 0-1.3.5-1.3 1.2v8.6c0-.6.5-1 1.3-1h4.1z"/></svg></i>Read</button>`,
 };
-function addMenu(e, colId, parentId){
+function addMenu(e, colId, parentId, opts){
   const r = e.currentTarget.getBoundingClientRect();
   /* Bookshelf だけ Book を出す */
   const ownB = S.boards.find(b2 => (b2.cols || []).some(c => c.id === colId));
@@ -5174,7 +5374,8 @@ function addMenu(e, colId, parentId){
     if(k.type === 'read') k.read = {author:'', source:'', media:'', memo:'', card:false};
     if(k.type === 'book') k.book = {cover:'', url:'', title:'', author:'', trans:'', pub:'',
       met:'', buy:'', media:'', startOn:false, startAt:'', doneOn:false, doneAt:'', stars:0, memo:''};
-    if(bd.daily) k.day = dailySel || today();
+    if(bd.daily) k.day = (opts && opts.day) || dailySel || today();
+    k.ctime = nowHM();          /* 作った時刻（タイムラインの並びと表示に使う） */
     if(parentId) k.parent = parentId;
     k.created = today(); k.updated = today();
     if(bd.daily || parentId) col.cards.unshift(k); else col.cards.push(k);
@@ -6841,6 +7042,7 @@ function renderDaily(b){
   });
   v.querySelectorAll('[data-add]').forEach(el => el.onclick = e => addMenu(e, el.dataset.add));
   wireCards(v); wireDnD(v);
+  tlDeco(v);
 }
 
 /* 天気（複数選択可） */
@@ -7802,6 +8004,173 @@ function renderCard(){
   v.querySelectorAll('[data-timer]').forEach(el => el.onclick = e =>
     toggleTimer(el.dataset.timer, e.currentTarget.getBoundingClientRect()));
   v.querySelectorAll('[data-kidadd]').forEach(el => el.onclick = e => addMenu(e, f.col.id, k.id));
+  tlDeco(v);
+}
+
+/* ================= タイムライン表示 =================
+   Daily・本のメモ・Timeline ページのメモを、時刻・線・点で並べる。
+   元に戻すときは Notes-backup-before-timeline.html を使う。 */
+const tlDateOf = k => k.memoDate || (k.quote && k.quote.date) || (k.read && k.read.date) || k.day || k.created || '';
+const tlTimeOf = k => k.memoTime || k.ctime || '';
+const tlKindOf = k => k.type === 'task' ? TASKONE
+  : k.type === 'quote' ? 'Quote'
+  : k.type === 'read' ? (k.parent ? 'Memo' : 'Read')
+  : k.learn ? 'Daily Discoveries' : 'Memo';
+const tlDateKind = k => k.type === 'note' ? 'memo' : k.type === 'quote' ? 'quote' : k.type === 'read' ? 'read' : '';
+function tlRel(d){
+  const t = parse(today()), x = parse(d);
+  const n = Math.round((t - x) / 864e5);
+  return n === 0 ? '今日' : n === 1 ? '昨日' : n === 2 ? '一昨日' : (n > 2 && n < 7) ? `${n}日前` : '';
+}
+const tlMD = d => { const x = parse(d); return `${x.getMonth() + 1}月${x.getDate()}日(${WD[x.getDay()]})`; };
+/* このメモから Action を作ってあるか */
+function tlHasAct(id){
+  return S.boards.some(b => (b.cols || []).some(c => c.cards.some(x =>
+    x.type === 'task' && (x.links || []).includes(id))));
+}
+/* 書き出し行の中心の高さを測って、時刻・点・線をそこにそろえる */
+function tlAlign(c){
+  const top = c.getBoundingClientRect().top;
+  const kd = c.querySelector(':scope > .tl-kind');
+  if(kd && kd.offsetParent){
+    const r = kd.getBoundingClientRect();
+    c.style.setProperty('--tl-y', ((r.top + r.bottom) / 2 - top).toFixed(1) + 'px');
+  }
+}
+const tlRO = ('ResizeObserver' in window) ? new ResizeObserver(es => es.forEach(e => tlAlign(e.target))) : null;
+function tlDeco(root){
+  (root || document).querySelectorAll('.dailycards .drop, .ocside .drop, .tlpage .drop').forEach(drop => {
+    drop.classList.add('tlv');
+    drop.querySelectorAll(':scope > .tl-day').forEach(n => n.remove());
+    const cards = [...drop.querySelectorAll(':scope > .card')].filter(el => el.dataset.card);
+    const split = !!drop.closest('.ocside, .tlpage');     /* 日付ごとに区切る */
+    let prev = null;
+    cards.forEach((el, i) => {
+      const k = findCard(el.dataset.card)?.card; if(!k) return;
+      if(k.type === 'heading' || k.type === 'book') return;
+      el.classList.add('tl');
+      if(!el.querySelector(':scope > .tl-time')){
+        const t = tlTimeOf(k), dk = tlDateKind(k);
+        const can = dk ? ` can" title="クリックで日付を変更" data-tldate="${dk}|${k.id}` : '';
+        el.insertAdjacentHTML('afterbegin',
+          `<div class="tl-time${can}">${esc(t || '—')}</div><span class="tl-line"></span><span class="tl-dot${can}"></span>`
+          + `<div class="tl-kind">${esc(tlKindOf(k))}</div>`);
+        if(!t) el.classList.add('notime');
+      }
+      el.querySelector('.card-top .mkact')?.classList.toggle('on', tlHasAct(k.id));
+      const d = tlDateOf(k);
+      if(split && d !== prev){
+        const r = tlRel(d);
+        el.insertAdjacentHTML('beforebegin', `<div class="tl-day">${r
+          ? `<b>${r}</b><i>·</i><span>${tlMD(d)}</span>` : `<b>${tlMD(d)}</b>`}</div>`);
+      }
+      const nx = cards[i + 1] && findCard(cards[i + 1].dataset.card)?.card;
+      el.classList.toggle('tl-first', split ? d !== prev : i === 0);
+      el.classList.toggle('tl-last', !nx || (split && tlDateOf(nx) !== d));
+      prev = d;
+      tlAlign(el);
+      if(tlRO) tlRO.observe(el);
+    });
+    drop.querySelectorAll('[data-tldate]').forEach(b => b.onclick = e => {
+      e.stopPropagation();
+      const [kind, cid] = b.dataset.tldate.split('|');
+      ndateMenu(e.currentTarget.getBoundingClientRect(), kind, cid);
+    });
+  });
+}
+window.addEventListener('resize', () =>
+  document.querySelectorAll('.drop.tlv > .card.tl').forEach(tlAlign));
+
+/* ---------------- Timeline ページ ---------------- */
+let tlSel = 'daily';          /* 書く場所：'daily' か 本のカード id */
+let tlExtra = [];             /* 「ほかの本…」から選んだ本 */
+function tlShelf(){ return S.boards.find(b => b.name === 'Bookshelf'); }
+function tlRecentBooks(){
+  const sh = tlShelf(); if(!sh) return [];
+  const all = sh.cols.flatMap(c => c.cards);
+  const last = b => [b.updated || '', ...(b.times || []).map(t => t.date || ''),
+    ...all.filter(x => x.parent === b.id).map(tlDateOf)].sort().pop() || '';
+  return all.filter(k => k.type === 'book' && bookShelf(k) === 'reading' && !bookStatus(k))
+    .sort((a, b) => last(b).localeCompare(last(a))).slice(0, 5);
+}
+function tlItems(){
+  const out = [];
+  const dm = S.boards.find(b => b.daily);
+  if(dm) (dm.cols || []).forEach(c => c.cards.forEach(k => {
+    if(!k.day || k.parent || k.tpl || (k.type === 'task' && k.done)) return;
+    if(k.type === 'note' && !k.memoReg && !plain(k.body || '').trim() && !(k.body || '').includes('<img')
+      && k.created !== today()) return;          /* 中身が空の書きかけは出さない（今日のものは出す） */
+    out.push(k);
+  }));
+  const sh = tlShelf();
+  if(sh){
+    const all = sh.cols.flatMap(c => c.cards);
+    const books = new Set(all.filter(k => k.type === 'book').map(k => k.id));
+    all.forEach(k => { if(k.parent && books.has(k.parent) && !(k.type === 'task' && k.done)) out.push(k); });
+  }
+  return out.map(k => ({k, key: tlDateOf(k) + ' ' + (tlTimeOf(k) || '')}))
+    .sort((a, b) => b.key.localeCompare(a.key)).map(x => x.k);
+}
+function renderTimeline(){
+  const t = document.getElementById('pageTitle');
+  t.value = 'Timeline'; t.disabled = true; t.oninput = null; t.style.color = '';
+  document.getElementById('topActions').innerHTML = '';
+  const recent = tlRecentBooks();
+  const chips = [...recent, ...tlExtra.map(id => findCard(id)?.card).filter(b => b && !recent.includes(b))];
+  if(tlSel !== 'daily' && !findCard(tlSel)) tlSel = 'daily';
+  const short = s => (s || '').length > 14 ? s.slice(0, 13) + '…' : (s || '');
+  const selB = tlSel !== 'daily' ? findCard(tlSel)?.card : null;
+  const items = tlItems();
+  const v = document.getElementById('view');
+  v.innerHTML = `<div class="tlpage">
+    <div class="tl-compose">
+      <div class="tl-where"><span class="tl-wlb">書く場所</span>
+        <button class="tl-chip ${tlSel === 'daily' ? 'on' : ''}" data-tlsel="daily">Daily</button>
+        ${chips.map(b => `<button class="tl-chip ${tlSel === b.id ? 'on' : ''}" data-tlsel="${b.id}"
+          title="${esc(b.book.title || '')}">${PICKICO}${esc(short(b.book.title))}</button>`).join('')}
+        <button class="tl-chip more" id="tlMore">ほかの本…</button>
+      </div>
+      <button class="add tl-new" id="tlNew">＋ New${selB
+        ? `<span class="tl-newto">→ ${esc(short(selB.book.title))}</span>` : ''}</button>
+    </div>
+    ${items.length ? `<div class="dailycards"><div class="drop">${items.map(cardHTML).join('')}</div></div>`
+      : `<div class="tl-empty">まだメモがありません</div>`}
+  </div>`;
+  v.querySelectorAll('[data-tlsel]').forEach(b => b.onclick = () => { tlSel = b.dataset.tlsel; renderTimeline(); });
+  document.getElementById('tlMore').onclick = e => {
+    const r = e.currentTarget.getBoundingClientRect();
+    const sh = tlShelf();
+    const books = sh ? sh.cols.flatMap(c => c.cards).filter(k => k.type === 'book') : [];
+    const p = popup(r.left, r.bottom + 6, `<div class="dpanel tl-books">
+      <input id="tlBq" placeholder="本のタイトルで探す…">
+      <div id="tlBl"></div></div>`);
+    const list = p.querySelector('#tlBl'), qi = p.querySelector('#tlBq');
+    const paint = () => {
+      const s = qi.value.trim().toLowerCase();
+      list.innerHTML = books.filter(b => !s || (b.book.title || '').toLowerCase().includes(s))
+        .map(b => `<button data-tlb="${b.id}">${esc(b.book.title || '（無題）')}</button>`).join('')
+        || '<div class="hint">見つかりません</div>';
+      list.querySelectorAll('[data-tlb]').forEach(x => x.onclick = () => {
+        tlSel = x.dataset.tlb;
+        if(!tlExtra.includes(tlSel)) tlExtra.push(tlSel);
+        p.remove(); renderTimeline();
+      });
+    };
+    qi.oninput = paint; paint(); qi.focus();
+  };
+  document.getElementById('tlNew').onclick = e => {
+    if(tlSel === 'daily'){
+      const dm = S.boards.find(b => b.daily);
+      if(!dm) return;
+      if(!dm.cols || !dm.cols.length) dm.cols = [{id:uid(), title:'Daily', w:288, cards:[]}];
+      addMenu(e, dm.cols[0].id, undefined, {day: today()});
+    } else {
+      const f = findCard(tlSel); if(!f) return;
+      addMenu(e, f.col.id, f.card.id);
+    }
+  };
+  wireCards(v);
+  tlDeco(v);
 }
 
 /* ---------------- 次に読む本を選ぶ ---------------- */
@@ -9169,6 +9538,7 @@ function render(){
   else if(view.type === 'replog') renderRepeatLog();
   else if(view.type === 'tag') renderTagPage();
   else if(view.type === 'search') renderSearch();
+  else if(view.type === 'timeline') renderTimeline();
   else if(view.type === 'quote') renderCollection('quote');
   else if(view.type === 'read') renderCollection('read');
   else if(view.type === 'done') renderDone();
@@ -9185,6 +9555,7 @@ document.getElementById('stEdit').onclick = e => {
 };
 document.getElementById('navTimes').onclick = () => { view = {type:'times'}; q = ''; render(); };
 document.getElementById('navSearch').onclick = () => { view = {type:'search'}; render(); };
+document.getElementById('navTline').onclick = () => { view = {type:'timeline'}; render(); };
 document.getElementById('navQuote').onclick = () => { view = {type:'quote'}; q = ''; render(); };
 document.getElementById('navRead').onclick = () => { view = {type:'read'}; q = ''; render(); };
 document.getElementById('navCards').onclick = () => { view = {type:'cards'}; deckId = null; render(); };
@@ -10755,15 +11126,15 @@ const boot2 = () => {
   if(!st || !dog) return;
   const DOG = `<svg viewBox="0 0 34 34" width="34" height="34" aria-hidden="true">
     <g class="pose"><g class="bob">
-      <path class="tail dog-body" d="M7 15 C3 13, 2 9, 4.5 7.5 C5.5 9.5, 6.5 12, 8.5 13.5 Z"/>
-      <g class="leg-b"><path class="dog-dark lg-h1" d="M8.5 20.4A1.4 1.4 0 0 1 9.9 19L10.1 19A1.4 1.4 0 0 1 11.5 20.4L11.5 23.4C12.35 23.8 12.35 25.35 11.55 25.8C10.85 26.2 9.35 26.15 8.82 25.45C8.54 25.1 8.5 24.55 8.5 23.95Z"/></g>
-      <g class="leg-a"><path class="dog-dark" d="M18.2 20.4A1.4 1.4 0 0 1 19.6 19L19.8 19A1.4 1.4 0 0 1 21.2 20.4L21.2 23.4C22.05 23.8 22.05 25.35 21.25 25.8C20.55 26.2 19.05 26.15 18.52 25.45C18.24 25.1 18.2 24.55 18.2 23.95Z"/></g>
+      <path class="tail dog-body" d="M7.5 14.6C4.45 12.75, 3.15 9.2, 6.0 7.1C8.3 5.5, 11.2 6.7, 10.95 9.1C10.9 9.75, 10.0 9.8, 10.0 9.05C10.05 8.1, 8.45 7.95, 7.5 8.95C6.7 9.9, 7.55 12.1, 10.0 13.1 Z"/>
+      <g class="leg-b gp-h1"><path class="dog-dark lg-h1" d="M8.5 20.4A1.4 1.4 0 0 1 9.9 19L10.1 19A1.4 1.4 0 0 1 11.5 20.4L11.5 23.4C12.35 23.8 12.35 25.35 11.55 25.8C10.85 26.2 9.35 26.15 8.82 25.45C8.54 25.1 8.5 24.55 8.5 23.95Z"/></g>
+      <g class="leg-a gp-f1"><path class="dog-dark" d="M18.2 20.4A1.4 1.4 0 0 1 19.6 19L19.8 19A1.4 1.4 0 0 1 21.2 20.4L21.2 23.4C22.05 23.8 22.05 25.35 21.25 25.8C20.55 26.2 19.05 26.15 18.52 25.45C18.24 25.1 18.2 24.55 18.2 23.95Z"/></g>
       <rect class="dog-body" x="6.5" y="12" width="18" height="9" rx="4.5"/>
-      <g class="leg-a"><path class="dog-body lg-h2" d="M11.5 20.4A1.4 1.4 0 0 1 12.9 19L13.1 19A1.4 1.4 0 0 1 14.5 20.4L14.5 23.4C15.35 23.8 15.35 25.35 14.55 25.8C13.85 26.2 12.35 26.15 11.82 25.45C11.54 25.1 11.5 24.55 11.5 23.95Z"/></g>
-      <g class="leg-b"><path class="dog-body" d="M20.6 20.4A1.4 1.4 0 0 1 22 19L22.2 19A1.4 1.4 0 0 1 23.6 20.4L23.6 23.4C24.45 23.8 24.45 25.35 23.65 25.8C22.95 26.2 21.45 26.15 20.92 25.45C20.64 25.1 20.6 24.55 20.6 23.95Z"/></g>
+      <g class="leg-a gp-h2"><path class="dog-body lg-h2" d="M11.5 20.4A1.4 1.4 0 0 1 12.9 19L13.1 19A1.4 1.4 0 0 1 14.5 20.4L14.5 23.4C15.35 23.8 15.35 25.35 14.55 25.8C13.85 26.2 12.35 26.15 11.82 25.45C11.54 25.1 11.5 24.55 11.5 23.95Z"/></g>
+      <g class="leg-b gp-f2"><path class="dog-body" d="M20.6 20.4A1.4 1.4 0 0 1 22 19L22.2 19A1.4 1.4 0 0 1 23.6 20.4L23.6 23.4C24.45 23.8 24.45 25.35 23.65 25.8C22.95 26.2 21.45 26.15 20.92 25.45C20.64 25.1 20.6 24.55 20.6 23.95Z"/></g>
       <circle class="dog-body" cx="26" cy="12.5" r="5.4"/>
       <g clip-path="url(#dgHead)"><path class="dog-light" d="M33.2 11.5C32 12.4 30.6 12.85 29.2 12.95C27.8 13.05 26.8 13.45 25.6 13.6C23.4 14 21 13.8 18.8 13.2L18.8 20 L33.2 20Z"/></g>
-      <path class="dog-dark" d="M23.4 8.4 C23.2 6.4, 23.95 4.9, 25.4 5.2 C26.2 6.2, 26 7.6, 25.4 9 Z"/>
+      <path class="dog-dark ear" d="M23.4 8.4 C23.2 6.4, 23.95 4.9, 25.4 5.2 C26.2 6.2, 26 7.6, 25.4 9 Z"/>
       <ellipse class="dog-light" cx="27.2" cy="9.8" rx=".95" ry=".55"/>
       <circle class="dog-nose dog-eye" cx="27" cy="11.4" r="0.95"/>
       <ellipse class="dog-glint" cx="26.68" cy="11.03" rx=".28" ry=".33" fill="#fff" opacity=".9"/>
@@ -10771,7 +11142,7 @@ const boot2 = () => {
       <ellipse class="dog-nose" cx="31.25" cy="13.1" rx=".92" ry=".76"/>
       <g class="dog-collar" clip-path="url(#dgNeck)"><circle cx="26" cy="12.5" r="5.85"
         fill="none" stroke="#9E3742" stroke-width="1.35"/></g>
-      <path class="dog-shut" d="M25.8 11.25 A1.2 1.2 0 0 0 28.2 11.25"/>
+      <path class="dog-shut" d="M25.8 11.25 A1.2 1.2 0 0 0 28.2 11.25"/><g class="dog-front"><path class="dog-dark dogf-ear" d="M28.6 8.4 C28.8 6.4, 28.05 4.9, 26.6 5.2 C25.8 6.2, 26 7.6, 26.6 9 Z"/><g class="dogf-face"><g clip-path="url(#dgHead)"><ellipse class="dog-light" cx="26.2" cy="16.5" rx="4.5" ry="4"/></g><ellipse class="dog-light" cx="23.95" cy="9.7" rx="1" ry=".55"/><ellipse class="dog-light" cx="28.2" cy="9.75" rx=".92" ry=".5"/><path class="dog-nose" d="M24.85 13.35C24.85 12.5 27.65 12.5 27.65 13.35C27.65 14.4 26.95 15.25 26.25 15.25C25.55 15.25 24.85 14.4 24.85 13.35Z"/><path class="dog-shut" d="M22.85 11.2 A2.05 2.05 0 0 0 25.21 11.2"/><path class="dog-shut" d="M27.03 11.25 A1.95 1.95 0 0 0 29.23 11.25"/></g></g>
     </g></g>
   </svg>`;
   dog.innerHTML = DOG;
@@ -10815,21 +11186,78 @@ const boot2 = () => {
     }
     if(this.cls) d *= .45;                       /* 子犬はじっとしていられない */
     this.mode = m; this.until = Date.now() + d;
+    if(m === 'sleep'){                       /* 寝姿は 三とおり */
+      const q = Math.random();
+      this.zz = q < .55 ? '' : ' zz2';
+    }
+  };
+  /* 歩く時間そのものは これまでどおり。中身が 歩く・走る・駆ける に分かれる。
+     足の運びに合わせて、進む速さも いっしょに変える */
+  const GAIT_MUL = { walk:0.62, run:2.1, gallop:4.9 };
+  Walker.prototype.pickGait = function(now){
+    const r = Math.random();
+    this.gait = r < .40 ? 'walk' : r < .73 ? 'run' : 'gallop';
+    /* 歩くのは 時間で区切る。走り・駆け足は 端まで走りきる */
+    this.gaitUntil = this.gait === 'walk' ? now + 4000 + Math.random() * 5000 : Infinity;
+  };
+  /* 画面の外に出ているあいだは、そっと 待っている */
+  Walker.prototype.comeBack = function(now){
+    this.away = 0; this.restSoon = 0;
+    this.x = this.side < 0 ? -0.18 : 1.18;
+    this.dir = this.side < 0 ? 1 : -1;
+    const r = Math.random();
+    this.gait = r < .64 ? 'walk' : r < .85 ? 'run' : 'gallop';
+    this.gaitUntil = this.gait === 'walk' ? now + 5000 + Math.random() * 6000 : Infinity;
+  };
+  Walker.prototype.fade = function(){
+    const out = this.x < 0 ? -this.x : this.x > 1 ? this.x - 1 : 0;
+    return Math.max(0, 1 - out / 0.11);
   };
   Walker.prototype.tick = function(now){
-    if(this.mode){ if(now > this.until) this.mode = ''; return; }
-    this.x += this.dir * this.speed;
-    if(this.x <= 0){ this.x = 0; this.dir = 1; }
-    if(this.x >= 1){ this.x = 1; this.dir = -1; }
+    if(this.away){
+      if(now < this.away) return;
+      this.comeBack(now);
+      return;
+    }
+    if(this.mode){
+      if(now > this.until){ this.mode = ''; this.pickGait(now); }
+      return;
+    }
+    if(!this.gait || now > this.gaitUntil) this.pickGait(now);
+    this.x += this.dir * this.speed * GAIT_MUL[this.gait];
+    if(this.gait === 'walk'){
+      /* 歩いているときは、これまでどおり 端で 折り返す */
+      if(this.x <= 0){ this.x = 0; this.dir = 1; this.pickGait(now); }
+      if(this.x >= 1){ this.x = 1; this.dir = -1; this.pickGait(now); }
+    }else if(this.x <= -0.18 || this.x >= 1.18){
+      /* 走り・駆け足は そのまま 外へ。うすくなって 消える */
+      this.side = this.x < 0 ? -1 : 1;
+      this.x = this.side < 0 ? -0.18 : 1.18;
+      this.away = now + 1200 + Math.random() * 2800;
+    }
     if(this.cls && Math.random() < .010) this.dir = -this.dir;   /* 子犬は気まぐれ */
+    /* 歩きに もどったら、そこで ひと休み */
+    if(this.restSoon && now > this.restSoon){ this.restSoon = 0; this.rest(); return; }
     const p = night() ? .075 : evening() ? .030 : (this.cls ? .009 : .013);
-    if(Math.random() < p) this.rest();
+    if(Math.random() < p){
+      /* 走ったり駆けたりしている ところから、いきなり 止まったり
+         座ったり 寝たりはしない。まず 歩きに もどってから */
+      if(this.gait && this.gait !== 'walk'){
+        this.gait = 'walk';
+        this.gaitUntil = now + 4000 + Math.random() * 5000;
+        this.restSoon = now + 1500 + Math.random() * 1600;
+      }else{
+        this.rest();
+      }
+    }
   };
   Walker.prototype.paint = function(W){
     const s = this.size;
-    const px = s / 2 + this.x * Math.max(0, W - s);
+    const px = s / 2 + this.x * Math.max(0, W - s);   /* x は 0〜1 の外にも出る */
     this.el.className = 'walker' + (this.cls ? ' pup ' + this.cls : '')
-      + (this.mode ? ' ' + this.mode : '');
+      + (this.mode ? ' ' + this.mode + (this.mode === 'sleep' ? (this.zz || '') : '')
+                   : ' gt-' + (this.gait || 'walk'));
+    this.el.style.opacity = this.away ? '0' : String(this.fade());
     this.el.style.transform =
       `translate(${px.toFixed(1)}px, ${feet(s * this.scale).toFixed(2)}px)`
       + (this.scale !== 1 ? ` scale(${this.scale})` : '')
@@ -11346,7 +11774,9 @@ const boot2 = () => {
   const rz = document.getElementById('timerRz');
   const resetW = document.getElementById('timerResetW');
   const saved = parseInt(localStorage.getItem('timerPanelW') || '', 10);
-  if(saved >= MINW) panel.style.width = saved + 'px';
+  /* 開いたときは いつも デフォルトの幅（右上の ⇥ と同じ大きさ）で。
+     ドラッグで変えた幅は、そのときだけ */
+  void saved;
 
   function syncResetBtn(){
     if(!resetW) return;
