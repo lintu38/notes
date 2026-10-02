@@ -2120,6 +2120,11 @@
   .card.tl.tl-last > .tl-line{bottom:0}             /* 最後のメモ・1つだけのメモも、下まで線を引く */
   .card.tl > .tl-dot{position:absolute;left:calc(-1 * var(--tl-pad) + var(--tl-gut) + 11px);top:calc(var(--tl-y) - 4.5px);
     width:9px;height:9px;border-radius:50%;background:var(--tl-c, var(--tl-dot));box-shadow:0 0 0 4px var(--tl-panel);z-index:1;flex:none}
+  /* 引用は栞の形 */
+  .card.tl > .tl-dot.tl-bm{width:10px;height:13px;border-radius:1.5px 1.5px 0 0;top:calc(var(--tl-y) - 6.5px);
+    left:calc(-1 * var(--tl-pad) + var(--tl-gut) + 10.5px);box-shadow:none;
+    clip-path:polygon(0 0,100% 0,100% 100%,50% 72%,0 100%)}
+  .card.tl > .tl-dot.tl-bm.can:hover{box-shadow:none;filter:brightness(.85)}
   /* Action は丸いチェックボックス（ボードの色） */
   .card.tl > .tl-ck{appearance:none;-webkit-appearance:none;position:absolute;margin:0;cursor:pointer;z-index:1;flex:none;
     left:calc(-1 * var(--tl-pad) + var(--tl-gut) + 8.5px);top:calc(var(--tl-y) - 7px);width:14px;height:14px;border-radius:50%;
@@ -2138,6 +2143,7 @@
   .card.tl .qcard, .card.tl > .sec.bare, .card.tl > .sec.bare > .qcard{display:contents}
   .card.tl > *{order:6}
   .card.tl > .qribbon{order:0;flex:none}
+  .card.tl > .qribbon:not(.task){display:none}      /* 引用の右上の栞は出さない（左の印が栞） */
   .card.tl .qcard > *{order:3}
   .card.tl > .sec.bare > *:not(.qcard){flex:0 0 100%;min-width:0;order:3}
   .card.tl > .kidcite{order:2}
@@ -2151,7 +2157,7 @@
   .card.tl > :empty:not(.tl-line):not(.tl-dot):not(.tl-ck):not(.qribbon){display:none}
   .card.tl > .meta-b:not(:has(*)){display:none}
   .card.tl .qc-body{border-top:0!important;margin-top:0!important;padding-top:0!important}
-  .card.tl .qc-body.qbg{margin:0 0 0 14px!important;padding:12px 16px!important}
+  .card.tl .qc-body.qbg{margin:0 0 0 14px!important;padding:22px 16px 16px!important}
   .card.tl .qc-ttl{margin-top:0}
   /* 本のページでは、上の書名の行を出さない（下の出典に書名があるため） */
   .ocside .card.tl > .kidcite{display:none}
@@ -2183,8 +2189,11 @@
   .tl-hol{color:#8e3a4f;font-weight:500;letter-spacing:.04em}
   :root{--wd-sat:#5f7d99;--wd-sun:#8e3a4f}
   /* カレンダーも同じ色に（日曜日・祝日はワイン色、土曜日はくすんだブルー） */
-  .cal .cd.sun, .cal .cal-w .sun{color:var(--wd-sun)!important}
-  .cal .cd.sat, .cal .cal-w .sat{color:var(--wd-sat)!important}
+  :root{--cal-sat:#4f86cc;--cal-sun:#c24a68}      /* カレンダーは見分けやすいよう少し明るめ */
+  .cal .cd.sun, .cal .cal-w .sun{color:var(--cal-sun)!important}
+  .cal .cd.sat, .cal .cal-w .sat{color:var(--cal-sat)!important}
+  .cal .cd.tdy.sun{color:#8c3a44!important}
+  .cal .cd.tdy.sat{color:#2f4d80!important}
   .wdn.wd-sat, .daily-h .wdn.wd-sat, .db-h .wdn.wd-sat, .tl-day .wdn.wd-sat{color:var(--wd-sat)}
   .wdn.wd-sun, .daily-h .wdn.wd-sun, .db-h .wdn.wd-sun, .tl-day .wdn.wd-sun{color:var(--wd-sun)}
   .tl-age{display:inline-flex;align-items:center;gap:4px;font-variant-numeric:tabular-nums}
@@ -2240,16 +2249,18 @@
   .tl-empty{color:var(--muted);font-size:13px;padding:20px 0;text-align:center}
 
   @media (max-width:760px){
-    .drop.tlv > .card.tl{--tl-gut:30px;--tl-pad:50px}
+    .drop.tlv > .card.tl{--tl-gut:36px;--tl-pad:54px}
+    .card.tl > .tl-time{white-space:nowrap;text-align:right}
     .ocside .drop.tlv > .card.tl{--tl-gut:0px;--tl-pad:26px}
     .card.tl > .tl-time{font-size:11px;letter-spacing:0}
     .card.tl > .tl-dot{left:calc(-1 * var(--tl-pad) + var(--tl-gut) + 6px)}
     .card.tl > .tl-ck{left:calc(-1 * var(--tl-pad) + var(--tl-gut) + 3.5px)}
+    .card.tl > .tl-dot.tl-bm{left:calc(-1 * var(--tl-pad) + var(--tl-gut) + 5.5px)}
     .card.tl > .tl-line{left:calc(-1 * var(--tl-pad) + var(--tl-gut) + 10px)}
     .card.tl > .card-top{gap:3px}
     .card.tl > .card-top .cardtg, .card.tl > .card-top .pintg, .card.tl > .card-top .mkact{font-size:10px;padding:0 7px}
     .card.tl > .card-top .grip{display:none}
-    .tlpage{padding:14px 14px 18px;border-radius:12px}
+    .tlpage{padding:14px 6px 18px 10px;border-radius:12px}
     .tlwrap{flex-direction:column;align-items:stretch;gap:12px}
     .tlside{position:static;width:auto;flex:none}
     .tl-where{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}
@@ -8170,7 +8181,7 @@ function tlDeco(root){
         const can = dk ? ` can" title="クリックで日付を変更" data-tldate="${dk}|${k.id}` : '';
         const mark = k.type === 'task'
           ? `<input type="checkbox" class="tl-ck" data-tlck="${k.id}" ${k.done ? 'checked' : ''} title="完了">`
-          : `<span class="tl-dot${can}"></span>`;
+          : `<span class="tl-dot${k.type === 'quote' ? ' tl-bm' : ''}${can}"></span>`;   /* 引用は栞マーク */
         el.insertAdjacentHTML('afterbegin',
           `<div class="tl-time${can}">${esc(t || '—')}</div><span class="tl-line"></span>${mark}`);
         if(!t) el.classList.add('notime');
@@ -11254,6 +11265,12 @@ const boot = () => {
   if(APP === 'task'){
     view = {type:'tasks'}; filter = 'today';
   } else {
+    /* Bookshelf のボードの色は、栞と同じくすんだピンクに（一度だけ） */
+    if(!S.shelfPink1){
+      const sh = S.boards.find(b2 => b2.name === 'Bookshelf');
+      if(sh) sh.color = '#b06a80';
+      S.shelfPink1 = true; save();
+    }
     /* 起動時は Timeline を開く */
     view = {type:'timeline'};
   }
