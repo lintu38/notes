@@ -2211,7 +2211,16 @@
   .tl-dsub.tl-dh .tl-age::before{content:"月齢";margin-right:2px;font-size:11.5px;letter-spacing:.06em}
 
   /* Timeline ページ */
-  .tlpage{max-width:820px;margin:0 auto;background:var(--tl-panel);border:1px solid var(--line);border-radius:14px;
+  .tlwrap{display:flex;gap:20px;align-items:flex-start;justify-content:center}
+  .tlside{flex:0 0 300px;width:300px;position:sticky;top:0}
+  .tlside .cal{width:auto;flex:1 1 auto;border:1px solid var(--line);border-radius:11px;padding:12px 14px 10px}
+  .tlside .cd{height:38px;font-size:13px}
+  .tlside .cal-w{font-size:11px}
+  .tlside .cal-h b{font-size:14px}
+  .tlside .cd.tdy{background:#d8b3bf;border-radius:50%;color:#fff}
+  .tlside .cd.tdy:hover{background:#cda3b1}
+  .tlpage .tl-day{scroll-margin-top:12px}
+  .tlpage{flex:1 1 auto;min-width:0;max-width:820px;margin:0;background:var(--tl-panel);border:1px solid var(--line);border-radius:14px;
     padding:18px 26px 22px;box-shadow:var(--shadow)}
   .tl-compose{display:flex;flex-direction:column;gap:12px;margin-bottom:26px}
   .tl-where{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
@@ -2241,6 +2250,8 @@
     .card.tl > .card-top .cardtg, .card.tl > .card-top .pintg, .card.tl > .card-top .mkact{font-size:10px;padding:0 7px}
     .card.tl > .card-top .grip{display:none}
     .tlpage{padding:14px 14px 18px;border-radius:12px}
+    .tlwrap{flex-direction:column;align-items:stretch;gap:12px}
+    .tlside{position:static;width:auto;flex:none}
     .tl-where{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}
   }
 </style>
@@ -8170,7 +8181,7 @@ function tlDeco(root){
       const d = tlDateOf(k);
       if(split && d !== prev){
         const r = tlRel(d);
-        el.insertAdjacentHTML('beforebegin', `<div class="tl-day">${r
+        el.insertAdjacentHTML('beforebegin', `<div class="tl-day" data-d="${d}">${r
           ? `<b>${r}</b><i>·</i><span>${tlMD(d)}</span>` : `<b>${tlMD(d)}</b>`}</div>`
           + tlDaySub(d, true).replace('tl-dsub', 'tl-dsub tl-dayx'));
       }
@@ -8216,6 +8227,30 @@ window.addEventListener('resize', () =>
   document.querySelectorAll('.drop.tlv > .card.tl').forEach(tlAlign));
 
 /* ---------------- Timeline ページ ---------------- */
+let tlCalMonth = null, tlCalSel = null;
+/* 左上のカレンダー：押した日のメモまで移動する */
+function tlPaintCal(items){
+  const side = document.getElementById('tlSide'); if(!side) return;
+  const marks = {};
+  (items || tlItems()).forEach(k => {
+    const d = tlDateOf(k);
+    if(d && !marks[d]) marks[d] = (plain(k.title || '').trim() || plain(k.body || '').trim()
+      || plain((k.quote && k.quote.text) || '').trim() || plain((k.read && k.read.memo) || '').trim() || 'メモ').slice(0, 40);
+  });
+  side.innerHTML = calendarHTML(marks, tlCalSel || '', tlCalMonth, false, '');
+  side.querySelectorAll('[data-cm]').forEach(b => b.onclick = () => {
+    const [y, m] = tlCalMonth.split('-').map(Number);
+    const d = new Date(y, m - 1 + (+b.dataset.cm), 1);
+    tlCalMonth = `${d.getFullYear()}-${pad2(d.getMonth() + 1)}`; tlPaintCal();
+  });
+  side.querySelectorAll('[data-cal]').forEach(b => b.onclick = () => {
+    tlCalSel = b.dataset.cal; tlCalMonth = tlCalSel.slice(0, 7); tlPaintCal();
+    /* その日（なければ、それより前でいちばん近い日）の区切りへ */
+    const days = [...document.querySelectorAll('.tlpage .tl-day[data-d]')];
+    const hit = days.find(x => x.dataset.d <= tlCalSel) || days[days.length - 1];
+    if(hit) hit.scrollIntoView({behavior: 'smooth', block: 'start'});
+  });
+}
 let tlSel = 'daily';          /* 書く場所：'daily' か 本のカード id */
 let tlExtra = [];             /* 「ほかの本…」から選んだ本 */
 function tlShelf(){ return S.boards.find(b => b.name === 'Bookshelf'); }
@@ -8256,7 +8291,8 @@ function renderTimeline(){
   const selB = tlSel !== 'daily' ? findCard(tlSel)?.card : null;
   const items = tlItems();
   const v = document.getElementById('view');
-  v.innerHTML = `<div class="tlpage">
+  tlCalMonth ||= today().slice(0, 7);
+  v.innerHTML = `<div class="tlwrap"><div class="tlside" id="tlSide"></div><div class="tlpage">
     <div class="tl-compose">
       <div class="tl-where"><span class="tl-wlb">書く場所</span>
         <button class="tl-chip ${tlSel === 'daily' ? 'on' : ''}" data-tlsel="daily">Daily</button>
@@ -8269,7 +8305,8 @@ function renderTimeline(){
     </div>
     ${items.length ? `<div class="dailycards"><div class="drop">${items.map(cardHTML).join('')}</div></div>`
       : `<div class="tl-empty">まだメモがありません</div>`}
-  </div>`;
+  </div></div>`;
+  tlPaintCal(items);
   v.querySelectorAll('[data-tlsel]').forEach(b => b.onclick = () => { tlSel = b.dataset.tlsel; renderTimeline(); });
   document.getElementById('tlMore').onclick = e => {
     const r = e.currentTarget.getBoundingClientRect();
