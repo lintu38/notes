@@ -105,6 +105,22 @@
     display:flex;flex-direction:column;padding:14px 10px;gap:2px;overflow-y:auto;
     position:relative;transition:none}
   .side.hide{display:none}
+  /* Bookshelf を開いているときのサイドメニュー（こげ茶） */
+  .side.shelf{background:#4a3527;color:#efe4d8;border-right-color:#3b2a1f}
+  .side.shelf .brand-sub{color:#c9a995}
+  .side.shelf .brand button,.side.shelf .side-label.lbrow button{color:#cbb6a3}
+  .side.shelf .brand button:hover,.side.shelf .side-label.lbrow button:hover{background:rgba(255,255,255,.12);color:#fff}
+  .side.shelf .side-label{color:#cfae8c}
+  .side.shelf .nav{color:#efe4d8}
+  .side.shelf .nav:hover{background:rgba(255,255,255,.1)}
+  .side.shelf .nav.on{background:#f3e9de;color:#3b2a1f}
+  .side.shelf .nav .cnt{background:rgba(255,255,255,.14);color:#eadccd}
+  .side.shelf .nav.on .cnt{background:#e2d2c2;color:#6b5646}
+  .side.shelf .side-foot{border-top-color:rgba(255,255,255,.18)}
+  .side.shelf .side-foot button{color:#e3d4c5}
+  .side.shelf .side-foot button:hover{background:rgba(255,255,255,.12);color:#fff}
+  .side.shelf .fold{color:#b39a86}
+  .side.shelf .banner{border-color:rgba(255,255,255,.2);color:#c9b3a2}
   .side-rz{position:absolute;top:0;right:0;width:8px;height:100%;cursor:col-resize;z-index:20}
   .side-rz::after{content:"";position:absolute;right:0;top:0;bottom:0;width:2px;background:transparent}
   .side-rz:hover::after,.side-rz.act::after{background:var(--accent)}
@@ -233,6 +249,9 @@
   /* Tasks はカーソルを置いたときだけ、くすんだ赤系に */
   #navTasks:hover{background:#c48f95;color:#fff}
   #navTasks:hover .cnt{background:#a96f78;color:#fff}
+  /* メニューにカーソルを合わせたときは、どれも Action と同じ色に */
+  #navList .nav:hover{background:#c48f95;color:#fff}
+  #navList .nav:hover .cnt{background:#a96f78;color:#fff}
   .nav.dragging{opacity:.4}
   .nav.dropn{box-shadow:inset 0 2px 0 var(--brown)}
   .nav.dropn-b{box-shadow:inset 0 -2px 0 var(--brown)}
@@ -1749,6 +1768,9 @@
   /* ---------- One Step パネル ---------- */
   #navTimer .nico.paw{fill:var(--brown);stroke:none;width:15px;height:13px}
   #navTimer:hover .nico.paw{fill:var(--ink)}
+  .side.shelf #navTimer .nico.paw{fill:#efe4d8}
+  .side.shelf #navTimer:hover .nico.paw{fill:#fff}
+  #navList #navTimer:hover .nico.paw{fill:#fff}
   #navTimer.on,#navTimer.live{background:var(--bo,var(--panel));color:var(--ink);
     font-weight:500;box-shadow:var(--shadow)}
   #navTimer.on .ico,#navTimer.on .nico{stroke:none;color:inherit}
@@ -2440,7 +2462,7 @@
 const APP = 'note';
 const KEY = APP === 'task' ? 'boards.tasks.task.v1' : 'boards.tasks.v1';
 const APP_TITLE = APP === 'task' ? 'Tasks' : 'Notes';
-const APPVER = '20261010-1400';
+const APPVER = '20261010-1600';
 const TIMELB = APP === 'task' ? 'Time Log' : 'Read Log';
 const TASKLB = APP === 'task' ? 'Tasks' : 'Action';
 const TASKONE = APP === 'task' ? 'Task' : 'Action';   /* 1件ぶんの呼び名 */
@@ -3625,7 +3647,13 @@ function renderNavOrder(){
       ev.stopPropagation();
       setTimeout(() => el.classList.add('dragging'), 0);
     };
-    el.ondragend = () => { dragNav = null; renderNavOrder(); };
+    el.ondragend = () => {
+      dragNav = null;
+      /* 動かし終わったら、薄くした表示を元に戻す */
+      box.querySelectorAll('.dragging, .dropn, .dropn-b')
+        .forEach(x => x.classList.remove('dragging', 'dropn', 'dropn-b'));
+      renderNavOrder();
+    };
     el.ondragover = ev => {
       if(!dragNav || dragNav === key) return;
       ev.preventDefault(); ev.stopPropagation();
@@ -3654,6 +3682,10 @@ function renderNavOrder(){
 
 function renderSide(){
   renderNavOrder();
+  /* Bookshelf を開いているあいだは、サイドメニューをこげ茶に */
+  const shelfB = S.boards.find(b => b.name === 'Bookshelf');
+  document.getElementById('side')?.classList.toggle('shelf',
+    view.type === 'shelf' || (view.type === 'board' && !!shelfB && view.id === shelfB.id));
   const list = document.getElementById('boardList');
   S.folders ||= [];
   const inF = id => S.boards.filter(b => b.folder === id);
