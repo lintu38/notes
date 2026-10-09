@@ -2295,6 +2295,15 @@
     .tlside:has(.cal.wk) .pinlist{margin-top:6px}
     .tl-where{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}
   }
+  /* カレンダーの「Today」：スマホでは月名と同じ行の右端に */
+  .cal .cal-h .cal-tdy{display:none}
+  @media (max-width:760px){
+    .cal .cal-h{justify-content:flex-start;gap:4px}
+    .cal .cal-h .cal-tdy{display:inline-block;margin-left:auto;width:auto;height:auto;
+      font-size:11.5px;line-height:1.4;padding:3px 10px;border:1px solid var(--line);border-radius:7px;color:var(--muted)}
+    .cal .cal-f .cal-tdy-f{display:none}
+    .cal .cal-f:not(:has(#calAll)){display:none}
+  }
 </style>
 </head>
 <body>
@@ -2431,7 +2440,7 @@
 const APP = 'note';
 const KEY = APP === 'task' ? 'boards.tasks.task.v1' : 'boards.tasks.v1';
 const APP_TITLE = APP === 'task' ? 'Tasks' : 'Notes';
-const APPVER = '20261010-1300';
+const APPVER = '20261010-1400';
 const TIMELB = APP === 'task' ? 'Time Log' : 'Read Log';
 const TASKLB = APP === 'task' ? 'Tasks' : 'Action';
 const TASKONE = APP === 'task' ? 'Task' : 'Action';   /* 1件ぶんの呼び名 */
@@ -6794,11 +6803,11 @@ function calendarHTML(marks, sel, cm, allOn, allLabel){
       >${dd}${marks[key]?'<i></i>':''}</button>`;
   }
   return `<div class="cal">
-    <div class="cal-h"><button data-cm="-1">‹</button><b>${y}年${m}月</b><button data-cm="1">›</button></div>
+    <div class="cal-h"><button data-cm="-1">‹</button><b>${y}年${m}月</b><button data-cm="1">›</button><button class="cal-tdy" data-cal="${today()}">Today</button></div>
     <div class="cal-w">${WD.map((x, i) =>
       `<span class="${i===0?'sun':i===6?'sat':''}">${x}</span>`).join('')}</div>
     <div class="cal-g">${cells}</div>
-    <div class="cal-f"><button data-cal="${today()}">今日</button>
+    <div class="cal-f"><button class="cal-tdy-f" data-cal="${today()}">今日</button>
       ${allLabel ? `<button id="calAll" class="${allOn?'on':''}">${allLabel}</button>` : ''}</div>
   </div>`;
 }
