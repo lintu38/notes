@@ -106,7 +106,7 @@
     position:relative;transition:none}
   .side.hide{display:none}
   /* Bookshelf を開いているときのサイドメニュー（こげ茶） */
-  .side.shelf{background:#4a3527;color:#efe4d8;border-right-color:#3b2a1f}
+  .side.shelf{background:#6e5a4b;color:#efe4d8;border-right-color:#5f4c3f}
   .side.shelf .brand-sub{color:#c9a995}
   .side.shelf .brand button,.side.shelf .side-label.lbrow button{color:#cbb6a3}
   .side.shelf .brand button:hover,.side.shelf .side-label.lbrow button:hover{background:rgba(255,255,255,.12);color:#fff}
@@ -120,6 +120,10 @@
   .side.shelf .side-foot button{color:#e3d4c5}
   .side.shelf .side-foot button:hover{background:rgba(255,255,255,.12);color:#fff}
   .side.shelf .fold{color:#b39a86}
+  .side.shelf .frow{color:#efe4d8}
+  .side.shelf .frow:hover{background:rgba(255,255,255,.1)}
+  .side.shelf .fcar,.side.shelf .fmenu{color:#cbb6a3}
+  .side.shelf .frow .cnt{background:rgba(255,255,255,.14);color:#eadccd}
   .side.shelf .banner{border-color:rgba(255,255,255,.2);color:#c9b3a2}
   .side-rz{position:absolute;top:0;right:0;width:8px;height:100%;cursor:col-resize;z-index:20}
   .side-rz::after{content:"";position:absolute;right:0;top:0;bottom:0;width:2px;background:transparent}
@@ -1350,6 +1354,11 @@
   .swatches{display:flex;gap:6px;padding:6px 10px 8px}
   .sw{width:19px;height:19px;border-radius:50%;border:1px solid rgba(0,0,0,.08);flex:0 0 19px}
   .sw.on{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--accent)}
+  /* 好きな色を選ぶボタン */
+  .sw.swc{position:relative;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;
+    background:#fff;border:1px dashed #b9aeb1;color:#8b8285;font-size:12px;line-height:1;overflow:hidden}
+  .sw.swc:hover{border-color:var(--brown);color:var(--brown)}
+  .sw.swc input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;border:0;padding:0}
   /* カラー凡例（カテゴリ） */
   .cats{padding:2px}
   .cat{display:flex;align-items:center;gap:9px;width:100%;padding:6px 9px;border-radius:7px;font-size:13px}
@@ -2462,7 +2471,7 @@
 const APP = 'note';
 const KEY = APP === 'task' ? 'boards.tasks.task.v1' : 'boards.tasks.v1';
 const APP_TITLE = APP === 'task' ? 'Tasks' : 'Notes';
-const APPVER = '20261010-1600';
+const APPVER = '20261010-1900';
 const TIMELB = APP === 'task' ? 'Time Log' : 'Read Log';
 const TASKLB = APP === 'task' ? 'Tasks' : 'Action';
 const TASKONE = APP === 'task' ? 'Task' : 'Action';   /* 1件ぶんの呼び名 */
@@ -2531,8 +2540,11 @@ const tagChips = k => `<span class="tagwrap">${(k.tags || []).map(t => tagChip(t
   <span class="chip tag ghost ${(k.tags || []).length ? 'hov' : ''}" data-tagedit="${k.id}"
     title="Tag を追加">＋ Tag</span></span>`;
 /* ボード名の色 */
-const BOARDC = ['', '#c0392b', '#e08a2a', '#c9a227', '#84a05a', '#1ca5b8', '#6f9ad8',
-  '#24407a', '#7b52c0', '#c9899a', '#8b8285'];
+const BOARDC = [
+  '',        '#c0392b', '#d46a5f', '#e08a2a', '#e3a76f', '#c9a227', '#d8c46a', '#84a05a',
+  '#5f8a4f', '#9fb98a', '#3f8f7a', '#1ca5b8', '#7fb8c4', '#6f9ad8', '#3d6fe0', '#24407a',
+  '#7b52c0', '#a58bd0', '#8e5a8c', '#c9899a', '#e0aebb', '#b5677d', '#8a6a55', '#54402e',
+  '#b8a48e', '#8b8285', '#5d5658', '#2f2a2c'];
 /* 最初に用意しておくボード */
 const PRESET_BOARDS = [
   ['CSYS', '#1ca5b8'], ['Blue', '#6f9ad8'], ['LG', '#e08a2a'],
@@ -3528,13 +3540,19 @@ function boardMenu(x, y, id){
     <hr><div style="font-size:11px;color:var(--muted);padding:3px 10px 1px">色</div>
     <div class="swatches" style="flex-wrap:wrap;width:196px">${BOARDC.map(c =>
       `<button class="sw ${b.color===c?'on':''}" data-bc="${c}"
-        style="background:${c || 'repeating-linear-gradient(45deg,#eee,#eee 3px,#fff 3px,#fff 6px)'}"></button>`).join('')}</div>
+        style="background:${c || 'repeating-linear-gradient(45deg,#eee,#eee 3px,#fff 3px,#fff 6px)'}"></button>`).join('')}${
+      b.color && !BOARDC.includes(b.color)
+        ? `<button class="sw on" data-bc="${esc(b.color)}" style="background:${esc(b.color)}"></button>` : ''}
+      <label class="sw swc" title="ほかの色を選ぶ">＋<input type="color" id="bcPick"
+        value="${/^#[0-9a-f]{6}$/i.test(b.color || '') ? b.color : '#8a6a55'}"></label></div>
     <hr><div style="font-size:11px;color:var(--muted);padding:3px 10px 1px">フォルダ</div>
     <button data-bf="">— フォルダなし${!b.folder?'　●':''}</button>
     ${S.folders.map(f => `<button data-bf="${f.id}">${FICON}${esc(f.name)}${b.folder===f.id?'　●':''}</button>`).join('')}
     <hr><button data-ba="del" style="color:#c0392b"><i class="ic">🗑</i>Board を削除</button>`);
   p.querySelectorAll('[data-bc]').forEach(el => el.onclick = () => {
     b.color = el.dataset.bc; save(); p.remove(); render(); });
+  const bcPick = p.querySelector('#bcPick');
+  if(bcPick) bcPick.onchange = () => { b.color = bcPick.value; save(); p.remove(); render(); };
   p.querySelectorAll('[data-bf]').forEach(el => el.onclick = () => {
     const v = el.dataset.bf;
     if(v) b.folder = v; else delete b.folder;
@@ -3682,10 +3700,11 @@ function renderNavOrder(){
 
 function renderSide(){
   renderNavOrder();
-  /* Bookshelf を開いているあいだは、サイドメニューをこげ茶に */
+  /* Bookshelf・Read Memo・Read Log を開いているあいだは、サイドメニューをこげ茶に */
   const shelfB = S.boards.find(b => b.name === 'Bookshelf');
   document.getElementById('side')?.classList.toggle('shelf',
-    view.type === 'shelf' || (view.type === 'board' && !!shelfB && view.id === shelfB.id));
+    view.type === 'shelf' || (APP === 'note' && (view.type === 'read' || view.type === 'times'))
+    || (view.type === 'board' && !!shelfB && view.id === shelfB.id));
   const list = document.getElementById('boardList');
   S.folders ||= [];
   const inF = id => S.boards.filter(b => b.folder === id);
