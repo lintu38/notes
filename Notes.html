@@ -2431,7 +2431,7 @@
 const APP = 'note';
 const KEY = APP === 'task' ? 'boards.tasks.task.v1' : 'boards.tasks.v1';
 const APP_TITLE = APP === 'task' ? 'Tasks' : 'Notes';
-const APPVER = '20260825-1554';
+const APPVER = '20261010-1200';
 const TIMELB = APP === 'task' ? 'Time Log' : 'Read Log';
 const TASKLB = APP === 'task' ? 'Tasks' : 'Action';
 const TASKONE = APP === 'task' ? 'Task' : 'Action';   /* 1件ぶんの呼び名 */
@@ -3021,17 +3021,102 @@ function seed(){
    届いた瞬間から保存が失敗し、書いたものが消える。
    そこで本命を IndexedDB に置き、localStorage は控えとして使う。       */
 let bootRaw = null, idbBad = false, lsFull = false;
+/* ---- 画像は本文と別にしまう ----
+   貼った画像は本文の中に data:… の長い文字列として入っている。
+   そのまま保存すると、1文字書くたびに画像ごと（数MB）書き直すことになり、
+   スマホでは保存が追いつかずに失敗する。
+   そこで保存のときだけ画像を「nimg:…」という目印に置き換え、
+   画像そのものは IndexedDB に一度だけしまう。読み込むときに元へ戻す。
+   Export・同期・控えのファイルは、これまでどおり画像込み。            */
+const IMG_RE = /data:image\/[a-z0-9.+-]+;base64,[A-Za-z0-9+\/=]+/g;
+const IMG_REF_RE = /nimg:i[0-9a-z]+x[0-9a-f]{8}(?:_\d+)?/g;
+const IMG_MIN = 4096;                      /* これより小さい画像は本文に残す */
+const IMG_PRE = 'img:' + (APP === 'task' ? 't' : 'n') + ':';
+const imgById = new Map(), idByImg = new Map(), imgSaved = new Set(), imgNew = new Map();
+let imgOK = false;                          /* 画像のしまい場所が使えるか */
+function imgId(u){
+  let id = idByImg.get(u);
+  if(id) return id;
+  const n = u.length, step = Math.max(1, Math.floor(n / 4096));
+  let h = 0x811c9dc5;
+  for(let i = 0; i < n; i += step){ h ^= u.charCodeAt(i); h = Math.imul(h, 16777619); }
+  for(let i = Math.max(0, n - 512); i < n; i++){ h ^= u.charCodeAt(i); h = Math.imul(h, 16777619); }
+  const base = 'nimg:i' + n.toString(36) + 'x' + (h >>> 0).toString(16).padStart(8, '0');
+  id = base;
+  for(let j = 1; imgById.has(id) && imgById.get(id) !== u; j++) id = base + '_' + j;
+  imgById.set(id, u); idByImg.set(u, id);
+  if(!imgSaved.has(id)) imgNew.set(id, u);
+  return id;
+}
+const imgPackStr = s => s.replace(IMG_RE, m => m.length < IMG_MIN ? m : imgId(m));
+/* 保存用の JSON（画像は目印に） */
+function packState(){
+  if(!imgOK) return JSON.stringify(S);
+  return JSON.stringify(S, (k, v) =>
+    (typeof v === 'string' && v.length >= IMG_MIN && v.includes(';base64,')) ? imgPackStr(v) : v);
+}
+/* 文字列のままの JSON を保存用に */
+const packRaw = raw => (imgOK && raw && raw.length >= IMG_MIN && raw.includes(';base64,')) ? imgPackStr(raw) : raw;
+/* 保存用の JSON を、画像込みに戻す */
+const unpackRaw = raw => (raw && raw.includes('nimg:i')) ? raw.replace(IMG_REF_RE, id => imgById.get(id) || id) : raw;
+/* 起動時：しまってある画像を読み込む */
+async function imgLoadAll(){
+  try{
+    const db = await idb();
+    if(!db) return;
+    await new Promise((res, rej) => {
+      const range = IDBKeyRange.bound(IMG_PRE, IMG_PRE + '￿');
+      const q = db.transaction('s', 'readonly').objectStore('s').openCursor(range);
+      q.onsuccess = () => {
+        const c = q.result;
+        if(!c) return res();
+        const id = String(c.key).slice(IMG_PRE.length), u = c.value;
+        if(typeof u === 'string'){ imgById.set(id, u); idByImg.set(u, id); imgSaved.add(id); }
+        c.continue();
+      };
+      q.onerror = () => rej(q.error);
+    });
+    imgOK = true;
+  }catch(e){ console.warn('img store', e); imgOK = false; }
+}
+/* 使われなくなった画像を片づける（起動して少したってから一度だけ） */
+async function imgSweep(){
+  try{
+    if(!imgOK) return;
+    const db = await idb(); if(!db) return;
+    const undo = await new Promise(res => {
+      const q = db.transaction('s', 'readonly').objectStore('s').get(SKEY_IDB() + '.undo');
+      q.onsuccess = () => res(q.result || ''); q.onerror = () => res('');
+    });
+    let ls = ''; try{ ls = localStorage.getItem(KEY) || ''; }catch(e){}
+    const used = new Set();
+    [packState(), bootRaw || '', String(undo), ls]
+      .forEach(t => (t.match(IMG_REF_RE) || []).forEach(x => used.add(x)));
+    const drop = [...imgSaved].filter(id => !used.has(id) && !imgNew.has(id));
+    if(!drop.length) return;
+    const tx = db.transaction('s', 'readwrite'), st = tx.objectStore('s');
+    drop.forEach(id => st.delete(IMG_PRE + id));
+    tx.oncomplete = () => drop.forEach(id => {
+      imgSaved.delete(id);
+      const u = imgById.get(id); imgById.delete(id); if(u) idByImg.delete(u);
+    });
+  }catch(e){}
+}
 const SKEY_IDB = () => hkey('state');
 async function idbPutState(json){
   const db = await idb();
   if(!db) throw new Error('IndexedDB が使えません');
+  const add = imgOK ? [...imgNew] : [];      /* まだしまっていない画像も一緒に */
   await new Promise((res, rej) => {
     const tx = db.transaction('s', 'readwrite');
-    tx.objectStore('s').put(json, SKEY_IDB());
+    const st = tx.objectStore('s');
+    add.forEach(([id, u]) => st.put(u, IMG_PRE + id));
+    st.put(json, SKEY_IDB());
     tx.oncomplete = res;
     tx.onerror = () => rej(tx.error || new Error('保存できません'));
     tx.onabort = () => rej(tx.error || new Error('保存が中断されました'));
   });
+  add.forEach(([id]) => { imgNew.delete(id); imgSaved.add(id); });
 }
 async function idbGetState(){
   try{
@@ -3045,6 +3130,7 @@ async function idbGetState(){
 }
 /* 取り込みや復元のときは、こちらを通す */
 function putState(json){
+  json = packRaw(json);
   bootRaw = json;
   try{ localStorage.setItem(KEY, json); }catch(e){ lsFull = true; }
   idbPutState(json).catch(() => {});
@@ -3090,7 +3176,7 @@ function saveAlarm(m){
 function load(){
   try{
     const raw = bootRaw !== null ? bootRaw : localStorage.getItem(KEY);
-    if(raw) S = JSON.parse(raw);
+    if(raw) S = JSON.parse(unpackRaw(raw));
   }catch(e){}
   if(!S || !S.boards) S = seed();
   S.contacts ||= [];
@@ -3317,7 +3403,7 @@ function reRender(){
 }
 function save(){
   try{
-    const json = JSON.stringify(S);
+    const json = packState();
     bootRaw = json;
     /* 本命：IndexedDB（容量に余裕がある） */
     idbPutState(json).then(() => { idbBad = false; markSaved(); })
@@ -10942,7 +11028,7 @@ function keepUndo(why){
       if(!db) return;
       db.transaction('s', 'readwrite').objectStore('s').put(cur, SKEY_IDB() + '.undo');
     }).catch(() => {});
-    keepUndoFile(cur);          /* 保存先にも、日時つきで残す */
+    keepUndoFile(unpackRaw(cur));          /* 保存先にも、日時つきで残す */
   }catch(e){}
 }
 /* 上書きされる前の中身を、フォルダにも書き出しておく */
@@ -11369,7 +11455,7 @@ async function checkUpdate(){
 }
 
 window.addEventListener('pagehide', () => {
-  try{ putState(JSON.stringify(S)); }catch(e){}
+  try{ putState(packState()); }catch(e){}
   flushSync();
 });
 /* ほかのアプリに切り替えた・タブを離れたとき、未送信の変更をすぐ送る */
@@ -11383,7 +11469,7 @@ function flushSync(){
 }
 document.addEventListener('visibilitychange', () => {
   if(document.visibilityState === 'hidden'){
-    try{ putState(JSON.stringify(S)); }catch(e){}
+    try{ putState(packState()); }catch(e){}
     flushSync();
   }
 });
@@ -11460,7 +11546,9 @@ const boot2 = () => {
 };
 (async () => {
   bootRaw = await idbGetState();
+  await imgLoadAll();
   load();
+  setTimeout(imgSweep, 20000);
   if(S.pin) showLock(boot2); else boot2();
 })();
 })();
