@@ -3663,6 +3663,30 @@ const NAVKEYS = APP === 'task'
 const NAVALL = ['search','tline','tasks','times','done','read','quote','cards','pin','learn','issue','index'];
 /* Index ボード（サイドの Board 一覧には出さず、上のメニューから開く） */
 function isIdxB(b){ return !!b && (b.idx || (b.name || '').trim() === 'Index'); }
+/* Link 元が 0 件になったタイトルノートは削除する（描画のたびに確認） */
+function lnkPrune(){
+  const ib = (S && S.boards || []).find(isIdxB);
+  if(!ib) return;
+  const notes = (ib.cols || []).flatMap(c => c.cards || []).filter(k => k.lnkIdx);
+  if(!notes.length) return;
+  const used = new Set();
+  const re = /data-lnk="([^"]+)"/g;
+  allCards().forEach(x => {
+    if(x.card.lnkIdx) return;
+    const t = JSON.stringify(x.card).replace(/\\"/g, '"');
+    let m; while((m = re.exec(t))) used.add(m[1]);
+  });
+  /* Index ノートどうしの Link も数える（自分自身は除く） */
+  notes.forEach(k => {
+    const t = JSON.stringify(k).replace(/\\"/g, '"');
+    let m; while((m = re.exec(t))) if(m[1] !== k.id) used.add(m[1]);
+  });
+  const gone = notes.filter(k => !used.has(k.id)).map(k => k.id);
+  if(!gone.length) return;
+  ib.cols.forEach(c => { c.cards = c.cards.filter(k => !gone.includes(k.id)); });
+  if(view && view.type === 'card' && gone.includes(view.id)) view = {type:'board', id:ib.id};
+  save();
+}
 function idxBoardGet(){
   let b = S.boards.find(isIdxB);
   if(!b){
@@ -10217,6 +10241,7 @@ function replyHTML(k){
 /* ---------------- shell ---------------- */
 function render(){
   hideRT();
+  try{ lnkPrune(); }catch(e){}
   /* ページを移ったら、スマホのカレンダーは1週間・Pin Memo は閉じた状態に戻す */
   const vk = view.type + '|' + (view.id || '');
   if(vk !== tlLastView){ tlCalOpen = false; tlPinOpen = false; tlLastView = vk; }
