@@ -2120,6 +2120,8 @@
   .idxtile span{font-size:10.5px;color:#8b8285;border:1px solid var(--line);border-radius:20px;
     padding:1px 7px;font-variant-numeric:tabular-nums}
   .idxnote{padding:2px 0 30px}
+  #pageTitle.idxttl{border:1px solid #bdb2ad;border-radius:0;padding:3px 14px;field-sizing:content;
+    min-width:3em;max-width:60%;flex:0 0 auto;width:auto}
   .idxboard{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(280px,100%),1fr));gap:12px;align-items:start}
   .idxboard .lnkblk{margin:0;padding:10px 13px 11px}
   .idxboard .lnkblk-b{max-height:320px}
@@ -2226,6 +2228,13 @@
   .card.tl > .card-top{order:9;flex:0 0 auto;margin:4px 0 0 auto!important;padding:0;border:0}
   .card.tl .qc-foot .meta-b{margin:0 auto 0 6px!important;display:inline-flex;align-items:center;flex:0 1 auto;width:auto}
   .card.tl .qc-foot{margin-bottom:0}
+  /* ＋画像のすぐ右に書式ボタン、同じ行の右寄りに ＋Action などのボタン */
+  .card.tl .qcard > .qc-foot{flex:0 1 auto;min-width:0;justify-content:flex-start;gap:6px}
+  .card.tl .qc-foot > .fmtwrap{order:1;flex:0 0 auto}
+  .card.tl .qc-foot > .imgadd{order:2;flex:0 0 auto;white-space:nowrap}
+  .card.tl .qc-foot > .meta-b{order:3;margin:0 0 0 2px!important}
+  .card.tl > .card-top{order:5;align-self:center;margin:10px 0 0 auto!important}
+  .card.tl > .meta-b{order:6}
   .card.tl .qcard > .qc-h{order:10;flex:0 0 auto;margin:12px 0 0 6px;padding:0;border:0}
   .card.tl .qcard > .qc-h > span:first-child{display:none}      /* No.・日付は出さない（日付は時刻・点から変更） */
   .card.tl > .card-top > div[style*="flex:1"]{display:none}
@@ -3746,6 +3755,8 @@ function renderSide(){
   document.getElementById('side')?.classList.toggle('idx',
     !!(idxB && (idxB.idx || (idxB.name || '').trim() === 'Index')) || !!(idxK && idxK.card.lnkIdx));
   document.getElementById('side')?.classList.toggle('daily', !!(idxB && idxB.daily));
+  /* Index のノートを開いたときは、タイトルを細い線で囲む */
+  document.getElementById('pageTitle')?.classList.toggle('idxttl', !!(idxK && idxK.card.lnkIdx));
   const list = document.getElementById('boardList');
   S.folders ||= [];
   const inF = id => S.boards.filter(b => b.folder === id);
