@@ -106,8 +106,7 @@
     position:relative;transition:none}
   .side.hide{display:none}
   /* Bookshelf を開いているときのサイドメニュー（こげ茶） */
-  .side.idx{background:#d4c4c9;border-right-color:#c6b5ba}
-  .side.daily{background:#d3d7c6;border-right-color:#c4c9b5}
+  .side.daily{background:#d4c4c9;border-right-color:#c6b5ba}
   .side.shelf{background:#402e22;color:#efe4d8;border-right-color:#32241a}
   .side.shelf .brand-sub{color:#c9a995}
   .side.shelf .brand button,.side.shelf .side-label.lbrow button{color:#cbb6a3}
@@ -2452,6 +2451,7 @@
     <div class="nav" id="navRead" data-nav="read" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M2.6 3.1h4.1c.9 0 1.3.5 1.3 1.2v8.6c0-.6-.5-1-1.3-1H2.6z"/><path d="M13.4 3.1H9.3c-.9 0-1.3.5-1.3 1.2v8.6c0-.6.5-1 1.3-1h4.1z"/></svg></span><span>Read Memo</span><span class="cnt" id="cntRead">0</span></div>
     <div class="nav" id="navQuote" data-nav="quote" draggable="true"><span class="ico">❝</span><span>Quotes</span><span class="cnt" id="cntQuote">0</span></div>
     <div class="nav" id="navCards" data-nav="cards" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><rect x="5" y="2.4" width="8.6" height="10.4" rx="1.6"/><path d="M10.4 13.6H4a1.6 1.6 0 0 1-1.6-1.6V5"/></svg></span><span>Cards</span><span class="cnt" id="cntCards">0</span></div>
+    <div class="nav" id="navIndex" data-nav="index" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M3.4 2.4h7.2l2 2v9.2H3.4z"/><path d="M5.6 6h5M5.6 8.6h5M5.6 11.2h3"/><path d="M12.6 4.4v-2"/></svg></span><span>Index</span><span class="cnt" id="cntIndex">0</span></div>
     </div>
     <div class="side-label" id="pinLabel" style="display:none">Pinned</div>
     <div id="pinList"></div>
@@ -3659,8 +3659,18 @@ function boardNav(b, inFolder){
 }
 const NAVKEYS = APP === 'task'
   ? ['search', 'tasks', 'replog', 'done', 'times']
-  : ['search', 'tline', 'tasks', 'pin', 'learn', 'issue', 'read', 'times', 'quote', 'cards'];
-const NAVALL = ['search','tline','tasks','times','done','read','quote','cards','pin','learn','issue'];
+  : ['search', 'tline', 'tasks', 'pin', 'learn', 'issue', 'read', 'times', 'quote', 'cards', 'index'];
+const NAVALL = ['search','tline','tasks','times','done','read','quote','cards','pin','learn','issue','index'];
+/* Index ボード（サイドの Board 一覧には出さず、上のメニューから開く） */
+function isIdxB(b){ return !!b && (b.idx || (b.name || '').trim() === 'Index'); }
+function idxBoardGet(){
+  let b = S.boards.find(isIdxB);
+  if(!b){
+    b = {id:uid(), name:'Index', color:'#6f8fa8', idx:true, cols:[{id:uid(), title:'Index', w:300, cards:[]}]};
+    S.boards.push(b); save();
+  }
+  return b;
+}
 let dragNav = null;
 /* サイドバー上部メニューの並び替え */
 function renderNavOrder(){
@@ -3696,6 +3706,12 @@ function renderNavOrder(){
     const i4 = S.navOrder.indexOf('search');
     S.navOrder.splice(i4 >= 0 ? i4 + 1 : 0, 0, 'tline');
     S.navTline1 = true;
+  }
+  if(APP === 'note' && !S.navIndex1){     /* Index は Cards の下に */
+    S.navOrder = (S.navOrder || []).filter(k => k !== 'index');
+    const i5 = S.navOrder.indexOf('cards');
+    if(i5 >= 0) S.navOrder.splice(i5 + 1, 0, 'index'); else S.navOrder.push('index');
+    S.navIndex1 = true;
   }
   S.navOrder = (S.navOrder || []).filter(k => NAVKEYS.includes(k));
   NAVKEYS.forEach(k => { if(!S.navOrder.includes(k)) S.navOrder.push(k); });
@@ -3762,9 +3778,9 @@ function renderSide(){
   document.getElementById('pageTitle')?.classList.toggle('idxttl', !!(idxK && idxK.card.lnkIdx));
   const list = document.getElementById('boardList');
   S.folders ||= [];
-  const inF = id => S.boards.filter(b => b.folder === id);
+  const inF = id => S.boards.filter(b => b.folder === id && !isIdxB(b));
   /* ピン留めしたボード */
-  const pinned = S.boards.filter(b => b.pin);
+  const pinned = S.boards.filter(b => b.pin && !isIdxB(b));
   const pinBox = document.getElementById('pinList');
 
   pinBox.innerHTML = pinned.map(b => boardNav(b, false)).join('');
@@ -3802,7 +3818,7 @@ function renderSide(){
         : `<div class="fempty">（空）Board をここへドラッグ、または右クリックから移動</div>`) : ''}
     </div>`;
   }).join('');
-  html += S.boards.filter(b => !b.folder || !S.folders.some(f => f.id === b.folder))
+  html += S.boards.filter(b => !isIdxB(b) && (!b.folder || !S.folders.some(f => f.id === b.folder)))
     .map(b => boardNav(b, false)).join('');
   list.innerHTML = html;
 
@@ -3863,6 +3879,17 @@ function renderSide(){
   document.getElementById('navTasks').classList.toggle('on', view.type === 'tasks');
   document.getElementById('navTimes').classList.toggle('on', view.type === 'times');
   document.getElementById('navCards').classList.toggle('on', view.type === 'cards');
+  {
+    const ni = document.getElementById('navIndex');
+    if(ni){
+      const vb = view.type === 'board' ? board(view.id) : null;
+      const vk = view.type === 'card' ? findCard(view.id) : null;
+      ni.classList.toggle('on', isIdxB(vb) || !!(vk && vk.card.lnkIdx));
+      const ib = S.boards.find(isIdxB);
+      const ci = document.getElementById('cntIndex');
+      if(ci) ci.textContent = ib ? (ib.cols || []).flatMap(c => c.cards || []).filter(k => k.lnkIdx).length : 0;
+    }
+  }
   const np = document.getElementById('navPin');
   if(np){
     np.classList.toggle('on', view.type === 'pin');
@@ -10237,6 +10264,7 @@ document.getElementById('navTline').onclick = () => { view = {type:'timeline'}; 
 document.getElementById('navQuote').onclick = () => { view = {type:'quote'}; q = ''; render(); };
 document.getElementById('navRead').onclick = () => { view = {type:'read'}; q = ''; render(); };
 document.getElementById('navCards').onclick = () => { view = {type:'cards'}; deckId = null; render(); };
+document.getElementById('navIndex').onclick = () => { view = {type:'board', id:idxBoardGet().id}; render(); };
 document.getElementById('navPin').onclick = () => { view = {type:'pin'}; q = ''; render(); };
 document.getElementById('navLearn').onclick = () => { view = {type:'learn'}; q = ''; render(); };
 document.getElementById('navIssue').onclick = () => { view = {type:'issue'}; q = ''; render(); };
