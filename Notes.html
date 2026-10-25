@@ -108,7 +108,6 @@
   /* Bookshelf を開いているときのサイドメニュー（こげ茶） */
   .side.idx{background:#d4c4c9;border-right-color:#c6b5ba}
   .side.daily{background:#d3d7c6;border-right-color:#c4c9b5}
-  .side.idx .nav:hover{background:rgba(80,60,45,.07)}
   .side.shelf{background:#402e22;color:#efe4d8;border-right-color:#32241a}
   .side.shelf .brand-sub{color:#c9a995}
   .side.shelf .brand button,.side.shelf .side-label.lbrow button{color:#cbb6a3}
@@ -259,6 +258,10 @@
   /* メニューにカーソルを合わせたときは、どれも Action と同じ色に */
   #navList .nav:hover{background:#c48f95;color:#fff}
   #navList .nav:hover .cnt{background:#a96f78;color:#fff}
+  /* カーソルを置いたときは、どのメニューも基本のサイドメニュー色を少し濃くした色に */
+  .side:not(.shelf) .nav:hover,.side:not(.shelf) #navList .nav:hover,.side:not(.shelf) #navTasks:hover,
+  .side:not(.shelf) .frow:hover{background:#d2c9c0;color:inherit}
+  .side:not(.shelf) #navList .nav:hover .cnt,.side:not(.shelf) #navTasks:hover .cnt{background:#cdb4bb;color:var(--muted)}
   .nav.dragging{opacity:.4}
   .nav.dropn{box-shadow:inset 0 2px 0 var(--brown)}
   .nav.dropn-b{box-shadow:inset 0 -2px 0 var(--brown)}
