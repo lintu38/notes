@@ -4264,9 +4264,7 @@ function wireShelfTop(){
   document.querySelectorAll('#topActions [data-shst]').forEach(el => el.onclick = () => {
     const st = el.dataset.shst;
     const sb = S.boards.find(x => x.name === 'Bookshelf');
-    /* いま開いているページのボタンをもう一度押すと Bookshelf に戻る */
-    if(view.type === 'shelf' && (view.st || 'done') === st && sb) view = {type:'board', id:sb.id};
-    else view = {type:'shelf', st};
+    view = {type:'shelf', st};
     render();
   });
 }
@@ -9095,11 +9093,19 @@ function renderTimeline(){
 }
 
 /* ---------------- 次に読む本を選ぶ ---------------- */
-const pickPool = () => allCards().filter(x => x.card.type === 'book'
-  && (!bookStatus(x.card) || bookShelf(x.card) === 'again') && pickOn(x.card));
+/* ランダム選書の候補
+   ・ALL／読んだ本／途中終了を開いているとき … いま並んでいる本の中から
+   ・NOW（読んでる・気になる…）を開いているとき … 開いているタブに並んでいる本から
+     （本アイコンで外した本は除く） */
+const pickPool = () => view.type === 'shelf'
+  ? shelfList(['stop', 'all'].includes(view.st) ? view.st : 'done')
+  : allCards().filter(x => x.card.type === 'book'
+      && bookShelf(x.card) === (S.shelfTab || 'reading')
+      && (!bookStatus(x.card) || bookShelf(x.card) === 'again')
+      && !(x.card.book && x.card.book.pick === false));
 function pickBookMenu(){
   const L = pickPool();
-  if(!L.length){ alert('本のカードの本アイコンを押して、選んでほしい本を選んでください'); return; }
+  if(!L.length){ alert(view.type === 'shelf' ? 'ここに並んでいる本がありません' : 'このタブに本がありません'); return; }
   showPicked(L[Math.floor(Math.random() * L.length)].card.id, '');
 }
 
@@ -9385,15 +9391,8 @@ function showPicked(cid, st){
 }
 
 /* ---------------- 読んだ本 / 途中終了 ---------------- */
-function renderShelf(){
-  const st = ['stop', 'all'].includes(view.st) ? view.st : 'done';
-  const t = document.getElementById('pageTitle');
-  /* 見出し・右上のボタン・棚のタブは Bookshelf と同じに */
-  t.value = 'Bookshelf';
-  t.disabled = true; t.oninput = null; t.style.color = '';
-  const shelf = S.boards.find(b => b.name === 'Bookshelf');
-  document.getElementById('topActions').innerHTML = shelfTopHTML(st);
-  wireShelfTop();
+/* ALL・読んだ本・途中終了に並ぶ本（検索語での絞り込みも込み） */
+function shelfList(st){
   /* 読んだ本＝「読了」か「再読したい」棚か「再読」が付いている本 */
   const isRead = k => bookStatus(k) === 'done' || bookShelf(k) === 'again'
     || ((k.book && k.book.reread) || 0) > 0;
@@ -9404,6 +9403,18 @@ function renderShelf(){
     L = L.filter(x => cardHay(x.card).includes(s));
   }
   L.sort((a, b2) => ((b2.card.book.doneAt || '') + '').localeCompare((a.card.book.doneAt || '') + ''));
+  return L;
+}
+function renderShelf(){
+  const st = ['stop', 'all'].includes(view.st) ? view.st : 'done';
+  const t = document.getElementById('pageTitle');
+  /* 見出し・右上のボタン・棚のタブは Bookshelf と同じに */
+  t.value = 'Bookshelf';
+  t.disabled = true; t.oninput = null; t.style.color = '';
+  const shelf = S.boards.find(b => b.name === 'Bookshelf');
+  document.getElementById('topActions').innerHTML = shelfTopHTML(st);
+  wireShelfTop();
+  const L = shelfList(st);
   const shLabel = {reading:'読んでる', want:'気になる', stack:'休憩中', again:'もう一度'};
   const v = document.getElementById('view');
   v.innerHTML = `${shelfToolsHTML('')}
@@ -10554,7 +10565,11 @@ function render(){
   hideRT();
   {
     const sc = view.type === 'shelf' || (view.type === 'board' && (board(view.id)?.name === 'Bookshelf'));
-    if(sc && !shelfCtxPrev) q = '';
+    if(sc && !shelfCtxPrev){
+      q = '';
+      /* Bookshelf を外から開いたときは、まず ALL を出す */
+      if(view.type === 'board') view = {type:'shelf', st:'all'};
+    }
     shelfCtxPrev = sc;
   }
   try{ lnkPrune(); }catch(e){}
