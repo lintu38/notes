@@ -2345,7 +2345,7 @@
     margin:0 0 var(--tl-gap) var(--tl-pad)!important;padding-left:0;padding-right:0;padding-bottom:2px;
     border:0!important;box-shadow:none!important;background:transparent!important;border-radius:0;
     display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;overflow:visible}
-  .ocside .drop.tlv > .card.tl{--tl-gut:0px;--tl-pad:26px}
+  .ocside .drop.tlv > .card.tl{--tl-gut:40px;--tl-pad:66px}
   .drop.tlv > .card.tl::before{display:none}
   .card.tl > *, .card.tl .qcard > *{flex:0 0 100%;min-width:0}
   .card.tl > .tl-time{position:absolute;left:calc(-1 * var(--tl-pad));width:var(--tl-gut);top:calc(var(--tl-y) - 11px);
@@ -2373,6 +2373,15 @@
   .card.tl > .tl-dot.tl-ico.can:hover{box-shadow:0 0 0 2px var(--tl-panel), 0 0 0 3.5px var(--tl-c, var(--tl-dot))}
   .card.tl > .tl-dot.tl-act{cursor:pointer}
   .card.tl > .tl-dot.tl-act{border-radius:6px}
+  .card.tl > .tl-dot.tl-f{cursor:pointer}
+  .card.tl > .tl-dot.tl-ico.tl-f:hover{box-shadow:0 0 0 2px var(--tl-panel), 0 0 0 3.5px var(--tl-c, var(--tl-dot))}
+  .tl-fbar{display:flex;align-items:center;gap:8px;margin:0 0 12px;padding:6px 10px;border-radius:9px;
+    background:#f3ede8;color:var(--brown);font-size:12.5px}
+  .tl-fico{display:inline-flex;color:var(--brown)}
+  .tl-fico svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+  .tl-fbm{display:inline-block;width:10px;height:13px;background:var(--brown);clip-path:polygon(0 0,100% 0,100% 100%,50% 72%,0 100%)}
+  .tl-fclr{margin-left:auto;font-size:12px;padding:3px 10px;border-radius:7px;border:1px solid var(--line);background:#fff;color:var(--muted)}
+  .tl-fclr:hover{color:var(--ink)}
   .card.tl > .tl-dot.tl-act.done{background:var(--tl-c, var(--tl-dot));color:#fff}
   /* Action は丸いチェックボックス（ボードの色） */
   .card.tl > .tl-ck{appearance:none;-webkit-appearance:none;position:absolute;margin:0;cursor:pointer;z-index:1;flex:none;
@@ -2518,7 +2527,7 @@
   @media (max-width:760px){
     .drop.tlv > .card.tl{--tl-gut:36px;--tl-pad:54px}
     .card.tl > .tl-time{white-space:nowrap;text-align:right}
-    .ocside .drop.tlv > .card.tl{--tl-gut:0px;--tl-pad:26px}
+    .ocside .drop.tlv > .card.tl{--tl-gut:34px;--tl-pad:52px}
     .card.tl > .tl-time{font-size:10.5px;letter-spacing:0}
     .card.tl > .tl-dot{left:calc(-1 * var(--tl-pad) + var(--tl-gut) + 6px)}
     .card.tl > .tl-ck{left:calc(-1 * var(--tl-pad) + var(--tl-gut) + 3.5px)}
@@ -2957,7 +2966,8 @@ function readDoneMenu(rect, bid){
     const v1 = p.querySelector('#rdP1').value.trim(), v2 = p.querySelector('#rdP2').value.trim();
     const memo = p.querySelector('#rdMemo').value.trim();
     const pg = (v1 || v2) ? `p.${v1 || '—'}～${v2 || '—'}` : '';
-    const head = (acts.length ? acts.join('・') + '。' : '') + pg;
+    const aj = acts.join('・');
+    const head = (aj ? aj + (/[！!。]$/.test(aj) ? '' : '。') : '') + pg;
     const html = [head ? esc(head) : '', memo ? esc(memo).replace(/\n/g, '<br>') : ''].filter(Boolean).join('<br>');
     const k = {id:uid(), type:'read', title:'', body:'', color:'', start:'', due:'',
       repeat:{unit:'', n:1, days:[]}, done:false, subs:[], tags:[],
@@ -3926,7 +3936,7 @@ function boardNav(b, inFolder){
 }
 const NAVKEYS = APP === 'task'
   ? ['search', 'tasks', 'replog', 'done', 'times']
-  : ['search', 'tline', 'tasks', 'pin', 'learn', 'issue', 'read', 'times', 'quote', 'cards', 'index'];
+  : ['search', 'tline', 'tasks', 'pin', 'learn', 'issue', 'read', 'quote', 'cards', 'index'];   /* Read Log は出さない */
 const NAVALL = ['search','tline','tasks','times','done','read','quote','cards','pin','learn','issue','index'];
 /* Index ボード（サイドの Board 一覧には出さず、上のメニューから開く） */
 function isIdxB(b){ return !!b && (b.idx || (b.name || '').trim() === 'Index'); }
@@ -7513,6 +7523,45 @@ function timeEdit(rect, cid, eid){
   };
 }
 
+/* Read Memo：Bookshelf の本に付けたメモ（と、ほかの Read メモ）を、すべて新しい順に（日付ごとに区切る） */
+function renderBookLog(){
+  const t = document.getElementById('pageTitle');
+  t.value = 'Read Memo'; t.disabled = true; t.oninput = null; t.style.color = '';
+  document.getElementById('topActions').innerHTML = '';
+  const sh = S.boards.find(b => b.name === 'Bookshelf');
+  let items = [];
+  if(sh){
+    const all = sh.cols.flatMap(c => c.cards);
+    const books = new Set(all.filter(k => k.type === 'book').map(k => k.id));
+    items = all.filter(k => k.parent && books.has(k.parent) && !k.tpl);
+  }
+  /* Bookshelf の外で作った Read メモも一緒に */
+  const seen = new Set(items.map(k => k.id));
+  allCards().forEach(x => { const k = x.card;
+    if(k.type === 'read' && !k.tpl && !seen.has(k.id) && !(sh && x.board === sh)){ items.push(k); seen.add(k.id); } });
+  if(q){
+    const s = q.toLowerCase();
+    items = items.filter(k => {
+      const B = (findCard(k.parent)?.card || {}).book || {};
+      return (cardHay(k) + ' ' + (B.title || '') + ' ' + (B.author || '')).toLowerCase().includes(s);
+    });
+  }
+  items = items.map(k => ({k, key: tlDateOf(k) + ' ' + (tlTimeOf(k) || '')}))
+    .sort((a, b) => b.key.localeCompare(a.key)).map(x => x.k);
+  const v = document.getElementById('view');
+  v.innerHTML = `<div class="tools">
+      <input class="search" id="q" placeholder="メモ・本のタイトルで検索…" value="${esc(q)}">
+      <span style="color:var(--muted);font-size:12.5px">${items.length} 件</span>
+    </div>
+    <div class="tlpage booklog">${items.length
+      ? `<div class="dailycards"><div class="drop">${items.map(cardHTML).join('')}</div></div>`
+      : `<div class="tl-empty">まだ本のメモがありません</div>`}</div>`;
+  const qi = document.getElementById('q');
+  wireSearchInput(qi, (val, pos) => { q = val; renderBookLog();
+    const n = document.getElementById('q'); if(n){ n.focus(); n.setSelectionRange(pos, pos); } });
+  wireCards(v);
+  tlDeco(v);
+}
 function renderTimes(){
   const t = document.getElementById('pageTitle');
   t.disabled = true; t.oninput = null; t.style.color = '';
@@ -8992,21 +9041,58 @@ const TLICO = {
   book:'<svg viewBox="0 0 16 16">' + TLB + '<path d="M5.8 4.8h4.8M5.8 7h4.8M5.8 9.2h3"/></svg>',   /* ＋New のメモ：本＋メモの横線 */
   act:'<svg viewBox="0 0 16 16"><rect x="2.4" y="2.4" width="11.2" height="11.2" rx="2.4"/><path d="M5.2 8.2l2 2 3.6-4"/></svg>'   /* Action：四角チェック */
 };
-function tlIcon(k){
-  const f = findCard(k.id);
-  if(k.type === 'quote') return '';                           /* 引用は今までどおり栞 */
+/* メモの種類（アイコンと絞り込みに使う） */
+function tlKind(k){
+  if(k.type === 'quote') return 'quote';
+  if(k.type === 'task') return 'act';
   const par = k.parent ? findCard(k.parent)?.card : null;
   if(par && par.type === 'book'){
     const a = (k.read && (k.read.acts || k.read.flags)) || [];
-    if(a.some(x => ['読み始めた', '読んだ', '読了！', '読み終えた'].includes(x))) return TLICO.read;
-    if(a.includes('購入した')) return TLICO.buy;
-    if(a.includes('気になる')) return TLICO.want;
-    return TLICO.book;
+    if(a.some(x => ['読み始めた', '読んだ', '読了！', '読み終えた'].includes(x))) return 'read';
+    if(a.includes('購入した')) return 'buy';
+    if(a.includes('気になる')) return 'want';
+    return 'book';
   }
-  if(f && f.board && f.board.daily) return TLICO.cal;
+  const f = findCard(k.id);
+  if(f && f.board && f.board.daily) return 'cal';
   return '';
 }
+function tlIcon(k){
+  const kd = tlKind(k);
+  return (kd && kd !== 'quote' && kd !== 'act') ? TLICO[kd] : '';
+}
+const TLKLB = {cal:'Daily', read:'読んだ', want:'気になる', buy:'購入した', book:'メモ', quote:'Quote', act:'Action'};
+/* アイコンを押すと、そのアイコンのメモだけに絞る */
+let tlFilt = '';
+function tlApplyFilter(){
+  document.querySelectorAll('.drop.tlv').forEach(drop => {
+    drop.querySelectorAll(':scope > .card.tl').forEach(el => {
+      const k = findCard(el.dataset.card)?.card;
+      el.style.display = (!tlFilt || (k && tlKind(k) === tlFilt)) ? '' : 'none';
+    });
+    /* 中身が隠れた日の見出しも隠す */
+    drop.querySelectorAll(':scope > .tl-day').forEach(h => {
+      let n = h.nextElementSibling, any = false;
+      while(n && !n.classList.contains('tl-day')){
+        if(n.classList.contains('card') && n.style.display !== 'none'){ any = true; break; }
+        n = n.nextElementSibling;
+      }
+      h.style.display = any ? '' : 'none';
+      const x = h.nextElementSibling;
+      if(x && x.classList.contains('tl-dayx')) x.style.display = any ? '' : 'none';
+    });
+    const wrap = drop.parentElement;
+    wrap.querySelectorAll(':scope > .tl-fbar').forEach(n => n.remove());
+    if(tlFilt){
+      const ico = tlFilt === 'quote' ? '<span class="tl-fbm"></span>' : (TLICO[tlFilt] || '');
+      drop.insertAdjacentHTML('beforebegin', `<div class="tl-fbar"><span class="tl-fico">${ico}</span>
+        <span>${TLKLB[tlFilt] || ''} だけ表示中</span><button class="tl-fclr">すべて表示</button></div>`);
+      wrap.querySelector(':scope > .tl-fbar .tl-fclr').onclick = () => { tlFilt = ''; tlApplyFilter(); };
+    }
+  });
+}
 function tlDeco(root){
+  setTimeout(tlApplyFilter, 0);
   tlDailyHeads(root);
   tlMobileSide(document);
   (root || document).querySelectorAll('.dailycards .drop, .ocside .drop, .tlpage .drop').forEach(drop => {
@@ -9025,8 +9111,9 @@ function tlDeco(root){
         const ico = tlIcon(k);
         const mark = k.type === 'task'
           ? `<span class="tl-dot tl-ico tl-act${k.done ? ' done' : ''}" data-tlck="${k.id}" title="${k.done ? '完了（押すと戻す）' : '押すと完了'}">${TLICO.act}</span>`
-          : ico ? `<span class="tl-dot tl-ico${can}">${ico}</span>`
-          : `<span class="tl-dot${k.type === 'quote' ? ' tl-bm' : ''}${can}"></span>`;   /* 引用は栞マーク */
+          : ico ? `<span class="tl-dot tl-ico tl-f" data-tlf="${tlKind(k)}" title="押すと「${TLKLB[tlKind(k)]}」だけ表示">${ico}</span>`
+          : k.type === 'quote' ? `<span class="tl-dot tl-bm tl-f" data-tlf="quote" title="押すと Quote だけ表示"></span>`   /* 引用は栞マーク */
+          : `<span class="tl-dot${can}"></span>`;
         el.insertAdjacentHTML('afterbegin',
           `<div class="tl-time${can}">${esc(t || '—')}</div><span class="tl-line"></span>${mark}`);
         if(!t) el.classList.add('notime');
@@ -9050,6 +9137,11 @@ function tlDeco(root){
       prev = d;
       tlAlign(el);
       if(tlRO) tlRO.observe(el);
+    });
+    drop.querySelectorAll('[data-tlf]').forEach(b => b.onclick = e => {
+      e.stopPropagation();
+      tlFilt = tlFilt === b.dataset.tlf ? '' : b.dataset.tlf;
+      tlApplyFilter();
     });
     drop.querySelectorAll('[data-tlck]').forEach(b => b.onclick = e => {
       e.stopPropagation();
@@ -10731,7 +10823,7 @@ function render(){
   try{ lnkPrune(); }catch(e){}
   /* ページを移ったら、スマホのカレンダーは1週間・Pin Memo は閉じた状態に戻す */
   const vk = view.type + '|' + (view.id || '');
-  if(vk !== tlLastView){ tlCalOpen = false; tlPinOpen = false; tlLastView = vk; }
+  if(vk !== tlLastView){ tlCalOpen = false; tlPinOpen = false; tlLastView = vk; tlFilt = ''; }
   if(typeof hideImgHandle === 'function'){ ihDrag = false; hideImgHandle(); }
   refreshDatalists();
   /* Cards・Quotes・Read Log は全体を游明朝に */
@@ -10746,7 +10838,7 @@ function render(){
   }
   if(!S.rsideHidden) renderRight();
   if(view.type === 'tasks') renderTasks();
-  else if(view.type === 'times') renderTimes();
+  else if(view.type === 'times') (APP === 'task' ? renderTimes() : renderBookLog());
   else if(view.type === 'cards') renderCards();
   else if(view.type === 'pin') renderPins();
   else if(view.type === 'learn') renderLearn();
@@ -10758,7 +10850,7 @@ function render(){
   else if(view.type === 'search') renderSearch();
   else if(view.type === 'timeline') renderTimeline();
   else if(view.type === 'quote') renderCollection('quote');
-  else if(view.type === 'read') renderCollection('read');
+  else if(view.type === 'read') (APP === 'task' ? renderCollection('read') : renderBookLog());
   else if(view.type === 'done') renderDone();
   else renderBoard();
   paintPageIco();
