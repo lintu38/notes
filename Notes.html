@@ -402,6 +402,24 @@
   /* ---------- board ---------- */
   .cols{display:flex;gap:16px;align-items:flex-start;min-height:200px}
   .cols.shelfcols .col-head{display:none}
+  /* Bookshelf の「画像」表示 */
+  .covgrid{display:grid;grid-template-columns:repeat(auto-fill,120px);gap:16px 14px;padding:4px 0 20px}
+  .covitem{display:block;padding:0;border:0;background:none;cursor:pointer;aspect-ratio:2/3;
+    border-radius:4px;overflow:hidden;box-shadow:0 2px 8px rgba(60,40,30,.16);transition:transform .15s}
+  .covitem:hover{transform:translateY(-2px)}
+  .covitem img{width:100%;height:100%;object-fit:cover;display:block}
+  .covttl{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+    width:100%;height:100%;box-sizing:border-box;padding:10px;background:#efe6dc;color:#5a4636;
+    font-family:var(--fserif);font-size:13px;line-height:1.5;text-align:center;overflow:hidden;
+    border:1px solid #e0d3c4;border-radius:4px;word-break:break-word}
+  .covttl small{font-size:10.5px;color:#8a7867}
+  .covempty{color:var(--muted);font-size:13px;padding:30px 4px}
+  .seg.shview button{padding-left:9px;padding-right:9px;display:inline-flex;align-items:center}
+  .seg.shview svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.3;
+    stroke-linecap:round;stroke-linejoin:round;display:block}
+  .covttl{font-size:12px}
+  /* スマホは3列 */
+  @media (max-width:860px){ .covgrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 10px} }
   .cols.shelfcols .col{width:auto!important;flex:1 1 auto!important}
   .cols.shelfcols .drop{display:block;columns:4;column-gap:14px}
   .cols.shelfcols .drop > *{break-inside:avoid;-webkit-column-break-inside:avoid;
@@ -941,6 +959,18 @@
     background:var(--panel);display:inline-flex;align-items:center;justify-content:center;
     color:var(--brown);box-shadow:var(--shadow)}
   .pickbook:hover{border-color:#e0c3cd;background:#f6e9ed;color:#b06a80}
+  /* ランダム選書ボタンは、ふわっと光らせる */
+  .pickbook{animation:pkglow 2.6s ease-in-out infinite}
+  .pickbook svg{animation:pkico 2.6s ease-in-out infinite}
+  @keyframes pkglow{
+    0%,100%{box-shadow:0 0 0 1px rgba(255,214,120,.35),0 0 6px rgba(255,200,90,.25)}
+    50%{box-shadow:0 0 0 1px rgba(255,205,100,.7),0 0 16px rgba(255,196,70,.65),0 0 28px rgba(255,214,120,.35)}}
+  @keyframes pkico{
+    0%,100%{filter:drop-shadow(0 0 1px rgba(255,214,120,.5))}
+    50%{filter:drop-shadow(0 0 4px rgba(255,200,80,.95))}}
+  @media (prefers-reduced-motion:reduce){
+    .pickbook,.pickbook svg{animation:none}
+    .pickbook{box-shadow:0 0 0 1px rgba(255,205,100,.6),0 0 12px rgba(255,196,70,.5)}}
   .pickbook svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.2;
     stroke-linecap:round;stroke-linejoin:round}
   .pkn{margin-left:auto;font-size:11px;color:var(--muted)}
@@ -4158,15 +4188,18 @@ function renderBoard(){
     && !(k.type === 'book' && bookStatus(k) && bookShelf(k) !== 'again')
     && !(shelf && k.type === 'book' && S.shelfTab !== 'all' && bookShelf(k) !== S.shelfTab);
   const v = document.getElementById('view');
+  /* Bookshelf：詳細（カード）か、表紙だけ（3列）か */
+  const covMode = shelf && S.shelfView === 'cover';
   v.innerHTML = `${shelf ? `<div class="tools">
     <div class="seg">${SHELVES.map(([val, nm]) =>
       `<button data-shtab="${val}" class="${S.shelfTab===val?'on':''}">${nm}</button>`).join('')}</div>
+    ${shViewSeg()}
     <button class="btn shplus" id="shAdd" title="本を追加">＋</button>
     <button class="pickbook" id="shPick" title="ランダム選書">
       <svg viewBox="0 0 16 16"><path d="M2.6 3.1h4.1c.9 0 1.3.5 1.3 1.2v8.6c0-.6-.5-1-1.3-1H2.6z"/><path d="M13.4 3.1H9.3c-.9 0-1.3.5-1.3 1.2v8.6c0-.6.5-1 1.3-1h4.1z"/></svg>
     </button>
   </div>` : ''}
-  <div class="cols ${shelf ? 'shelfcols' : ''}">${b.cols.map(c => {
+  ${covMode ? coverGridHTML(b.cols.flatMap(c => c.cards.filter(match))) : `<div class="cols ${shelf ? 'shelfcols' : ''}">${b.cols.map(c => {
     const w = c.w || 288;
     return `<div class="col" data-col="${c.id}" style="width:${w}px;flex-basis:${w}px">
       <div class="col-head" data-colhead="${c.id}">
@@ -4181,7 +4214,8 @@ function renderBoard(){
     </div>`;
   }).join('')}
     ${shelf ? '' : `<div class="addcol"><button id="newCol">＋ 列を追加</button></div>`}
-    ${(shelf || APP !== 'note') ? '' : `<div class="pincol">${pinListHTML(b.id)}</div>`}</div>`;
+    ${(shelf || APP !== 'note') ? '' : `<div class="pincol">${pinListHTML(b.id)}</div>`}</div>`}`;
+  wireShView(v, renderBoard);
 
   v.querySelectorAll('[data-ct]').forEach(el => el.oninput = e => {
     b.cols.find(c => c.id === el.dataset.ct).title = e.target.value; save(); });
@@ -4245,6 +4279,37 @@ function renderBoard(){
   wireResize(v, b); wireColDnD(v, b); wireCards(v); wireDnD(v);
 }
 
+/* 本の表示：詳細（カード）／表紙だけ（3列）の切り替えボタン */
+const SHV_ICO = {
+  detail:'<svg viewBox="0 0 16 16"><rect x="1.8" y="2.4" width="3.6" height="4.6" rx=".6"/><path d="M7.4 3.4h6.8M7.4 6h4.4"/><rect x="1.8" y="9" width="3.6" height="4.6" rx=".6"/><path d="M7.4 10h6.8M7.4 12.6h4.4"/></svg>',
+  cover:'<svg viewBox="0 0 16 16"><rect x="1.6" y="1.8" width="3.5" height="5.2" rx=".5"/><rect x="6.25" y="1.8" width="3.5" height="5.2" rx=".5"/><rect x="10.9" y="1.8" width="3.5" height="5.2" rx=".5"/><rect x="1.6" y="9" width="3.5" height="5.2" rx=".5"/><rect x="6.25" y="9" width="3.5" height="5.2" rx=".5"/><rect x="10.9" y="9" width="3.5" height="5.2" rx=".5"/></svg>'
+};
+function shViewSeg(){
+  const cov = S.shelfView === 'cover';
+  return `<div class="seg shview">
+    <button data-shv="detail" class="${cov?'':'on'}" title="詳細" aria-label="詳細">${SHV_ICO.detail}</button>
+    <button data-shv="cover" class="${cov?'on':''}" title="表紙だけ" aria-label="表紙だけ">${SHV_ICO.cover}</button></div>`;
+}
+function wireShView(v, again){
+  v.querySelectorAll('[data-shv]').forEach(el => el.onclick = () => {
+    S.shelfView = el.dataset.shv; save(); again();
+  });
+  v.querySelectorAll('[data-shcov]').forEach(el => el.onclick = () => {
+    view = {type:'card', id:el.dataset.shcov}; render();
+  });
+}
+/* 表紙だけを横3列に。表紙が無い本はタイトル（と著者）を出す */
+function coverGridHTML(cards){
+  const ks = cards.filter(k => k.type === 'book');
+  if(!ks.length) return '<div class="covempty">本はありません</div>';
+  return `<div class="covgrid">${ks.map(k => {
+    const B = k.book || {};
+    const t = (B.title || k.title || '').replace(/<[^>]*>/g, '').trim() || '（タイトルなし）';
+    return `<button class="covitem" data-shcov="${k.id}" title="${esc(t)}">${B.cover
+      ? `<img src="${esc(B.cover)}" alt="${esc(t)}" loading="lazy">`
+      : `<span class="covttl">${esc(t)}${B.author ? `<small>${esc(B.author)}</small>` : ''}</span>`}</button>`;
+  }).join('')}</div>`;
+}
 /* 列の並び替え */
 let dragCol = null;
 function wireColDnD(root, b){
@@ -9319,8 +9384,10 @@ function renderShelf(){
     <div class="tools">
       <input class="search" id="q" placeholder="本を検索…" value="${esc(q)}">
       <span style="color:var(--muted);font-size:12.5px">${L.length} 冊</span>
+      ${shViewSeg()}
     </div>
-    ${L.length ? `<div class="pinwrap">${[0,1,2,3].map(ci =>
+    ${L.length && S.shelfView === 'cover' ? coverGridHTML(L.map(x => x.card))
+    : L.length ? `<div class="pinwrap">${[0,1,2,3].map(ci =>
       `<div class="pincolm">${L.filter((_, n) => n % 4 === ci)
         .map(x => cardHTML(x.card)).join('')}</div>`).join('')}</div>`
       : `<div class="empty">まだありません<br>
@@ -9331,6 +9398,7 @@ function renderShelf(){
     const n = document.getElementById('q'); if(n){ n.focus(); n.setSelectionRange(pos, pos); } });
   document.getElementById('shBack').onclick = () => {
     view = shelf ? {type:'board', id:shelf.id} : {type:'tasks'}; q = ''; render(); };
+  wireShView(v, renderShelf);
   wireCards(v);
 }
 
