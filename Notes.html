@@ -10330,14 +10330,15 @@ function replyHTML(k){
 }
 
 /* ---------------- shell ---------------- */
-/* ページ下のタブ：サイドメニューの項目・One Step・本棚・各ボード・タグへ。
+/* ページ下のタブ：サイドメニューの項目・One Step・各ボードへ。
    どれを出すかは右端の「⋯」から選ぶ（S.qnShow：キー → true/false） */
 function qnItems(){
   const V = {tline:'timeline', search:'search', tasks:'tasks', pin:'pin', learn:'learn', issue:'issue',
     times:'times', done:'done', replog:'replog', read:'read', quote:'quote', cards:'cards'};
   const out = [];
-  /* サイドメニュー（隠れている項目も選べる） */
+  /* サイドメニュー（表示している項目） */
   document.querySelectorAll('#navList [data-nav]').forEach(el => {
+    if(el.style.display === 'none') return;
     const k = el.dataset.nav;
     out.push({key:'n:' + k, sec:'メニュー', label:(el.querySelector('.ico + span')?.textContent || k).trim(),
       ico:el.querySelector('.ico')?.innerHTML || '', go:() => el.click(),
@@ -10346,22 +10347,11 @@ function qnItems(){
   const ot = document.getElementById('navTimer');
   if(ot) out.push({key:'x:onestep', sec:'メニュー', label:'One Step', ico:ot.querySelector('.ico')?.innerHTML || '',
     go:() => ot.click(), on:() => false});
-  /* 本棚 */
-  if(S.boards.some(b => b.name === 'Bookshelf')){
-    [['done', '読んだ本'], ['stop', '途中終了'], ['all', 'ALL（すべての本）']].forEach(([st, lb]) =>
-      out.push({key:'s:' + st, sec:'本棚', label:lb, ico:biconSvg('book'),
-        go:() => { view = {type:'shelf', st}; render(); },
-        on:() => view.type === 'shelf' && (['stop', 'all'].includes(view.st) ? view.st : 'done') === st}));
-  }
   /* ボード */
   S.boards.filter(b => !isIdxB(b)).forEach(b => out.push({key:'b:' + b.id, sec:'Board', label:b.name || '(無題)',
     ico:b.icon ? biconSvg(b.icon) : '', color:b.color || '',
     go:() => { view = {type:'board', id:b.id}; render(); },
     on:() => view.type === 'board' && view.id === b.id}));
-  /* タグ */
-  allTags().forEach(t => out.push({key:'t:' + t, sec:'Tag', label:'#' + t, ico:'', color:tagColor(t),
-    go:() => { tagFilter = t; view = {type:'tag', name:t}; render(); },
-    on:() => view.type === 'tag' && view.name === t}));
   return out;
 }
 function qnShown(key){
