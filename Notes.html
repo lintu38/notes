@@ -370,6 +370,10 @@
   .qnpop .qnico{width:16px;display:inline-flex;justify-content:center;font-size:13px}
   .qnpop .qnico svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.3;
     stroke-linecap:round;stroke-linejoin:round}
+  /* サイドメニューの Status は出さない */
+  #stLabel,#legend{display:none!important}
+  /* タイトル右のボタンは角丸の四角 */
+  #quickNav .qn,#quickNav .qn.qi{border-radius:8px}
   #quickNav .qsep{flex:0 0 1px;align-self:stretch;margin:3px 3px;background:var(--line)}
   #backupTag{font-size:11.5px;color:#b5711f;background:#fff3e2;border-radius:20px;
     padding:3px 10px;margin-right:8px;cursor:pointer;white-space:nowrap}
@@ -2507,7 +2511,7 @@
     <div class="side-label lbrow" id="tagLabel" style="display:none"><span>Tag</span>
       <button id="tagEdit" title="Tag を編集">✎</button></div>
     <div class="tagnav" id="tagNav"></div>
-    <div class="side-label lbrow"><span>Status</span>
+    <div class="side-label lbrow" id="stLabel"><span>Status</span>
       <button id="stEdit" title="Status を編集">✎</button></div>
     <div class="legend" id="legend"></div>
     <div class="side-foot">
