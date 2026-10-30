@@ -956,6 +956,14 @@
   .bsb.rer.on{background:#8c3a52;border-color:#8c3a52;color:#fff}
   .rercnt{font-size:12px;color:#8c3a52;font-family:var(--fdisp)}
   .bstat{display:inline-flex;gap:6px}
+  /* 読んでる・気になる…の棚ボタンは、本の情報のいちばん下に */
+  .bshelf-row{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px;padding-top:10px;border-top:1px dashed var(--line)}
+  .bshelf-row .bstat{flex-wrap:wrap}
+  .bshelf-row .bstat + .bstat{margin-left:auto}
+  /* タイム計測は、表紙の右横（右上端）に */
+  .btimer-top{display:flex;justify-content:flex-end;height:0;overflow:visible;position:relative;z-index:1}
+  .btimer-top.nocov{height:auto;margin-bottom:4px}
+  .btimer-top:not(.nocov) .btime{margin-top:6px}
   .bsb{font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid var(--line);
     color:#a9a0a2;background:var(--panel);white-space:nowrap;font-family:var(--fdisp)}
   .bsb.done.on{background:#2f4a6b;border-color:#2f4a6b;color:#fff}
@@ -7845,8 +7853,7 @@ function bookSection(k, fixed){
       <button class="sec-x" data-secdel="book|${k.id}" title="Book を削除">×</button>
     </div>`}
     ${!open ? '' : `<div class="qbox">
-      <div class="bstat-row">${shelfBtns(k)}
-        <span class="bstat-right">${bookStatusBtns(k)}<span class="btime">${timerChip(k)}</span></span></div>
+      <div class="btimer-top"><span class="btime">${timerChip(k)}</span></div>
       <div class="bcoverbox">
         ${B.cover ? `<img class="bcover" src="${esc(B.cover)}" alt="">
           <button class="bcovx" data-bcovdel="${k.id}" title="画像を外す">×</button>`
@@ -7901,6 +7908,7 @@ function bookSection(k, fixed){
       <div class="brow-star">${starsHTML(k)}${rereadHTML(k)}</div>
       ${onPage(k) ? `<label>Memo</label>
       <div class="body qm" contenteditable="true" data-bmemo="${k.id}" data-ph="感想・覚え書き">${clean(B.memo)}</div>` : ''}
+      <div class="bshelf-row">${shelfBtns(k)}${bookStatusBtns(k)}</div>
       <div class="qfoot">
         ${onPage(k) ? `<button class="imgadd" data-imgadd="bmemo|${k.id}">＋ 画像</button>${fmtBar()}` : ''}
         <button class="qreg" data-breg="${k.id}">Add</button></div>
@@ -7941,8 +7949,7 @@ function bookStatusBtns(k){
 function bookCardHTML(k){
   const B = k.book;
   return `<div class="qcard bcard">
-    <div class="bstat-row">${shelfBtns(k)}
-      <span class="bstat-right">${bookStatusBtns(k)}<span class="btime">${timerChip(k)}</span></span></div>
+    <div class="btimer-top ${B.cover ? '' : 'nocov'}"><span class="btime">${timerChip(k)}</span></div>
     ${B.cover ? `<div class="bcoverbox big">${B.url
       ? `<a class="ulink" href="${esc(B.url)}" target="_blank" rel="noopener"><img class="bcover" src="${esc(B.cover)}" alt=""></a>`
       : `<img class="bcover" src="${esc(B.cover)}" alt="">`}</div>` : ''}
@@ -7961,6 +7968,7 @@ function bookCardHTML(k){
     <div class="brow-star" style="margin-top:8px">${starsHTML(k)}${rereadHTML(k)}</div>
     ${(onPage(k) && plain(B.memo).trim()) ? `<div class="qc-memo plain">
       <div class="body live" contenteditable="true" data-bmemo="${k.id}" data-ph="感想・覚え書き">${clean(B.memo)}</div></div>` : ''}
+    <div class="bshelf-row">${shelfBtns(k)}${bookStatusBtns(k)}</div>
 
     <div class="qc-foot"><span class="qc-tags">${tagChips(k)}</span>
       ${onPage(k)
