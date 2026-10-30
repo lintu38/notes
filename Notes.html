@@ -414,6 +414,8 @@
     border:1px solid #e0d3c4;border-radius:4px;word-break:break-word}
   .covttl small{font-size:10.5px;color:#8a7867}
   .covempty{color:var(--muted);font-size:13px;padding:30px 4px}
+  .shpgname{font-size:13px;color:var(--brown);font-weight:600;letter-spacing:.04em;white-space:nowrap}
+  #topActions .btn.on{background:var(--brown);color:#fff;border-color:var(--brown)}
   .seg.shview button{padding-left:9px;padding-right:9px;display:inline-flex;align-items:center}
   .seg.shview svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.3;
     stroke-linecap:round;stroke-linejoin:round;display:block}
@@ -4153,9 +4155,7 @@ function renderBoard(){
   const logCards = (b.cols || []).flatMap(c => c.cards || []).filter(hasLog);
   const logAnyOpen = logCards.some(k => k.fold && k.fold.log === false);
   document.getElementById('topActions').innerHTML =
-    (shelf ? `<button class="btn" id="shAll">ALL</button>
-      <button class="btn" id="shDone">読んだ本</button>
-      <button class="btn" id="shStop">途中終了</button>` : '') +
+    (shelf ? shelfTopHTML('') : '') +
     (APP === 'task' && !shelf
       ? `<button class="btn" id="bFold">${foldAnyOpen ? 'すべて折りたたむ' : 'すべて展開'}</button>
          ${logCards.length ? `<button class="btn" id="bFoldLog">Message Log を${logAnyOpen ? 'たたむ' : '開く'}</button>` : ''}` : '') +
@@ -4170,12 +4170,7 @@ function renderBoard(){
     logCards.forEach(k => { (k.fold ||= {}).log = logAnyOpen ? true : false; });
     save(); renderBoard();
   };
-  const sd = document.getElementById('shDone');
-  if(sd) sd.onclick = () => { view = {type:'shelf', st:'done'}; render(); };
-  const ss = document.getElementById('shStop');
-  if(ss) ss.onclick = () => { view = {type:'shelf', st:'stop'}; render(); };
-  const sa = document.getElementById('shAll');
-  if(sa) sa.onclick = () => { view = {type:'shelf', st:'all'}; render(); };
+  if(shelf) wireShelfTop();
   const ct = document.getElementById('clrTag');
   if(ct) ct.onclick = () => { tagFilter = ''; render(); };
 
@@ -4186,19 +4181,13 @@ function renderBoard(){
     && !k.tpl
     && !(k.type === 'task' && k.done) && !k.parent
     && !(k.type === 'book' && bookStatus(k) && bookShelf(k) !== 'again')
-    && !(shelf && k.type === 'book' && S.shelfTab !== 'all' && bookShelf(k) !== S.shelfTab);
+    && !(shelf && k.type === 'book' && S.shelfTab !== 'all' && bookShelf(k) !== S.shelfTab)
+    && !(shelf && q && !cardHay(k).includes(q.toLowerCase()));
   const v = document.getElementById('view');
   /* Bookshelf：詳細（カード）か、表紙だけ（3列）か */
   const covMode = shelf && S.shelfView !== 'detail';
-  v.innerHTML = `${shelf ? `<div class="tools">
-    <div class="seg">${SHELVES.map(([val, nm]) =>
-      `<button data-shtab="${val}" class="${S.shelfTab===val?'on':''}">${nm}</button>`).join('')}</div>
-    ${shViewSeg()}
-    <button class="btn shplus" id="shAdd" title="本を追加">＋</button>
-    <button class="pickbook" id="shPick" title="ランダム選書">
-      <svg viewBox="0 0 16 16"><path d="M2.6 3.1h4.1c.9 0 1.3.5 1.3 1.2v8.6c0-.6-.5-1-1.3-1H2.6z"/><path d="M13.4 3.1H9.3c-.9 0-1.3.5-1.3 1.2v8.6c0-.6.5-1 1.3-1h4.1z"/></svg>
-    </button>
-  </div>` : ''}
+  v.innerHTML = `${shelf ? shelfToolsHTML(S.shelfTab) + `<div class="tools">
+      <input class="search" id="q" placeholder="本を検索…" value="${esc(q)}"></div>` : ''}
   ${covMode ? coverGridHTML(b.cols.flatMap(c => c.cards.filter(match))) : `<div class="cols ${shelf ? 'shelfcols' : ''}">${b.cols.map(c => {
     const w = c.w || 288;
     return `<div class="col" data-col="${c.id}" style="width:${w}px;flex-basis:${w}px">
@@ -4259,14 +4248,53 @@ function renderBoard(){
   if(nc0) nc0.onclick = () => {
     b.cols.push({id:uid(), title:'新しい列', w:288, cards:[]}); save(); render();
   };
+  if(shelf){
+    wireShelfTools(v);
+    const qi = document.getElementById('q');
+    if(qi) wireSearchInput(qi, (val, pos) => { q = val; renderBoard();
+      const n = document.getElementById('q'); if(n){ n.focus(); n.setSelectionRange(pos, pos); } });
+  }
+  wireResize(v, b); wireColDnD(v, b); wireCards(v); wireDnD(v);
+}
+
+/* Bookshelf の見出しまわり（ボードでも ALL・読んだ本・途中終了でも同じに見せる） */
+function shelfTopHTML(cur){
+  return [['all', 'ALL', 'shAll'], ['done', '読んだ本', 'shDone'], ['stop', '途中終了', 'shStop']]
+    .map(([st, lb, id]) => `<button class="btn${cur === st ? ' on' : ''}" id="${id}" data-shst="${st}">${lb}</button>`).join('');
+}
+function wireShelfTop(){
+  document.querySelectorAll('#topActions [data-shst]').forEach(el => el.onclick = () => {
+    const st = el.dataset.shst;
+    const sb = S.boards.find(x => x.name === 'Bookshelf');
+    /* いま開いているページのボタンをもう一度押すと Bookshelf に戻る */
+    if(view.type === 'shelf' && (view.st || 'done') === st && sb) view = {type:'board', id:sb.id};
+    else view = {type:'shelf', st};
+    render();
+  });
+}
+function shelfToolsHTML(curTab){
+  return `<div class="tools">
+    <div class="seg">${SHELVES.map(([val, nm]) =>
+      `<button data-shtab="${val}" class="${curTab===val?'on':''}">${nm}</button>`).join('')}</div>
+    ${shViewSeg()}
+    <button class="btn shplus" id="shAdd" title="本を追加">＋</button>
+    <button class="pickbook" id="shPick" title="ランダム選書">
+      <svg viewBox="0 0 16 16"><path d="M2.6 3.1h4.1c.9 0 1.3.5 1.3 1.2v8.6c0-.6-.5-1-1.3-1H2.6z"/><path d="M13.4 3.1H9.3c-.9 0-1.3.5-1.3 1.2v8.6c0-.6.5-1 1.3-1h4.1z"/></svg>
+    </button>
+  </div>`;
+}
+function wireShelfTools(v){
+  const sb = S.boards.find(x => x.name === 'Bookshelf');
   v.querySelectorAll('[data-shtab]').forEach(el => el.onclick = () => {
-    S.shelfTab = el.dataset.shtab; save(); renderBoard();
+    S.shelfTab = el.dataset.shtab; save();
+    if(sb) view = {type:'board', id:sb.id};
+    render();
   });
   const pk = document.getElementById('shPick');
   if(pk) pk.onclick = () => pickBookMenu();
   const shp = document.getElementById('shAdd');
-  if(shp) shp.onclick = () => {
-    const col = b.cols[0];
+  if(shp && sb) shp.onclick = () => {
+    const col = sb.cols[0];
     const k = {id:uid(), type:'book', title:'', body:'', color:'', start:'', due:'',
       repeat:{unit:'', n:1, days:[]}, done:false, subs:[], tags:[],
       created:today(), updated:today(),
@@ -4276,9 +4304,7 @@ function renderBoard(){
     col.cards.unshift(k);
     save(); view = {type:'card', id:k.id}; render();
   };
-  wireResize(v, b); wireColDnD(v, b); wireCards(v); wireDnD(v);
 }
-
 /* 本の表示：詳細（カード）／表紙だけ（3列）の切り替えボタン */
 const SHV_ICO = {
   detail:'<svg viewBox="0 0 16 16"><rect x="1.8" y="2.4" width="3.6" height="4.6" rx=".6"/><path d="M7.4 3.4h6.8M7.4 6h4.4"/><rect x="1.8" y="9" width="3.6" height="4.6" rx=".6"/><path d="M7.4 10h6.8M7.4 12.6h4.4"/></svg>',
@@ -9363,11 +9389,12 @@ function showPicked(cid, st){
 function renderShelf(){
   const st = ['stop', 'all'].includes(view.st) ? view.st : 'done';
   const t = document.getElementById('pageTitle');
-  t.value = st === 'done' ? '読んだ本' : st === 'stop' ? '途中終了' : 'ALL（すべての本）';
+  /* 見出し・右上のボタン・棚のタブは Bookshelf と同じに */
+  t.value = 'Bookshelf';
   t.disabled = true; t.oninput = null; t.style.color = '';
   const shelf = S.boards.find(b => b.name === 'Bookshelf');
-  document.getElementById('topActions').innerHTML =
-    `<button class="btn" id="shBack">▦ Bookshelf へ戻る</button>`;
+  document.getElementById('topActions').innerHTML = shelfTopHTML(st);
+  wireShelfTop();
   /* 読んだ本＝「読了」か「再読したい」棚か「再読」が付いている本 */
   const isRead = k => bookStatus(k) === 'done' || bookShelf(k) === 'again'
     || ((k.book && k.book.reread) || 0) > 0;
@@ -9380,11 +9407,11 @@ function renderShelf(){
   L.sort((a, b2) => ((b2.card.book.doneAt || '') + '').localeCompare((a.card.book.doneAt || '') + ''));
   const shLabel = {reading:'読んでる', want:'気になる', stack:'休憩中', again:'もう一度'};
   const v = document.getElementById('view');
-  v.innerHTML = `
+  v.innerHTML = `${shelfToolsHTML('')}
     <div class="tools">
+      <span class="shpgname">${st === 'done' ? '読んだ本' : st === 'stop' ? '途中終了' : 'ALL（すべての本）'}</span>
       <input class="search" id="q" placeholder="本を検索…" value="${esc(q)}">
       <span style="color:var(--muted);font-size:12.5px">${L.length} 冊</span>
-      ${shViewSeg()}
     </div>
     ${L.length && S.shelfView !== 'detail' ? coverGridHTML(L.map(x => x.card))
     : L.length ? `<div class="pinwrap">${[0,1,2,3].map(ci =>
@@ -9396,8 +9423,7 @@ function renderShelf(){
   const qi = document.getElementById('q');
   wireSearchInput(qi, (val, pos) => { q = val; renderShelf();
     const n = document.getElementById('q'); if(n){ n.focus(); n.setSelectionRange(pos, pos); } });
-  document.getElementById('shBack').onclick = () => {
-    view = shelf ? {type:'board', id:shelf.id} : {type:'tasks'}; q = ''; render(); };
+  wireShelfTools(v);
   wireShView(v, renderShelf);
   wireCards(v);
 }
@@ -10433,7 +10459,7 @@ function qnItems(){
   S.boards.filter(b => !isIdxB(b)).forEach(b => out.push({key:'b:' + b.id, sec:'Board', label:b.name || '(無題)',
     ico:b.icon ? biconSvg(b.icon) : '', color:b.color || '',
     go:() => { view = {type:'board', id:b.id}; render(); },
-    on:() => view.type === 'board' && view.id === b.id}));
+    on:() => (view.type === 'board' && view.id === b.id) || (view.type === 'shelf' && b.name === 'Bookshelf')}));
   return out;
 }
 function qnShown(key){
@@ -10523,8 +10549,15 @@ function qnSettings(x, y){
   p.querySelectorAll('[data-qu]').forEach(el => el.onclick = e => { e.preventDefault(); mv(+el.dataset.qu, -1); });
   p.querySelectorAll('[data-qd]').forEach(el => el.onclick = e => { e.preventDefault(); mv(+el.dataset.qd, 1); });
 }
+/* Bookshelf まわり（ボード・ALL・読んだ本・途中終了）の外から入ったときは、検索語を空にする */
+let shelfCtxPrev = false;
 function render(){
   hideRT();
+  {
+    const sc = view.type === 'shelf' || (view.type === 'board' && (board(view.id)?.name === 'Bookshelf'));
+    if(sc && !shelfCtxPrev) q = '';
+    shelfCtxPrev = sc;
+  }
   try{ lnkPrune(); }catch(e){}
   /* ページを移ったら、スマホのカレンダーは1週間・Pin Memo は閉じた状態に戻す */
   const vk = view.type + '|' + (view.id || '');
@@ -10570,6 +10603,7 @@ function paintPageIco(){
   let html = '', color = '';
   let b = view.type === 'board' ? board(view.id) : null;
   if(view.type === 'card'){ const f = findCard(view.id); if(f) b = f.board; }
+  if(view.type === 'shelf') b = S.boards.find(x => x.name === 'Bookshelf') || null;
   if(b){
     if(isIdxB(b)) html = document.querySelector('#navIndex .ico')?.innerHTML || '';
     else { html = bicon(b); color = b.color || ''; }
