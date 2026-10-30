@@ -417,9 +417,24 @@
   .shnow{font-family:var(--fdisp);font-size:12px;font-weight:700;letter-spacing:.14em;color:var(--brown);
     margin-right:-2px;white-space:nowrap}
   .shnowrow{display:flex;align-items:center;gap:8px;min-width:0}
+  .shlog{width:34px;height:32px;padding:0;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;
+    flex:0 0 auto;border:1px solid var(--line);background:var(--panel);color:var(--brown);cursor:pointer}
+  .seg + .shlog{margin-left:14px}   /* タブから少し離す */
+  .shlog:hover{background:#f6f1ec}
+  .shlog.on{background:var(--brown);border-color:var(--brown);color:#fff}
+  .shlog svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
   /* PC：画像／詳細の切り替えは、ランダム選書の左に少し離して */
   .shrow2{display:flex;align-items:center;gap:20px;margin-left:auto}
   .shrow2 .pickbook{margin-left:0}
+  .shtsep{display:inline-block;width:1px;height:20px;background:var(--line);margin:0 4px;align-self:center}
+  /* Bookshelf の右上のボタンは、小さめにして1行に */
+  #topActions:has([data-shst]){display:flex;flex-wrap:nowrap;gap:5px;align-items:center}
+  #topActions [data-shst],#topActions [data-shpg]{padding:5px 10px;font-size:12.5px;white-space:nowrap}
+  #pageTitle{flex-shrink:0}
+  .topbar:has(#topActions [data-shst]) #lastSave{display:none}
+  @media (max-width:860px){ #topActions:has([data-shst]){flex-wrap:wrap;gap:4px}
+    #topActions [data-shst],#topActions [data-shpg]{padding:5px 7px;font-size:11.5px}
+    #topActions .shtsep{margin:0 1px} }
   .shpgname{font-size:13px;color:var(--brown);font-weight:600;letter-spacing:.04em;white-space:nowrap}
   #topActions .btn.on{background:var(--brown);color:#fff;border-color:var(--brown)}
   .seg.shview{background:transparent;padding:0}
@@ -1926,7 +1941,12 @@
     /* 画像／詳細の切り替えは右寄せ・背景なし */
     /* NOW とタブは同じ行に */
     .tools .shnowrow .seg{width:auto;flex:1 1 auto;min-width:0}
-    .tools .shnowrow .seg button{padding:5px 8px;flex:1 1 auto}
+    .tools .shnowrow .seg button{padding:5px 3px;flex:1 1 auto;font-size:11.5px;letter-spacing:0}
+    .tools .shnowrow{gap:5px}
+    .tools .shnowrow .shnow{font-size:10.5px;letter-spacing:.06em}
+    .shlog{width:30px;height:30px}
+    .seg + .shlog{margin-left:6px}
+    .shlog svg{width:16px;height:16px}
     .tools .seg.shview{width:auto;background:transparent;padding:0}
     /* 画像／詳細の切り替えは左端、ランダム選書は同じ行の右端 */
     .shrow2{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-left:0}
@@ -3936,7 +3956,7 @@ function boardNav(b, inFolder){
 }
 const NAVKEYS = APP === 'task'
   ? ['search', 'tasks', 'replog', 'done', 'times']
-  : ['search', 'tline', 'tasks', 'pin', 'learn', 'issue', 'read', 'quote', 'cards', 'index'];   /* Read Log は出さない */
+  : ['search', 'tline', 'tasks', 'pin', 'learn', 'issue', 'cards', 'index'];   /* Read Log は出さない。Read Memo・Quotes は Bookshelf から */
 const NAVALL = ['search','tline','tasks','times','done','read','quote','cards','pin','learn','issue','index'];
 /* Index ボード（サイドの Board 一覧には出さず、上のメニューから開く） */
 function isIdxB(b){ return !!b && (b.idx || (b.name || '').trim() === 'Index'); }
@@ -4390,12 +4410,24 @@ function renderBoard(){
   wireResize(v, b); wireColDnD(v, b); wireCards(v); wireDnD(v);
 }
 
+/* Quotes のアイコン（丸いクォート） */
+const QUOTEICO = '<svg viewBox="0 0 16 16"><circle cx="4.6" cy="9.6" r="2.5" style="fill:currentColor;stroke:none"/><circle cx="11.2" cy="9.6" r="2.5" style="fill:currentColor;stroke:none"/><path d="M2.2 9.4c0-2.9 1.3-4.8 3.9-5.8M8.8 9.4c0-2.9 1.3-4.8 3.9-5.8" style="stroke-width:1.5"/></svg>';
+/* Reading Log のアイコン（本＋記録の線） */
+const RLOGICO = '<svg viewBox="0 0 16 16"><path d="M3.4 12.6V3.2c0-.6.5-1 1-1h8.2v9.6H4.6a1.2 1.2 0 0 0 0 2.4h8"/><path d="M5.8 4.8h4.8M5.8 7h4.8M5.8 9.2h3"/></svg>';
 /* Bookshelf の見出しまわり（ボードでも ALL・読んだ本・途中終了でも同じに見せる） */
 function shelfTopHTML(cur){
   return [['all', 'ALL', 'shAll'], ['done', '読んだ本', 'shDone'], ['stop', '途中終了', 'shStop']]
     .map(([st, lb, id]) => `<button class="btn${cur === st ? ' on' : ''}" id="${id}" data-shst="${st}">${lb}</button>`).join('');
 }
+/* Read Memo・Quotes のページでも、上のボタンは Bookshelf と同じに */
+function shelfTopOn(cur){
+  document.getElementById('topActions').innerHTML = shelfTopHTML(cur);
+  wireShelfTop();
+}
 function wireShelfTop(){
+  document.querySelectorAll('#topActions [data-shpg]').forEach(el => el.onclick = () => {
+    view = {type:el.dataset.shpg}; q = ''; render();
+  });
   document.querySelectorAll('#topActions [data-shst]').forEach(el => el.onclick = () => {
     const st = el.dataset.shst;
     const sb = S.boards.find(x => x.name === 'Bookshelf');
@@ -4407,7 +4439,9 @@ function shelfToolsHTML(curTab){
   return `<div class="tools">
     <div class="shnowrow"><span class="shnow">NOW</span>
     <div class="seg">${SHELVES.map(([val, nm]) =>
-      `<button data-shtab="${val}" class="${curTab===val?'on':''}">${nm}</button>`).join('')}</div></div>
+      `<button data-shtab="${val}" class="${curTab===val?'on':''}">${nm}</button>`).join('')}</div>
+    <button class="shlog ${view.type === 'read' ? 'on' : ''}" data-shpg="read" title="Reading Log" aria-label="Reading Log">${RLOGICO}</button>
+    <button class="shlog ${view.type === 'quote' ? 'on' : ''}" data-shpg="quote" title="Quotes" aria-label="Quotes">${QUOTEICO}</button></div>
     <button class="btn shplus" id="shAdd" title="本を追加">＋</button>
     <div class="shrow2">${shViewSeg()}
     <button class="pickbook" id="shPick" title="ランダム選書">
@@ -4417,6 +4451,9 @@ function shelfToolsHTML(curTab){
 }
 function wireShelfTools(v){
   const sb = S.boards.find(x => x.name === 'Bookshelf');
+  v.querySelectorAll('[data-shpg]').forEach(el => el.onclick = () => {
+    view = {type:el.dataset.shpg}; q = ''; render();
+  });
   v.querySelectorAll('[data-shtab]').forEach(el => el.onclick = () => {
     S.shelfTab = el.dataset.shtab; save();
     if(sb) view = {type:'board', id:sb.id};
@@ -7526,8 +7563,8 @@ function timeEdit(rect, cid, eid){
 /* Read Memo：Bookshelf の本に付けたメモ（と、ほかの Read メモ）を、すべて新しい順に（日付ごとに区切る） */
 function renderBookLog(){
   const t = document.getElementById('pageTitle');
-  t.value = 'Read Memo'; t.disabled = true; t.oninput = null; t.style.color = '';
-  document.getElementById('topActions').innerHTML = '';
+  t.value = 'Reading Log'; t.disabled = true; t.oninput = null; t.style.color = '';
+  shelfTopOn('read');
   const sh = S.boards.find(b => b.name === 'Bookshelf');
   let items = [];
   if(sh){
@@ -7549,7 +7586,8 @@ function renderBookLog(){
   items = items.map(k => ({k, key: tlDateOf(k) + ' ' + (tlTimeOf(k) || '')}))
     .sort((a, b) => b.key.localeCompare(a.key)).map(x => x.k);
   const v = document.getElementById('view');
-  v.innerHTML = `<div class="tools">
+  v.innerHTML = `${shelfToolsHTML('')}<div class="tools shsearch">
+      <span class="shpgname">Reading Log</span>
       <input class="search" id="q" placeholder="メモ・本のタイトルで検索…" value="${esc(q)}">
       <span style="color:var(--muted);font-size:12.5px">${items.length} 件</span>
     </div>
@@ -7559,6 +7597,8 @@ function renderBookLog(){
   const qi = document.getElementById('q');
   wireSearchInput(qi, (val, pos) => { q = val; renderBookLog();
     const n = document.getElementById('q'); if(n){ n.focus(); n.setSelectionRange(pos, pos); } });
+  wireShelfTools(v);
+  wireShView(v, renderBookLog);
   wireCards(v);
   tlDeco(v);
 }
@@ -8311,7 +8351,7 @@ let colFilter = {quote:{author:'', source:''}, read:{author:'', source:''}};
 function renderCollection(kind){
   const t = document.getElementById('pageTitle');
   t.disabled = true; t.oninput = null; t.style.color = '';
-  document.getElementById('topActions').innerHTML = '';
+  if(APP === 'note') shelfTopOn(kind); else document.getElementById('topActions').innerHTML = '';
 
   const nonEmpty = o => !!o && !!(plain(o.text || '').trim() || (o.author || '').trim()
     || (o.source || '').trim() || plain(o.memo || '').trim() || (o.media || '').trim()
@@ -8381,7 +8421,7 @@ function renderCollection(kind){
     </div>`;
   }
 
-  document.getElementById('view').innerHTML = `
+  document.getElementById('view').innerHTML = `${(APP === 'note' && kind === 'quote') ? shelfToolsHTML('') : ''}
     <div class="tools">
       <input class="search" id="q" placeholder="${kind === 'quote' ? '引用文・著者・出典' : '本のタイトル・著者・感想'}で検索…" value="${esc(q)}">
       <span class="gsel"><label>著者</label>
@@ -8404,6 +8444,7 @@ function renderCollection(kind){
   wireSearchInput(qi, (val, p) => { q = val; renderCollection(kind);
     const n = document.getElementById('q'); if(n){ n.focus(); n.setSelectionRange(p, p); } });
   const v = document.getElementById('view');
+  if(APP === 'note' && kind === 'quote'){ wireShelfTools(v); wireShView(v, () => renderCollection(kind)); }
   v.querySelectorAll('[data-cal]').forEach(b => b.onclick = () => {
     readSel = b.dataset.cal; readMonth = readSel.slice(0, 7); readAll = false;
     if(kind !== 'read') return renderCollection(kind);
@@ -10849,7 +10890,7 @@ function render(){
   else if(view.type === 'tag') renderTagPage();
   else if(view.type === 'search') renderSearch();
   else if(view.type === 'timeline') renderTimeline();
-  else if(view.type === 'quote') renderCollection('quote');
+  else if(view.type === 'quote') renderCollection('quote');   /* Quotes も Bookshelf の中のページ（NOW の行つき） */
   else if(view.type === 'read') (APP === 'task' ? renderCollection('read') : renderBookLog());
   else if(view.type === 'done') renderDone();
   else renderBoard();
