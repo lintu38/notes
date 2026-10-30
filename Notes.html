@@ -10754,6 +10754,13 @@ function qnItems(){
   const ot = document.getElementById('navTimer');
   if(ot) out.push({key:'x:onestep', sec:'メニュー', label:'One Step', ico:ot.querySelector('.ico')?.innerHTML || '',
     go:() => ot.click(), on:() => false});
+  /* Bookshelf の中のページ（Reading Log・Quotes）もタブにできる */
+  if(APP === 'note'){
+    out.push({key:'x:readlog', sec:'メニュー', label:'Reading Log', ico:RLOGICO,
+      go:() => { view = {type:'read'}; q = ''; render(); }, on:() => view.type === 'read'});
+    out.push({key:'x:quotes', sec:'メニュー', label:'Quotes', ico:QUOTEICO,
+      go:() => { view = {type:'quote'}; q = ''; render(); }, on:() => view.type === 'quote'});
+  }
   /* ボード */
   S.boards.filter(b => !isIdxB(b)).forEach(b => out.push({key:'b:' + b.id, sec:'Board', label:b.name || '(無題)',
     ico:b.icon ? biconSvg(b.icon) : '', color:b.color || '',
