@@ -417,7 +417,9 @@
   .shnow{font-family:var(--fdisp);font-size:12px;font-weight:700;letter-spacing:.14em;color:var(--brown);
     margin-right:-2px;white-space:nowrap}
   .shnowrow{display:flex;align-items:center;gap:8px;min-width:0}
-  .shrow2{display:contents}
+  /* PC：画像／詳細の切り替えは、ランダム選書の左に少し離して */
+  .shrow2{display:flex;align-items:center;gap:20px;margin-left:auto}
+  .shrow2 .pickbook{margin-left:0}
   .shpgname{font-size:13px;color:var(--brown);font-weight:600;letter-spacing:.04em;white-space:nowrap}
   #topActions .btn.on{background:var(--brown);color:#fff;border-color:var(--brown)}
   .seg.shview{background:transparent;padding:0}
@@ -1886,7 +1888,11 @@
     .tools .shnowrow .seg button{padding:5px 8px;flex:1 1 auto}
     .tools .seg.shview{width:auto;background:transparent;padding:0}
     /* 画像／詳細の切り替えは左端、ランダム選書は同じ行の右端 */
-    .shrow2{display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .shrow2{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-left:0}
+    /* ALL などのページ名・検索窓・冊数は1行に */
+    .tools.shsearch{flex-direction:row;align-items:center;flex-wrap:nowrap}
+    .tools.shsearch .search{flex:1 1 auto;min-width:0;width:auto}
+    .tools.shsearch > span{flex:0 0 auto}
     .daily-h{flex-wrap:wrap;gap:6px}
     .daily-h b{font-size:17px}
     .wx button{width:31px;height:31px}
@@ -8356,8 +8362,10 @@ function randBoxHTML(){
   </div>`;
 }
 function cardHay(k){
-  const Q = k.quote || {}, R = k.read || {};
+  const Q = k.quote || {}, R = k.read || {}, B = k.book || {};
   return [plain(k.title), k.bodyTitle, plain(k.body), plain(k.note), plain(k.head),
+    /* 本：書名・著者・訳者・出版社・媒体・メモ */
+    plain(B.title), B.author, B.trans, B.pub, B.media, plain(B.memo),
     ...(k.subs || []).map(s => [plain(s.title), plain(s.head), plain(s.note)].join(' ')),
     ...(k.tags || []).map(t => '#' + t),
     plain(Q.text), Q.author, Q.source, plain(Q.memo),
@@ -9434,7 +9442,7 @@ function renderShelf(){
   const shLabel = {reading:'読んでる', want:'気になる', stack:'休憩中', again:'もう一度'};
   const v = document.getElementById('view');
   v.innerHTML = `${shelfToolsHTML('')}
-    <div class="tools">
+    <div class="tools shsearch">
       <span class="shpgname">${st === 'done' ? '読んだ本' : st === 'stop' ? '途中終了' : 'ALL（すべての本）'}</span>
       <input class="search" id="q" placeholder="本を検索…" value="${esc(q)}">
       <span style="color:var(--muted);font-size:12.5px">${L.length} 冊</span>
