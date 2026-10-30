@@ -925,23 +925,22 @@
   .card.book > .card-top .btime .chip.timer.on{width:auto;padding:0 10px}
   .card.book > .card-top .btime .chip.timer .tmico{width:16px;height:16px}
   /* 本のカード：表紙の上の行に つまみ（左端）とメニュー（右端）、表紙の右に 選書候補・タイム計測（いちばん右） */
-  .card.book{padding-top:34px}
-  .card.book > .card-top{left:12px;right:10px;top:7px;width:auto;height:24px;flex-direction:row;flex-wrap:nowrap;
+  .card.book{padding-top:24px}
+  .card.book > .card-top{left:12px;right:10px;top:3px;width:auto;height:20px;flex-direction:row;flex-wrap:nowrap;
     align-items:center;justify-content:flex-start;gap:6px}
   .card.book > .card-top .grip{order:1;margin:0}
   .card.book > .card-top .menu{order:9;margin-left:auto}
-  .card.book > .card-top .pkmini{position:absolute;top:30px;right:34px;margin:0;width:28px;height:28px}
-  .card.book > .card-top .btime{position:absolute;top:30px;right:0}
-  /* 計測中や合計時間が出て幅が広がったときは、選書候補をその下へ */
-  .card.book > .card-top:has(.btime .chip.tot, .btime .chip.timer.on) .pkmini{top:64px;right:0}
-  .card.book .bcard .bcoverbox{max-width:calc(100% - 76px)}
+  /* 選書候補（上）とタイム計測（下）を、表紙の右に縦に */
+  .card.book > .card-top .pkmini{position:absolute;top:22px;right:0;margin:0;width:28px;height:28px}
+  .card.book > .card-top .btime{position:absolute;top:56px;right:0}
+  .card.book .bcard .bcoverbox{max-width:calc(100% - 44px)}
   .card.book .bcard .bcover{max-height:200px}
   /* 並べ替えできない場所では、つまみを出さない（本のページ・ALL などのページ・スマホ） */
   .onecard .card.book > .card-top .grip,
   .pinwrap .card.book > .card-top .grip{display:none}
   @media (hover:none){ .card.book > .card-top .grip{display:none} }
   /* 編集中の表紙：× は表紙の右上の角に */
-  .card.book .qbox > .bcoverbox{width:fit-content;max-width:calc(100% - 76px)}
+  .card.book .qbox > .bcoverbox{width:fit-content;max-width:calc(100% - 44px)}
   /* 編集中の本：幅が狭いときは、表紙をボタンの下に */
 
   .qcard.bcard{padding:2px 10px 8px}
