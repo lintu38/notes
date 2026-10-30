@@ -917,6 +917,24 @@
   .bsep{border-top:1px solid var(--line2);margin:9px 0 7px}
   .amzgo{margin-left:8px;font-size:11px;letter-spacing:0}
   .card.book .card-top{min-height:0;margin-bottom:2px}
+  /* 本のカード：表紙と同じいちばん上の行の右端に、移動・タイム計測・選書候補・メニューを並べる */
+  .card.book > .card-top{position:absolute;top:10px;right:10px;z-index:2;margin:0;align-items:center;gap:6px}
+  .card.book > .card-top .ctitle{display:none}
+  .card.book .bk-topgap{height:30px}
+  .card.book > .card-top .btime .chip.timer{width:28px;height:28px;min-height:28px;max-height:28px;border-radius:9px}
+  .card.book > .card-top .btime .chip.timer.on{width:auto;padding:0 10px}
+  .card.book > .card-top .btime .chip.timer .tmico{width:16px;height:16px}
+  /* 一覧のカード：右上のボタンは縦に並べて、表紙を大きく */
+  .card.book > .card-top{flex-direction:column;gap:5px}
+  .card.book .bcard .bcoverbox{max-width:calc(100% - 40px)}
+  .card.book .bcard .bcover{max-height:200px}
+  /* 本のページで開いたときは横並び */
+  .onecard .card.book > .card-top{flex-direction:row;gap:6px}
+  .onecard .card.book .bcard .bcoverbox{max-width:calc(100% - 118px)}
+  /* 編集中の表紙：× は表紙の右上の角に */
+  .card.book .qbox > .bcoverbox{width:fit-content;max-width:calc(100% - 40px)}
+  /* 編集中の本：幅が狭いときは、表紙をボタンの下に */
+
   .qcard.bcard{padding:2px 10px 8px}
   .bcard .bcoverbox.big{margin:0 0 8px}
   /* Book */
@@ -4474,7 +4492,7 @@ function cardHTML(k){
     ${(k.type === 'note' || k.type === 'task') ? cardTgl('memo', k, k.memoCard)
       : k.type === 'quote' ? cardTgl('quote', k, k.quote && k.quote.card)
       : k.type === 'read' ? cardTgl('read', k, k.read && k.read.card) : ''}
-    ${k.type === 'book' ? `<button class="pkmini ${pickOn(k)?'on':''}" data-bpick="${k.id}"
+    ${k.type === 'book' ? `<span class="btime">${timerChip(k)}</span><button class="pkmini ${pickOn(k)?'on':''}" data-bpick="${k.id}"
       title="ランダム選書候補">${PICKICO}</button>` : pinTgl(k)}
     ${canTime(k) && k.type !== 'book' ? `<span class="tmwrap">${totChip(k)}${timerBtn(k)}</span>` : ''}
     <button class="menu" data-menu="${k.id}">⋯</button></div>`;
@@ -5099,7 +5117,6 @@ function wireCards(root){
     const k = findCard(cid).card;
     const B = (k.book ||= {});
     B.shelf = B.shelf === v ? '' : v;
-    if(B.shelf === 'stack') B.pick = false;      /* 休憩中はランダム選書から外す */
     touch(k); save(); render();
   });
   root.querySelectorAll('[data-bstat]').forEach(el => el.onclick = () => {
@@ -7853,7 +7870,6 @@ function bookSection(k, fixed){
       <button class="sec-x" data-secdel="book|${k.id}" title="Book を削除">×</button>
     </div>`}
     ${!open ? '' : `<div class="qbox">
-      <div class="btimer-top"><span class="btime">${timerChip(k)}</span></div>
       <div class="bcoverbox">
         ${B.cover ? `<img class="bcover" src="${esc(B.cover)}" alt="">
           <button class="bcovx" data-bcovdel="${k.id}" title="画像を外す">×</button>`
@@ -7923,9 +7939,9 @@ const SHELVES = [['reading','読んでる'], ['want','気になる'], ['stack','
 const SHELFV = SHELVES.map(s => s[0]);
 const bookShelf = k => (k.book && k.book.shelf) || '';
 const PICKICO = '<svg viewBox="0 0 16 16"><path d="M2.6 3.1h4.1c.9 0 1.3.5 1.3 1.2v8.6c0-.6-.5-1-1.3-1H2.6z"/><path d="M13.4 3.1H9.3c-.9 0-1.3.5-1.3 1.2v8.6c0-.6.5-1 1.3-1h4.1z"/></svg>';
-/* ランダム選書に入れるか（未設定なら「読んでる」だけ ON）*/
+/* ランダム選書に入れるか（未設定ならすべて ON）*/
 const pickOn = k => (k.book && k.book.pick !== undefined)
-  ? !!k.book.pick : bookShelf(k) === 'reading';
+  ? !!k.book.pick : true;
 function shelfBtns(k){
   const s = bookShelf(k);
   return `<span class="bstat">${SHELVES.map(([v, n]) =>
@@ -7949,7 +7965,7 @@ function bookStatusBtns(k){
 function bookCardHTML(k){
   const B = k.book;
   return `<div class="qcard bcard">
-    <div class="btimer-top ${B.cover ? '' : 'nocov'}"><span class="btime">${timerChip(k)}</span></div>
+    ${B.cover ? '' : '<div class="bk-topgap"></div>'}
     ${B.cover ? `<div class="bcoverbox big">${B.url
       ? `<a class="ulink" href="${esc(B.url)}" target="_blank" rel="noopener"><img class="bcover" src="${esc(B.cover)}" alt=""></a>`
       : `<img class="bcover" src="${esc(B.cover)}" alt="">`}</div>` : ''}
