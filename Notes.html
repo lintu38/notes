@@ -414,8 +414,11 @@
     border:1px solid #e0d3c4;border-radius:4px;word-break:break-word}
   .covttl small{font-size:10.5px;color:#8a7867}
   .covempty{color:var(--muted);font-size:13px;padding:30px 4px}
+  .shnow{font-family:var(--fdisp);font-size:12px;font-weight:700;letter-spacing:.14em;color:var(--brown);
+    margin-right:-2px;white-space:nowrap}
   .shpgname{font-size:13px;color:var(--brown);font-weight:600;letter-spacing:.04em;white-space:nowrap}
   #topActions .btn.on{background:var(--brown);color:#fff;border-color:var(--brown)}
+  .seg.shview{background:transparent;padding:0}
   .seg.shview button{padding-left:9px;padding-right:9px;display:inline-flex;align-items:center}
   .seg.shview svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.3;
     stroke-linecap:round;stroke-linejoin:round;display:block}
@@ -1866,6 +1869,8 @@
     .scroll{padding:12px 10px 120px}
     .tools{flex-direction:column;align-items:stretch}
     .tools .seg{width:100%;justify-content:center}
+    /* 画像／詳細の切り替えは右寄せ・背景なし */
+    .tools .seg.shview{width:auto;align-self:flex-end;background:transparent;padding:0}
     .daily-h{flex-wrap:wrap;gap:6px}
     .daily-h b{font-size:17px}
     .wx button{width:31px;height:31px}
@@ -4181,13 +4186,11 @@ function renderBoard(){
     && !k.tpl
     && !(k.type === 'task' && k.done) && !k.parent
     && !(k.type === 'book' && bookStatus(k) && bookShelf(k) !== 'again')
-    && !(shelf && k.type === 'book' && S.shelfTab !== 'all' && bookShelf(k) !== S.shelfTab)
-    && !(shelf && q && !cardHay(k).includes(q.toLowerCase()));
+    && !(shelf && k.type === 'book' && S.shelfTab !== 'all' && bookShelf(k) !== S.shelfTab);
   const v = document.getElementById('view');
   /* Bookshelf：詳細（カード）か、表紙だけ（3列）か */
   const covMode = shelf && S.shelfView !== 'detail';
-  v.innerHTML = `${shelf ? shelfToolsHTML(S.shelfTab) + `<div class="tools">
-      <input class="search" id="q" placeholder="本を検索…" value="${esc(q)}"></div>` : ''}
+  v.innerHTML = `${shelf ? shelfToolsHTML(S.shelfTab) : ''}
   ${covMode ? coverGridHTML(b.cols.flatMap(c => c.cards.filter(match))) : `<div class="cols ${shelf ? 'shelfcols' : ''}">${b.cols.map(c => {
     const w = c.w || 288;
     return `<div class="col" data-col="${c.id}" style="width:${w}px;flex-basis:${w}px">
@@ -4248,12 +4251,7 @@ function renderBoard(){
   if(nc0) nc0.onclick = () => {
     b.cols.push({id:uid(), title:'新しい列', w:288, cards:[]}); save(); render();
   };
-  if(shelf){
-    wireShelfTools(v);
-    const qi = document.getElementById('q');
-    if(qi) wireSearchInput(qi, (val, pos) => { q = val; renderBoard();
-      const n = document.getElementById('q'); if(n){ n.focus(); n.setSelectionRange(pos, pos); } });
-  }
+  if(shelf) wireShelfTools(v);
   wireResize(v, b); wireColDnD(v, b); wireCards(v); wireDnD(v);
 }
 
@@ -4274,6 +4272,7 @@ function wireShelfTop(){
 }
 function shelfToolsHTML(curTab){
   return `<div class="tools">
+    <span class="shnow">NOW</span>
     <div class="seg">${SHELVES.map(([val, nm]) =>
       `<button data-shtab="${val}" class="${curTab===val?'on':''}">${nm}</button>`).join('')}</div>
     ${shViewSeg()}
