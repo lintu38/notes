@@ -327,6 +327,50 @@
     outline:none;min-width:60px;padding:2px 4px;border-radius:6px}
   .title:focus{background:var(--panel);box-shadow:0 0 0 2px var(--accent-soft)}
   .spacer{flex:1}
+  /* タイトル右上：Timeline と各ボードへ飛ぶボタン */
+  #quickNav{display:flex;align-items:center;gap:5px;min-width:0;max-width:62%;overflow-x:auto;
+    scrollbar-width:none;margin-right:8px}
+  #quickNav::-webkit-scrollbar{display:none}
+  #quickNav .qn{flex:0 0 auto;font-size:11.5px;line-height:1;padding:5px 11px;border-radius:20px;
+    border:1px solid var(--qo,var(--line));background:var(--qh,transparent);color:var(--qc,var(--muted));
+    cursor:pointer;white-space:nowrap;font-family:inherit;transition:background .15s,color .15s}
+  #quickNav .qn:hover{background:var(--qo,var(--accent-soft));color:var(--ink)}
+  #quickNav .qn.on{background:var(--qc,var(--brown));border-color:var(--qc,var(--brown));color:#fff}
+  /* アイコンだけのボタンは丸く */
+  #quickNav .qn.qi{width:32px;height:32px;padding:0;border-radius:50%;
+    display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;font-size:15px}
+  #quickNav .qn .bdico{width:14px;height:14px;vertical-align:-3px}
+  #quickNav .qn.qi svg{width:18px;height:18px;stroke-width:1.5;vertical-align:0;display:block;
+    fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round}
+  /* 選択中：地は濃い色、アイコンは薄い色 */
+  #quickNav .qn.qi.on{color:rgba(255,255,255,.9)}
+  #quickNav .qn.qi.on svg{stroke-width:1.65}
+  /* タイトル欄は文字の幅だけにして、右のボタンが切れないように */
+  #pageTitle{field-sizing:content;max-width:42%;padding-right:10px}
+  #quickNav{flex:0 1 auto}
+  /* タイトル左のアイコン（サイドメニューと同じ） */
+  #pageIco{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;
+    color:var(--brown);font-size:17px;line-height:1;margin-right:-4px}
+  #pageIco:empty{display:none}
+  #pageIco svg{width:18px;height:18px;stroke-width:1.4;fill:none;stroke:currentColor;
+    stroke-linecap:round;stroke-linejoin:round;display:block}
+  #quickNav .qn.qt .bdico{margin-right:5px}
+  .bdico{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.3;
+    stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px;flex:0 0 auto}
+  .pop .icgrid{display:grid;grid-template-columns:repeat(6,28px);gap:4px;padding:4px 10px 6px}
+  .pop .icgrid button{width:28px;height:28px;padding:0;justify-content:center;border-radius:7px;
+    border:1px solid transparent;color:var(--brown)}
+  .pop .icgrid button.on{border-color:currentColor;background:#f5f1f0}
+  .pop .icgrid .bdico{width:16px;height:16px}
+  #quickNav .qn.qset{border-style:dashed;color:var(--muted);background:transparent;font-size:15px;letter-spacing:0}
+  .qnpop{max-height:70vh;overflow-y:auto;min-width:190px}
+  .qnpop .qnrow{display:flex;align-items:center;gap:8px;padding:5px 10px;font-size:13px;cursor:pointer;border-radius:7px}
+  .qnpop .qnrow:hover{background:#f5f1f0}
+  .qnpop .qnrow input{margin:0;accent-color:var(--brown)}
+  .qnpop .qnico{width:16px;display:inline-flex;justify-content:center;font-size:13px}
+  .qnpop .qnico svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.3;
+    stroke-linecap:round;stroke-linejoin:round}
+  #quickNav .qsep{flex:0 0 1px;align-self:stretch;margin:3px 3px;background:var(--line)}
   #backupTag{font-size:11.5px;color:#b5711f;background:#fff3e2;border-radius:20px;
     padding:3px 10px;margin-right:8px;cursor:pointer;white-space:nowrap}
   #backupTag:hover{background:#ffe9cc}
@@ -2485,8 +2529,10 @@
 
   <main class="main">
     <div class="topbar">
+      <span id="pageIco"></span>
       <input class="title" id="pageTitle" spellcheck="false">
       <div class="spacer"></div>
+      <div id="quickNav"></div>
       <span id="backupTag" title="クリックで書き出し"></span>
       <span id="savedTag">✓ 保存しました</span>
       <span id="lastSave" title="最後に保存できた時刻"></span>
@@ -3325,6 +3371,28 @@ function load(){
     S.blueFix = true;
   }
   S.folders ||= [];
+  /* WORK・Private フォルダを一度だけ削除（中の Board はフォルダの外へ出す） */
+  if(!S.rmWorkPriv1){
+    const rm = S.folders.filter(f => ['work', 'private'].includes((f.name || '').trim().toLowerCase())).map(f => f.id);
+    S.boards.forEach(x => { if(rm.includes(x.folder)) delete x.folder; });
+    S.folders = S.folders.filter(f => !rm.includes(f.id));
+    S.rmWorkPriv1 = true;
+  }
+  /* WORK・Private にあった Board をすべて削除（Index は残す）。
+     消す前に名前を一覧で見せて確認し、OK のときだけ実行する */
+  if(!S.rmBoards2){
+    const keep = b => !!b && (b.idx || (b.name || '').trim() === 'Index');
+    const del = S.boards.filter(b => !keep(b));
+    if(!del.length) S.rmBoards2 = true;
+    else if(confirm('次の ' + del.length + ' 個の Board を削除します（中のカードもすべて消えます）。\n\n' +
+        del.map(b => '・' + (b.name || '(無題)')).join('\n') +
+        '\n\n先に Export しておく場合は「キャンセル」を押してください（次に開いたときにまた確認します）。\nよろしいですか？')){
+      S.boards = S.boards.filter(keep);
+      if(!S.boards.length) S.boards.push({id:uid(), name:'Index', color:'#6f8fa8', idx:true,
+        cols:[{id:uid(), title:'Index', w:300, cards:[]}]});
+      S.rmBoards2 = true;
+    }
+  }
   /* 音の割り当てを一度だけ整える */
   /* 一時的にあった「気になる（care）」棚を戻す */
   /* Claude の返事を「会話」に一度だけ移す */
@@ -3581,7 +3649,7 @@ function boardMenu(x, y, id){
   const p = popup(x, y, `
     <div style="font-size:11px;color:var(--muted);padding:5px 10px 2px;letter-spacing:.06em;font-weight:700">
       ${esc(b.name)}</div>
-    <button data-ba="open"><i class="ic">▦</i>開く</button>
+    <button data-ba="open"><i class="ic">${bicon(b)}</i>開く</button>
     <button data-ba="rename"><i class="ic">✎</i>名前を変更</button>
     <button data-ba="pin"><i class="ic"><svg class="pinico" viewBox="0 0 16 16"><path d="M9.6 1.9l4.5 4.5-1.6.5-1 1-.4 3.1-4.7-4.7 3.1-.4 1-1z"/><path d="M6.4 6.3L2.2 13.8l7.5-4.2"/></svg></i>${b.pin ? 'ピン留めを外す' : 'ピン留めする'}</button>
     <hr><div style="font-size:11px;color:var(--muted);padding:3px 10px 1px">色</div>
@@ -3592,12 +3660,20 @@ function boardMenu(x, y, id){
         ? `<button class="sw on" data-bc="${esc(b.color)}" style="background:${esc(b.color)}"></button>` : ''}
       <label class="sw swc" title="ほかの色を選ぶ">＋<input type="color" id="bcPick"
         value="${/^#[0-9a-f]{6}$/i.test(b.color || '') ? b.color : '#8a6a55'}"></label></div>
+    <hr><div style="font-size:11px;color:var(--muted);padding:3px 10px 1px">アイコン</div>
+    <div class="icgrid" style="${b.color?`color:${b.color}`:''}">
+      <button data-bi="" class="${!b.icon?'on':''}" title="なし（▦）">▦</button>${BICONS.map(e =>
+      `<button data-bi="${e[0]}" class="${b.icon===e[0]?'on':''}" title="${e[1]}">${biconSvg(e[0])}</button>`).join('')}</div>
     <hr><div style="font-size:11px;color:var(--muted);padding:3px 10px 1px">フォルダ</div>
     <button data-bf="">— フォルダなし${!b.folder?'　●':''}</button>
     ${S.folders.map(f => `<button data-bf="${f.id}">${FICON}${esc(f.name)}${b.folder===f.id?'　●':''}</button>`).join('')}
     <hr><button data-ba="del" style="color:#c0392b"><i class="ic">🗑</i>Board を削除</button>`);
   p.querySelectorAll('[data-bc]').forEach(el => el.onclick = () => {
     b.color = el.dataset.bc; save(); p.remove(); render(); });
+  p.querySelectorAll('[data-bi]').forEach(el => el.onclick = () => {
+    const v = el.dataset.bi;
+    if(v) b.icon = v; else delete b.icon;
+    save(); p.remove(); render(); });
   const bcPick = p.querySelector('#bcPick');
   if(bcPick) bcPick.onchange = () => { b.color = bcPick.value; save(); p.remove(); render(); };
   p.querySelectorAll('[data-bf]').forEach(el => el.onclick = () => {
@@ -3649,11 +3725,37 @@ function folderMenu(x, y, fid){
   });
 }
 
+/* ボードのアイコン（線画・16×16） */
+const BICONS = [
+  ['note','ノート','<rect x="3.6" y="1.8" width="9.6" height="12.4" rx="1.2"/><path d="M2.2 4.6h2.6M2.2 8h2.6M2.2 11.4h2.6M6.8 5.4h4M6.8 8h4"/>'],
+  ['book','ブック','<path d="M3.6 12.4V3.4c0-.6.5-1 1-1h7.6v9.2H4.8a1.2 1.2 0 0 0 0 2.4h7.4"/><path d="M6.4 5.2h3.4"/>'],
+  ['home','家','<path d="M2.2 7.6L8 2.6l5.8 5"/><path d="M3.8 6.4v7.2h8.4V6.4"/><path d="M6.7 13.6v-3.4h2.6v3.4"/>'],
+  ['clover','四葉','<ellipse cx="8" cy="4.7" rx="2" ry="2.7"/><ellipse cx="11.3" cy="8" rx="2.7" ry="2"/><ellipse cx="8" cy="11.3" rx="2" ry="2.7"/><ellipse cx="4.7" cy="8" rx="2.7" ry="2"/><path d="M10 10q2.6 1.4 3.4 4"/>'],
+  ['memo','メモ','<path d="M2.8 2.8h10.4v6.8l-3.6 3.6H2.8z"/><path d="M13.2 9.6H9.6v3.6"/><path d="M5.2 5.8h5.6M5.2 8.2h3.2"/>'],
+  ['pc','パソコン','<rect x="3.2" y="3.2" width="9.6" height="6.8" rx=".8"/><path d="M1.8 12.8h12.4l-1.4-2.8H3.2z"/>'],
+  ['phone','スマホ','<rect x="4.4" y="1.6" width="7.2" height="12.8" rx="1.6"/><path d="M7 12.2h2"/>'],
+  ['money','お金','<circle cx="8" cy="8" r="6"/><path d="M10.1 5.8c-.4-.7-1.1-1.1-2.1-1.1-1.2 0-2.1.7-2.1 1.6 0 2.2 4.4 1.2 4.4 3.5 0 1-.9 1.7-2.3 1.7-1.1 0-1.9-.5-2.3-1.3M8 3.6v1.1M8 11.5v.9"/>'],
+  ['box','箱','<path d="M2.4 5.2L8 2.6l5.6 2.6v6L8 13.8l-5.6-2.6z"/><path d="M2.4 5.2L8 7.8l5.6-2.6M8 7.8v6"/><path d="M5.2 3.9l5.6 2.6"/>'],
+  ['star','星','<path d="M8 2l1.8 3.8 4.1.5-3 2.8.8 4.1L8 11.2l-3.7 2 .8-4.1-3-2.8 4.1-.5z"/>'],
+  ['heart','ハート','<path d="M8 13.4S2.2 9.8 2.2 5.9c0-1.8 1.4-3.1 3-3.1 1.2 0 2.2.7 2.8 1.7.6-1 1.6-1.7 2.8-1.7 1.6 0 3 1.3 3 3.1 0 3.9-5.8 7.5-5.8 7.5z"/>'],
+  ['cal','カレンダー','<rect x="2.2" y="3.4" width="11.6" height="10.4" rx="1.6"/><path d="M2.2 6.6h11.6M5.4 1.9v2.6M10.6 1.9v2.6"/>'],
+  ['bag','カバン','<rect x="2" y="5" width="12" height="8.4" rx="1.2"/><path d="M5.8 5V3.6c0-.5.4-.9.9-.9h2.6c.5 0 .9.4.9.9V5M2 8.8h12"/>'],
+  ['coffee','コーヒー','<path d="M3 6h8v4.2a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3z"/><path d="M11 7.2h.8a1.6 1.6 0 0 1 0 3.2H11M5.6 2.2v1.8M8.4 2.2v1.8"/>'],
+  ['music','音符','<path d="M6 12.2V3.6l7-1.4v8.4"/><circle cx="4.4" cy="12.2" r="1.6"/><circle cx="11.4" cy="10.6" r="1.6"/>'],
+  ['sprout','芽','<path d="M8 14V7.6"/><path d="M8 9.6C8 6.8 5.8 5.2 3 5.2c0 2.8 2.2 4.4 5 4.4z"/><path d="M8 7.6c0-2.6 2-4.4 4.8-4.4 0 2.6-2 4.4-4.8 4.4z"/>'],
+  ['bulb','電球','<path d="M6 11.6h4M6.6 13.6h2.8"/><path d="M8 1.8a4.4 4.4 0 0 0-2.6 8c.4.3.6.7.6 1.2v.6h4V11c0-.5.2-.9.6-1.2A4.4 4.4 0 0 0 8 1.8z"/>']
+];
+function biconSvg(k){
+  const e = BICONS.find(x => x[0] === k);
+  return e ? `<svg class="bdico" viewBox="0 0 16 16">${e[2]}</svg>` : '';
+}
+/* ボードのアイコン（未設定なら ▦） */
+function bicon(b){ return (b && biconSvg(b.icon)) || '▦'; }
 function boardNav(b, inFolder){
   const n = (b.cols || []).flatMap(c => c.cards).filter(k => k.type === 'task' && !k.done).length;
   return `<div class="nav ${inFolder?'sub':''} ${view.type==='board'&&view.id===b.id?'on':''}" data-board="${b.id}"
     style="${b.color?`--bh:${b.color}22;--bo:${b.color}3d;--bc:${b.color}`:''}">
-    <span class="ico" style="${b.color?`color:${b.color}`:''}">▦</span>
+    <span class="ico" style="${b.color?`color:${b.color}`:''}">${bicon(b)}</span>
     <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(b.name)}</span>
     ${n ? `<span class="cnt">${n}</span>` : ''}</div>`;
 }
@@ -10239,6 +10341,61 @@ function replyHTML(k){
 }
 
 /* ---------------- shell ---------------- */
+/* タイトル右上のクイックナビ：サイドメニューの項目と各ボードへ。
+   どれを出すかは右端の「⋯」から選ぶ（S.qnShow：'n:キー' / 'b:ボードid' → true/false） */
+function qnNavItems(){
+  return [...document.querySelectorAll('#navList [data-nav]')]
+    .filter(el => el.style.display !== 'none')
+    .map(el => ({key:'n:' + el.dataset.nav, el,
+      label:(el.querySelector('.ico + span')?.textContent || el.dataset.nav).trim(),
+      ico:el.querySelector('.ico')?.innerHTML || ''}));
+}
+function qnShown(key){
+  S.qnShow ||= {};
+  if(key in S.qnShow) return !!S.qnShow[key];
+  return key === 'n:tline' || key.startsWith('b:');   /* はじめは Timeline とボードだけ */
+}
+function renderQuickNav(){
+  const box = document.getElementById('quickNav');
+  if(!box) return;
+  const navs = qnNavItems().filter(x => qnShown(x.key));
+  const bs = S.boards.filter(b => !isIdxB(b) && qnShown('b:' + b.id));
+  let h = navs.map(x => `<button class="qn qi ${x.el.classList.contains('on')?'on':''}" data-qnav="${x.el.id}"
+    title="${esc(x.label)}">${x.ico}</button>`).join('');
+  if(navs.length && bs.length) h += '<span class="qsep"></span>';
+  h += bs.map(b => `<button class="qn ${b.icon?'qi':''} ${view.type==='board'&&view.id===b.id?'on':''}" data-qb="${b.id}"
+    title="${esc(b.name)}"
+    style="${b.color?`--qh:${b.color}22;--qo:${b.color}66;--qc:${b.color}`:''}">${b.icon ? biconSvg(b.icon) : esc(b.name)}</button>`).join('');
+  h += `<button class="qn qi qset" data-qset title="表示するボタンを選ぶ">⋯</button>`;
+  box.innerHTML = h;
+  box.querySelectorAll('[data-qnav]').forEach(el => el.onclick = () => document.getElementById(el.dataset.qnav)?.click());
+  box.querySelectorAll('[data-qb]').forEach(el => el.onclick = () => { view = {type:'board', id:el.dataset.qb}; render(); });
+  box.querySelector('[data-qset]').onclick = e => {
+    const r = e.currentTarget.getBoundingClientRect(); qnSettings(r.left - 200, r.bottom + 6); };
+  box.oncontextmenu = e => { e.preventDefault(); qnSettings(e.clientX - 120, e.clientY + 6); };
+  const on = box.querySelector('.on');
+  if(on && on.scrollIntoView) on.scrollIntoView({block:'nearest', inline:'nearest'});
+}
+/* 表示するボタンを選ぶ */
+function qnSettings(x, y){
+  const navs = qnNavItems();
+  const bs = S.boards.filter(b => !isIdxB(b));
+  const row = (key, ico, label, color) => `<label class="qnrow">
+    <input type="checkbox" data-qk="${key}" ${qnShown(key)?'checked':''}>
+    <span class="qnico" style="${color?`color:${color}`:''}">${ico}</span><span>${esc(label)}</span></label>`;
+  const p = popup(x, y, `
+    <div style="font-size:11px;color:var(--muted);padding:5px 10px 2px;letter-spacing:.06em;font-weight:700">上に表示するボタン</div>
+    <div style="font-size:11px;color:var(--muted);padding:3px 10px 1px">メニュー</div>
+    ${navs.map(n => row(n.key, n.ico, n.label, '')).join('')}
+    ${bs.length ? `<hr><div style="font-size:11px;color:var(--muted);padding:3px 10px 1px">Board</div>
+    ${bs.map(b => row('b:' + b.id, bicon(b), b.name, b.color)).join('')}` : ''}`);
+  p.classList.add('qnpop');
+  p.querySelectorAll('[data-qk]').forEach(el => el.onchange = () => {
+    S.qnShow ||= {};
+    S.qnShow[el.dataset.qk] = el.checked;
+    save(); renderQuickNav();
+  });
+}
 function render(){
   hideRT();
   try{ lnkPrune(); }catch(e){}
@@ -10251,6 +10408,7 @@ function render(){
   document.getElementById('view').classList.toggle('serifpage',
     ['cards', 'quote', 'read'].includes(view.type));
   renderSide();
+  renderQuickNav();
   /* Tasks では、Tasks ページのときだけ右のカレンダーを開く */
   if(APP === 'task' && !(window.matchMedia && window.matchMedia('(max-width:860px)').matches)){
     const want = view.type !== 'tasks';
@@ -10273,6 +10431,26 @@ function render(){
   else if(view.type === 'read') renderCollection('read');
   else if(view.type === 'done') renderDone();
   else renderBoard();
+  paintPageIco();
+}
+/* タイトルの左に、サイドメニューと同じアイコンを出す */
+function paintPageIco(){
+  const el = document.getElementById('pageIco');
+  if(!el) return;
+  const NAVID = {search:'navSearch', timeline:'navTline', tasks:'navTasks', pin:'navPin',
+    learn:'navLearn', issue:'navIssue', times:'navTimes', done:'navDone', replog:'navRep',
+    read:'navRead', quote:'navQuote', cards:'navCards'};
+  let html = '', color = '';
+  let b = view.type === 'board' ? board(view.id) : null;
+  if(view.type === 'card'){ const f = findCard(view.id); if(f) b = f.board; }
+  if(b){
+    if(isIdxB(b)) html = document.querySelector('#navIndex .ico')?.innerHTML || '';
+    else { html = bicon(b); color = b.color || ''; }
+  } else if(NAVID[view.type]){
+    html = document.querySelector('#' + NAVID[view.type] + ' .ico')?.innerHTML || '';
+  }
+  el.innerHTML = html;
+  el.style.color = color;
 }
 
 document.getElementById('tagEdit').onclick = e => {
