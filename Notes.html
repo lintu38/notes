@@ -3378,21 +3378,7 @@ function load(){
     S.folders = S.folders.filter(f => !rm.includes(f.id));
     S.rmWorkPriv1 = true;
   }
-  /* WORK・Private にあった Board をすべて削除（Index は残す）。
-     消す前に名前を一覧で見せて確認し、OK のときだけ実行する */
-  if(!S.rmBoards2){
-    const keep = b => !!b && (b.idx || (b.name || '').trim() === 'Index');
-    const del = S.boards.filter(b => !keep(b));
-    if(!del.length) S.rmBoards2 = true;
-    else if(confirm('次の ' + del.length + ' 個の Board を削除します（中のカードもすべて消えます）。\n\n' +
-        del.map(b => '・' + (b.name || '(無題)')).join('\n') +
-        '\n\n先に Export しておく場合は「キャンセル」を押してください（次に開いたときにまた確認します）。\nよろしいですか？')){
-      S.boards = S.boards.filter(keep);
-      if(!S.boards.length) S.boards.push({id:uid(), name:'Index', color:'#6f8fa8', idx:true,
-        cols:[{id:uid(), title:'Index', w:300, cards:[]}]});
-      S.rmBoards2 = true;
-    }
-  }
+
   /* 音の割り当てを一度だけ整える */
   /* 一時的にあった「気になる（care）」棚を戻す */
   /* Claude の返事を「会話」に一度だけ移す */
