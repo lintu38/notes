@@ -932,7 +932,14 @@
   .card.book > .card-top .menu{order:9;margin-left:auto}
   /* タイム計測（上）と選書候補（下）を、表紙の右に縦に */
   .card.book > .card-top .pkmini{position:absolute;top:56px;right:0;margin:0;width:28px;height:28px}
-  .card.book > .card-top .btime{position:absolute;top:22px;right:0}
+  .card.book > .card-top .bread{position:absolute;top:22px;right:0}
+  .bread{width:28px;height:28px;padding:0;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;
+    background:#f6f1ec;color:#8a6a55;border:1px solid #e6ddd5;box-shadow:0 1px 3px rgba(60,40,30,.12);cursor:pointer}
+  .bread:hover{background:#8a6a55;color:#fff;border-color:#8a6a55}
+  .bread svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+  .rdpop textarea{width:100%;box-sizing:border-box;min-height:84px;resize:vertical;font:inherit;font-size:13px;line-height:1.6;
+    border:1px solid var(--line);border-radius:8px;padding:7px 9px;background:#fff;outline:none}
+  .rdpop textarea:focus{border-color:#c9b6a8}
   .card.book .bcard .bcoverbox{max-width:calc(100% - 44px)}
   .card.book .bcard .bcover{max-height:200px}
   /* 並べ替えできない場所では、つまみを出さない（本のページ・ALL などのページ・スマホ） */
@@ -2356,6 +2363,16 @@
     left:calc(-1 * var(--tl-pad) + var(--tl-gut) + 10.5px);box-shadow:none;
     clip-path:polygon(0 0,100% 0,100% 100%,50% 72%,0 100%)}
   .card.tl > .tl-dot.tl-bm.can:hover{box-shadow:none;filter:brightness(.85)}
+  /* 点のかわりのアイコン（Daily＝カレンダー、本のメモ＝本、Action＝旗） */
+  .card.tl > .tl-dot.tl-ico{width:20px;height:20px;border-radius:50%;background:var(--tl-panel);
+    left:calc(-1 * var(--tl-pad) + var(--tl-gut) + 5.5px);top:calc(var(--tl-y) - 10px);
+    color:var(--tl-c, var(--tl-dot));box-shadow:0 0 0 2px var(--tl-panel);
+    display:flex;align-items:center;justify-content:center}
+  .card.tl > .tl-dot.tl-ico svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.4;
+    stroke-linecap:round;stroke-linejoin:round;display:block}
+  .card.tl > .tl-dot.tl-ico.can:hover{box-shadow:0 0 0 2px var(--tl-panel), 0 0 0 3.5px var(--tl-c, var(--tl-dot))}
+  .card.tl > .tl-dot.tl-act{cursor:pointer}
+  .card.tl > .tl-dot.tl-act.done{background:var(--tl-c, var(--tl-dot));color:#fff}
   /* Action は丸いチェックボックス（ボードの色） */
   .card.tl > .tl-ck{appearance:none;-webkit-appearance:none;position:absolute;margin:0;cursor:pointer;z-index:1;flex:none;
     left:calc(-1 * var(--tl-pad) + var(--tl-gut) + 8.5px);top:calc(var(--tl-y) - 7px);width:14px;height:14px;border-radius:50%;
@@ -2505,6 +2522,7 @@
     .card.tl > .tl-dot{left:calc(-1 * var(--tl-pad) + var(--tl-gut) + 6px)}
     .card.tl > .tl-ck{left:calc(-1 * var(--tl-pad) + var(--tl-gut) + 3.5px)}
     .card.tl > .tl-dot.tl-bm{left:calc(-1 * var(--tl-pad) + var(--tl-gut) + 5.5px)}
+    .card.tl > .tl-dot.tl-ico{left:calc(-1 * var(--tl-pad) + var(--tl-gut) + 0.5px)}
     .card.tl > .tl-line{left:calc(-1 * var(--tl-pad) + var(--tl-gut) + 10px)}
     .card.tl > .card-top{gap:3px}
     .card.tl > .card-top .cardtg, .card.tl > .card-top .pintg, .card.tl > .card-top .mkact{font-size:10px;padding:0 7px}
@@ -2902,6 +2920,56 @@ function actMenu(rect, cid, eid){
     touch(k); save(); p.remove(); actMenu(rect, cid, eid); render();
   });
   p.querySelector('#actOk').onclick = () => { p.remove(); render(); };
+}
+/* 本の「読んだ」ボタン：したこと・ページ・メモを書いて OK → その本のメモ（Timeline にも出る）を作る */
+const RDACTS = ['気になる', '購入した', '読み始めた', '読んだ', '読了！'];
+const READICO = '<svg viewBox="0 0 16 16"><path d="M3.4 12.6V3.2c0-.6.5-1 1-1h8.2v9.6H4.6a1.2 1.2 0 0 0 0 2.4h8"/><path d="M6.2 6.6l1.6 1.6 3-3.2"/></svg>';
+function readDoneMenu(rect, bid){
+  const f = findCard(bid); if(!f) return;
+  const bk = f.card, B = bk.book || {};
+  const acts = ['読んだ'];
+  const last = (B.lastPage !== undefined && B.lastPage !== '') ? B.lastPage : '';
+  const p = popup(Math.max(12, rect.left - 230), rect.bottom + 6, `<div class="dpanel rdpop" style="width:270px">
+    <h4>したこと</h4>
+    <div class="quick" style="margin-left:0" id="rdActs"></div>
+    <h4 style="margin-top:10px">ページ</h4>
+    <div class="drow pgrow"><label>p.</label>
+      <input type="number" id="rdP1" min="0" step="1" value="${last !== '' ? esc(String(last)) : '1'}">
+      <span class="pgsep">〜</span><label>p.</label>
+      <input type="number" id="rdP2" min="0" step="1" value=""></div>
+    <h4 style="margin-top:10px">メモ</h4>
+    <textarea id="rdMemo" placeholder="感想・覚え書き（なくても OK）"></textarea>
+    <div class="dfoot"><button id="rdCancel">キャンセル</button><button id="rdOk">OK</button></div>
+  </div>`);
+  const paintActs = () => {
+    p.querySelector('#rdActs').innerHTML = RDACTS.map(a => `<button data-ra="${esc(a)}" ${acts.includes(a)
+      ? 'style="background:var(--accent-soft);color:var(--accent);font-weight:700"' : ''}>${esc(a)}</button>`).join('');
+    p.querySelectorAll('[data-ra]').forEach(b => b.onclick = () => {
+      const a = b.dataset.ra, i = acts.indexOf(a);
+      if(i < 0) acts.push(a); else acts.splice(i, 1);
+      paintActs();
+    });
+  };
+  paintActs();
+  p.querySelector('#rdCancel').onclick = () => p.remove();
+  p.querySelector('#rdOk').onclick = () => {
+    const v1 = p.querySelector('#rdP1').value.trim(), v2 = p.querySelector('#rdP2').value.trim();
+    const memo = p.querySelector('#rdMemo').value.trim();
+    const pg = (v1 || v2) ? `p.${v1 || '—'}～${v2 || '—'}` : '';
+    const head = (acts.length ? acts.join('・') + '。' : '') + pg;
+    const html = [head ? esc(head) : '', memo ? esc(memo).replace(/\n/g, '<br>') : ''].filter(Boolean).join('<br>');
+    const k = {id:uid(), type:'read', title:'', body:'', color:'', start:'', due:'',
+      repeat:{unit:'', n:1, days:[]}, done:false, subs:[], tags:[],
+      read:{author:'', source:'', media:'', memo:html, card:false, registered:true, date:today(),
+        acts:[...acts], p1: v1 === '' ? '' : +v1, p2: v2 === '' ? '' : +v2,
+        flags:[...acts],
+        no: Math.max(0, ...allCards().map(x => +((x.card.read && x.card.read.no) || 0))) + 1},
+      parent:bk.id, ctime:nowHM(), created:today(), updated:today()};
+    f.col.cards.unshift(k);
+    if(v2 !== '') B.lastPage = +v2;
+    touch(bk); save(); p.remove(); render();
+  };
+  setTimeout(() => p.querySelector('#rdMemo')?.focus(), 30);
 }
 function toggleTimer(cid, rect){
   const k = findCard(cid)?.card; if(!k) return;
@@ -4500,7 +4568,7 @@ function cardHTML(k){
     ${(k.type === 'note' || k.type === 'task') ? cardTgl('memo', k, k.memoCard)
       : k.type === 'quote' ? cardTgl('quote', k, k.quote && k.quote.card)
       : k.type === 'read' ? cardTgl('read', k, k.read && k.read.card) : ''}
-    ${k.type === 'book' ? `<span class="btime">${timerChip(k)}</span><button class="pkmini ${pickOn(k)?'on':''}" data-bpick="${k.id}"
+    ${k.type === 'book' ? `<button class="bread" data-bread="${k.id}" title="読んだ（記録してメモを残す）">${READICO}</button><button class="pkmini ${pickOn(k)?'on':''}" data-bpick="${k.id}"
       title="ランダム選書候補">${PICKICO}</button>` : pinTgl(k)}
     ${canTime(k) && k.type !== 'book' ? `<span class="tmwrap">${totChip(k)}${timerBtn(k)}</span>` : ''}
     <button class="menu" data-menu="${k.id}">⋯</button></div>`;
@@ -4981,6 +5049,8 @@ function markEditing(cid){
 }
 function wireCards(root){
   wireFmt(root);
+  root.querySelectorAll('[data-bread]').forEach(el => el.onclick = e => {
+    e.stopPropagation(); readDoneMenu(el.getBoundingClientRect(), el.dataset.bread); });
   root.querySelectorAll('[data-done]').forEach(el => el.onchange = () => setDone(el.dataset.done, el.checked));
   root.querySelectorAll('[data-date]').forEach(el =>
     el.onclick = () => dateMenu(el.getBoundingClientRect(), el.dataset.date));
@@ -8046,7 +8116,7 @@ function readSection(k, fixed){
         <option value="">（未選択）</option>
         ${MEDIA.map(m => `<option ${R.media===m?'selected':''}>${m}</option>`).join('')}
       </select>
-      ${rflagsHTML(k)}
+      ${k.parent ? '' : rflagsHTML(k)}
       <label>Memo</label>
       <div class="body qm" contenteditable="true" data-rmemo="${k.id}" data-ph="読んだ感想や覚え書き">${clean(R.memo)}</div>
       <label>ページ</label>
@@ -8080,7 +8150,7 @@ function readCardHTML(k){
     </div>
     ${(M.author || srcQ) ? `<div class="qc-ttl">${esc([M.author, srcQ].filter(Boolean).join(' '))}</div>` : ''}
     ${(R.media || R.page) ? `<div class="qc-sub">${esc([R.media, R.page ? 'p.' + R.page : ''].filter(Boolean).join('　・　'))}</div>` : ''}
-    ${rflagsHTML(k)}
+    ${k.parent ? '' : rflagsHTML(k)}
     <div class="qc-memo ${cmOpen(k) ? '' : 'shut'}">
       <div class="cm-h"><button class="fold ${cmOpen(k) ? 'open' : ''}" data-fold="cmemoOpen|${k.id}">▶</button>
         <label>Memo</label></div>
@@ -8911,6 +8981,30 @@ function tlDaySub(d, withWx){
     + `<span class="tl-age" title="月齢">${tlMoonSVG(age)}${age.toFixed(1)}</span>${wxs}</div>`;
 }
 const tlRO = ('ResizeObserver' in window) ? new ResizeObserver(es => es.forEach(e => tlAlign(e.target))) : null;
+/* タイムラインの点のかわりのアイコン */
+const TLB = '<path d="M3.4 12.6V3.2c0-.6.5-1 1-1h8.2v9.6H4.6a1.2 1.2 0 0 0 0 2.4h8"/>';
+const TLICO = {
+  cal:'<svg viewBox="0 0 16 16"><rect x="2.2" y="3.4" width="11.6" height="10.4" rx="1.6"/><path d="M2.2 6.6h11.6M5.4 1.9v2.6M10.6 1.9v2.6"/></svg>',
+  read:'<svg viewBox="0 0 16 16">' + TLB + '<path d="M6.2 6.6l1.6 1.6 3-3.2"/></svg>',
+  want:'<svg viewBox="0 0 16 16">' + TLB + '<path d="M8 3.8l.9 1.9 2 .3-1.5 1.4.4 2L8 8.5l-1.8.9.4-2L5.1 6l2-.3z"/></svg>',
+  buy:'<svg viewBox="0 0 16 16">' + TLB + '<path d="M9.7 4.7c-.3-.4-.8-.6-1.5-.6-.8 0-1.4.4-1.4 1 0 1.4 2.9.8 2.9 2.2 0 .6-.6 1.1-1.5 1.1-.7 0-1.3-.3-1.6-.8M8.1 3.3v.8M8.1 8.4v.8"/></svg>',
+  book:'<svg viewBox="0 0 16 16">' + TLB + '<path d="M5.8 4.8h4.8M5.8 7h4.8M5.8 9.2h3"/></svg>',   /* ＋New のメモ：本＋メモの横線 */
+  act:'<svg viewBox="0 0 16 16"><path d="M3 13.8V2.4"/><path d="M3 2.8h9.4l-2 3 2 3H3"/><path d="M5.4 5.8l1.2 1.2 2.2-2.4"/></svg>'
+};
+function tlIcon(k){
+  const f = findCard(k.id);
+  if(k.type === 'quote') return '';                           /* 引用は今までどおり栞 */
+  const par = k.parent ? findCard(k.parent)?.card : null;
+  if(par && par.type === 'book'){
+    const a = (k.read && (k.read.acts || k.read.flags)) || [];
+    if(a.some(x => ['読み始めた', '読んだ', '読了！', '読み終えた'].includes(x))) return TLICO.read;
+    if(a.includes('購入した')) return TLICO.buy;
+    if(a.includes('気になる')) return TLICO.want;
+    return TLICO.book;
+  }
+  if(f && f.board && f.board.daily) return TLICO.cal;
+  return '';
+}
 function tlDeco(root){
   tlDailyHeads(root);
   tlMobileSide(document);
@@ -8927,8 +9021,10 @@ function tlDeco(root){
       if(!el.querySelector(':scope > .tl-time')){
         const t = tlTimeOf(k), dk = tlDateKind(k);
         const can = dk ? ` can" title="クリックで日付・時刻を変更" data-tldate="${dk}|${k.id}` : '';
+        const ico = tlIcon(k);
         const mark = k.type === 'task'
-          ? `<input type="checkbox" class="tl-ck" data-tlck="${k.id}" ${k.done ? 'checked' : ''} title="完了">`
+          ? `<span class="tl-dot tl-ico tl-act${k.done ? ' done' : ''}" data-tlck="${k.id}" title="${k.done ? '完了（押すと戻す）' : '押すと完了'}">${TLICO.act}</span>`
+          : ico ? `<span class="tl-dot tl-ico${can}">${ico}</span>`
           : `<span class="tl-dot${k.type === 'quote' ? ' tl-bm' : ''}${can}"></span>`;   /* 引用は栞マーク */
         el.insertAdjacentHTML('afterbegin',
           `<div class="tl-time${can}">${esc(t || '—')}</div><span class="tl-line"></span>${mark}`);
@@ -8954,7 +9050,10 @@ function tlDeco(root){
       tlAlign(el);
       if(tlRO) tlRO.observe(el);
     });
-    drop.querySelectorAll('[data-tlck]').forEach(b => b.onchange = () => setDone(b.dataset.tlck, b.checked));
+    drop.querySelectorAll('[data-tlck]').forEach(b => b.onclick = e => {
+      e.stopPropagation();
+      const k = findCard(b.dataset.tlck)?.card; if(k) setDone(k.id, !k.done);
+    });
     drop.querySelectorAll('[data-tlwx]').forEach(el => el.onclick = () => {
       const dm = S.boards.find(b => b.daily); if(!dm) return;
       const [k, dd] = el.dataset.tlwx.split('|');
