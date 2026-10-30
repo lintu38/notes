@@ -6182,9 +6182,9 @@ function cardMenu(e, cid){
     ${isTask ? `<button data-a="tonote"><i class="ic">→</i>Memo に変換</button>` : `<button data-a="totask"><i class="ic">→</i>${TASKONE} に変換</button>`}
     ${APP === 'task' ? `<button data-a="tpl"><i class="ic">▤</i>${k.tpl ? 'テンプレートを解除' : 'テンプレートにする'}</button>` : ''}
     ${k.type !== 'heading' ? `<button data-a="ai"><i class="ic">✧</i>Claude に返事をもらう</button>` : ''}
-    <hr><div class="cats">${CATS().map(([c, n]) => `<button class="cat ${k.color===c?'on':''}" data-c="${c}">
+    ${APP === 'task' ? `<hr><div class="cats">${CATS().map(([c, n]) => `<button class="cat ${k.color===c?'on':''}" data-c="${c}">
       <span class="sw" style="background:${c || 'repeating-linear-gradient(45deg,#eee,#eee 3px,#fff 3px,#fff 6px)'}"></span>
-      <span>${n}</span>${k.color===c?'<span class="tick">●</span>':''}</button>`).join('')}</div>
+      <span>${n}</span>${k.color===c?'<span class="tick">●</span>':''}</button>`).join('')}</div>` : ''}
     <hr><button data-a="dup"><i class="ic">⧉</i>複製</button>
     <button data-a="page"><i class="ic">⤢</i>ページで開く</button>
     <button data-a="del" style="color:#c0392b"><i class="ic">🗑</i>削除</button>`);
