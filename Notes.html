@@ -226,7 +226,7 @@
   #sideShow:hover{border-color:#cdc1c3}
   body.nosidebar #sideShow{display:block}
   body.nosidebar .topbar{padding-left:64px}
-  .side-label{font-size:11px;color:#8a7358;padding:12px 8px 4px;letter-spacing:.08em;font-weight:600}
+  .side-label{font-size:11px;color:#5f4a37;padding:12px 8px 4px;letter-spacing:.08em;font-weight:600}
   .side-label.lbrow{display:flex;align-items:center;justify-content:space-between;gap:6px}
   .side-label.lbrow button{color:#a58e78;font-size:11px;padding:2px 6px;border-radius:6px;line-height:1}
   .side-label.lbrow button:hover{background:#cbb0b8;color:var(--brown)}
@@ -310,12 +310,34 @@
   /* サイド下の各ボタンは「設定」メニューの中へ（ボタン自体は隠して、メニューから呼ぶ） */
   .side-foot > .mini:not(.setbtn){display:none}
   .side-foot .setbtn{display:inline-flex;align-items:center;gap:6px}
+  .side-foot #fileTag{display:none}   /* 保存先フォルダ名の表示はいらない */
   .side-foot .setbtn svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.4;
     stroke-linecap:round;stroke-linejoin:round}
   .setpop{min-width:230px}
   .setpop button{align-items:flex-start!important}
   .setpop .sd{display:block;font-size:10.5px;color:var(--muted);margin-top:1px;line-height:1.4}
   .setpop .ic{margin-top:1px}
+  /* ゴミ箱 */
+  .trashwrap{max-width:760px}
+  .updbar.trashbar{bottom:calc(58px + env(safe-area-inset-bottom))}
+  .trashnote{font-size:12px;color:var(--muted);margin:0 0 14px}
+  .trashrow{display:flex;align-items:center;gap:8px;padding:10px 12px;margin-bottom:8px;background:var(--panel);
+    border:1px solid var(--line);border-radius:10px}
+  .trashmain{flex:1;min-width:0}
+  .trashttl{font-size:14px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .trashsub{font-size:11px;color:var(--muted);margin-top:2px}
+  .trashrow .btn{flex:0 0 auto;padding:5px 11px;font-size:12px}
+  .trashrow .trdel{color:#b0413e}
+  @media (max-width:520px){ .trashrow{flex-wrap:wrap} .trashmain{flex:1 1 100%} }
+  /* サイドメニューの区切り線（目立たないように） */
+  .navsep{height:11px;margin:0 12px;position:relative;cursor:grab}
+  .navhdr{cursor:grab;padding-top:14px}
+  #navList > .navhdr:first-child{padding-top:4px}
+  .navhdr.dropn{box-shadow:inset 0 2px 0 var(--brown)} .navhdr.dropn-b{box-shadow:inset 0 -2px 0 var(--brown)}
+  .navsep::after{content:"";position:absolute;left:0;right:0;top:5px;height:1px;background:rgba(80,60,50,.11)}
+  .side.shelf .navsep::after{background:rgba(255,255,255,.14)}
+  .navsep.dropn::before,.navsep.dropn-b::before{content:"";position:absolute;left:0;right:0;height:2px;background:var(--accent)}
+  .navsep.dropn::before{top:0}.navsep.dropn-b::before{bottom:0}
   .synctag{flex:1 1 100%;font-size:10.5px;color:#6b5a4a;opacity:0;transition:opacity .2s;
     font-family:var(--fdisp);line-height:1.5}
   .synctag.on{opacity:1}
@@ -2642,8 +2664,8 @@
       <button class="workbtn" id="workBtn"><svg class="nico" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 4.6V8l2.4 1.6"/></svg>
         <span class="wl" id="workLb">Work</span><span class="wt" id="workEl"></span></button>
     </div>
-    <div class="nav" id="navTimer" title="One Step を開く"><span class="ico"><svg class="nico paw" viewBox="0 0 40 34"><ellipse cx="20" cy="25" rx="8.6" ry="7"/><ellipse cx="9.5" cy="14.5" rx="4" ry="5.2" transform="rotate(-18 9.5 14.5)"/><ellipse cx="16.5" cy="8" rx="3.7" ry="5"/><ellipse cx="24.5" cy="8" rx="3.7" ry="5"/><ellipse cx="31" cy="14.5" rx="4" ry="5.2" transform="rotate(18 31 14.5)"/></svg></span><span>One Step</span><span class="cnt tm-badge" id="timerBadge" hidden></span></div>
-    <div class="nav" id="navActions" title="Actions を開く"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><rect x="2.4" y="2.4" width="11.2" height="11.2" rx="2.4"/><path d="M5.2 8.2l2 2 3.6-4"/></svg></span><span>Actions</span></div>
+    <div class="nav" id="navTimer" data-nav="onestep" draggable="true" title="One Step を開く"><span class="ico"><svg class="nico paw" viewBox="0 0 40 34"><ellipse cx="20" cy="25" rx="8.6" ry="7"/><ellipse cx="9.5" cy="14.5" rx="4" ry="5.2" transform="rotate(-18 9.5 14.5)"/><ellipse cx="16.5" cy="8" rx="3.7" ry="5"/><ellipse cx="24.5" cy="8" rx="3.7" ry="5"/><ellipse cx="31" cy="14.5" rx="4" ry="5.2" transform="rotate(18 31 14.5)"/></svg></span><span>One Step</span><span class="cnt tm-badge" id="timerBadge" hidden></span></div>
+    <div class="nav" id="navActions" data-nav="actions" draggable="true" title="Actions を開く"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><rect x="2.4" y="2.4" width="11.2" height="11.2" rx="2.4"/><path d="M5.2 8.2l2 2 3.6-4"/></svg></span><span>Actions</span></div>
     <div id="navList">
     <div class="nav" id="navSearch" data-nav="search" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><circle cx="7.2" cy="7.2" r="4.6"/><path d="M10.6 10.6l3.2 3.2"/></svg></span><span>Search &amp; Memories</span></div>
     <div class="nav" id="navTline" data-nav="tline" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M4.2 1.8v12.4"/><circle cx="4.2" cy="4.2" r="1.6"/><circle cx="4.2" cy="10.4" r="1.6"/><path d="M7.4 4.2h6M7.4 10.4h6"/></svg></span><span>Timeline</span></div>
@@ -2654,7 +2676,7 @@
     <div class="nav" id="navTimes" data-nav="times" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 4.6V8l2.4 1.6"/></svg></span><span id="navTimesLb">Time Log</span><span class="cnt" id="cntTime"></span></div>
     <div class="nav" id="navDone" data-nav="done" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M2.6 8.4l3.3 3.3 7.5-7.6"/></svg></span><span id="navDoneLb">Done Task</span><span class="cnt" id="cntDone">0</span></div>
     <div class="nav" id="navRep" data-nav="replog" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M2.4 4.2h6.4M2.4 8h9.6M2.4 11.8h4.8"/><path d="M11.4 3.2v2M14 6.9v2.2M9.4 10.7v2.2"/></svg></span><span>Timeline</span></div>
-    <div class="nav" id="navRead" data-nav="read" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M2.6 3.1h4.1c.9 0 1.3.5 1.3 1.2v8.6c0-.6-.5-1-1.3-1H2.6z"/><path d="M13.4 3.1H9.3c-.9 0-1.3.5-1.3 1.2v8.6c0-.6.5-1 1.3-1h4.1z"/></svg></span><span>Read Memo</span><span class="cnt" id="cntRead">0</span></div>
+    <div class="nav" id="navRead" data-nav="read" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M3.4 12.6V3.2c0-.6.5-1 1-1h8.2v9.6H4.6a1.2 1.2 0 0 0 0 2.4h8"/><path d="M5.8 4.8h4.8M5.8 7h4.8M5.8 9.2h3"/></svg></span><span>Reading Log</span><span class="cnt" id="cntRead">0</span></div>
     <div class="nav" id="navQuote" data-nav="quote" draggable="true"><span class="ico"><svg class="nico qsvg" viewBox="0 0 16 16"><circle cx="4.6" cy="9.6" r="2.5" style="fill:currentColor;stroke:none"/><circle cx="11.2" cy="9.6" r="2.5" style="fill:currentColor;stroke:none"/><path d="M2.2 9.4c0-2.9 1.3-4.8 3.9-5.8M8.8 9.4c0-2.9 1.3-4.8 3.9-5.8" style="stroke-width:1.5"/></svg></span><span>Quotes</span><span class="cnt" id="cntQuote">0</span></div>
     <div class="nav" id="navCards" data-nav="cards" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><rect x="5" y="2.4" width="8.6" height="10.4" rx="1.6"/><path d="M10.4 13.6H4a1.6 1.6 0 0 1-1.6-1.6V5"/></svg></span><span>Cards</span><span class="cnt" id="cntCards">0</span></div>
     <div class="nav" id="navIndex" data-nav="index" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M3.4 2.4h7.2l2 2v9.2H3.4z"/><path d="M5.6 6h5M5.6 8.6h5M5.6 11.2h3"/><path d="M12.6 4.4v-2"/></svg></span><span>Index</span><span class="cnt" id="cntIndex">0</span></div>
@@ -2666,6 +2688,7 @@
     <div id="boardList"></div>
     <div class="nav" id="addBoard" style="color:var(--muted)"><span class="ico">＋</span><span>New Board</span></div>
     <div class="nav" id="addFolder" style="color:var(--muted)"><span class="ico">＋</span><span>New Folder</span></div>
+    <div class="nav" id="navTrash" data-navk="trash"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M2.6 4.2h10.8M6.2 4.2V2.6h3.6v1.6"/><path d="M3.8 4.2l.7 9.2h7l.7-9.2"/><path d="M6.6 6.6v4.6M9.4 6.6v4.6"/></svg></span><span>ゴミ箱</span><span class="cnt" id="cntTrash"></span></div>
     <div class="side-label lbrow" id="tagLabel" style="display:none"><span>Tag</span>
       <button id="tagEdit" title="Tag を編集">✎</button></div>
     <div class="tagnav" id="tagNav"></div>
@@ -2682,6 +2705,7 @@
       <button class="mini" id="inbBtn" title="保存先フォルダの inbox.json を読み込んでメモにする">受け取る</button>
       <button class="mini" id="recBtn" title="消えたデータを探して戻す">復旧</button>
       <button class="mini" id="reloadBtn" title="最新版を読み込み直す">更新</button>
+      <button class="mini" id="trashBtn" title="削除したメモ">ゴミ箱</button>
       <span id="syncTag" class="synctag"></span>
       <span id="fileTag"></span>
       <input type="file" id="impFile" accept="application/json" hidden>
@@ -3323,6 +3347,14 @@ function fmtDue(d){
 
 /* ---------------- data ---------------- */
 function seed(){
+  /* Notes は最初から Daily Memo と Bookshelf だけ（見本のボードは入れない） */
+  if(APP === 'note') return {
+    boards:[
+      {id:uid(), name:'Daily Memo', color:'#b5677d', daily:true, days:{}, cols:[], icon:'cal'},
+      {id:uid(), name:'Bookshelf', color:'#8a6a55', cols:[{id:uid(), title:'本', w:300, cards:[]}], icon:'book'}
+    ],
+    contacts:[], folders:[], dailySetup:true, bookshelfSetup:true, rmWorkPriv1:true
+  };
   const b1 = {id:uid(), name:'プロダクト企画', color:'#3d6fe0', cols:[
     {id:uid(), title:'いま進行中', w:300, cards:[
       {id:uid(), type:'task', title:'ユーザーインタビューを5件やる', done:false, when:'now', color:'#3d6fe0',
@@ -3675,6 +3707,25 @@ function load(){
     }
     S.bookshelfSetup = true;
   }
+  /* 「New Board」「New Board 2」を一度だけ削除（中のメモはゴミ箱へ）。Daily Memo はくすみピンクに */
+  if(APP === 'note' && !S.rmNewBoard1){
+    S.trash ||= [];
+    S.boards.filter(b => /^New Board\s*[0-9０-９]*$/.test((b.name || '').trim())).forEach(b => {
+      (b.cols || []).forEach(c => (c.cards || []).forEach((k, i) =>
+        S.trash.unshift({id:uid(), at:Date.now(), board:b.id, col:c.id, idx:i, card:k})));
+      S.boards = S.boards.filter(x => x !== b);
+    });
+    const dm = S.boards.find(b => b.daily);
+    if(dm) dm.color = '#b5677d';
+    S.rmNewBoard1 = true;
+  }
+  /* Daily Memo と Bookshelf はいつも置いておく（消してしまっても空で作り直す） */
+  if(APP === 'note'){
+    if(!S.boards.some(b => b.daily))
+      S.boards.push({id:uid(), name:'Daily Memo', color:'#b5677d', daily:true, days:{}, cols:[], icon:'cal'});
+    if(!S.boards.some(b => b.name === 'Bookshelf'))
+      S.boards.push({id:uid(), name:'Bookshelf', color:'#8a6a55', cols:[{id:uid(), title:'本', w:300, cards:[]}], icon:'book'});
+  }
   /* 中身のない Quote / Read を掃除する（Card ボタンの不具合で付いたもの）*/
   if(!S.emptyQFix2){
     /* registered が付いていても、中身が空なら消す */
@@ -3961,8 +4012,8 @@ function boardNav(b, inFolder){
 }
 const NAVKEYS = APP === 'task'
   ? ['search', 'tasks', 'replog', 'done', 'times']
-  : ['search', 'tline', 'tasks', 'pin', 'learn', 'issue', 'cards', 'index'];   /* Read Log は出さない。Read Memo・Quotes は Bookshelf から */
-const NAVALL = ['search','tline','tasks','times','done','read','quote','cards','pin','learn','issue','index'];
+  : ['search', 'tline', 'pin', 'learn', 'issue', 'cards', 'index', 'onestep', 'actions', 'read', 'quote'];   /* Read Log・Action は出さない。Read Memo・Quotes は Bookshelf から */
+const NAVALL = ['search','tline','tasks','times','done','read','quote','cards','pin','learn','issue','index','trash'];
 /* Index ボード（サイドの Board 一覧には出さず、上のメニューから開く） */
 function isIdxB(b){ return !!b && (b.idx || (b.name || '').trim() === 'Index'); }
 /* Link 元が 0 件になったタイトルノートは削除する（描画のたびに確認） */
@@ -4039,12 +4090,66 @@ function renderNavOrder(){
     if(i5 >= 0) S.navOrder.splice(i5 + 1, 0, 'index'); else S.navOrder.push('index');
     S.navIndex1 = true;
   }
-  S.navOrder = (S.navOrder || []).filter(k => NAVKEYS.includes(k));
+  /* 見出し（Filter・Random・Others・App）を置き、Timeline をいちばん上に（一度だけ） */
+  if(APP === 'note' && !S.navSec1){
+    S.navOrder = ['tline', 'hdr:Filter', 'search', 'pin', 'learn', 'issue', 'hdr:Random', 'cards',
+      'hdr:Others', 'index', 'trash', 'hdr:App', 'onestep', 'actions'];
+    S.navSec1 = true;
+  }
+  /* Timeline の上下と、各見出しのまとまりの下に区切り線を（一度だけ） */
+  if(APP === 'note' && !S.navSep2){
+    const base = (S.navOrder || []).filter(k => !String(k).startsWith('sep:'));
+    const out = [], sep = () => { if(!String(out[out.length - 1] || '').startsWith('sep:')) out.push('sep:' + uid()); };
+    base.forEach(k => {
+      if(k === 'tline'){ sep(); out.push(k); sep(); }
+      else if(String(k).startsWith('hdr:')){ if(out.length) sep(); out.push(k); }
+      else out.push(k);
+    });
+    sep();
+    S.navOrder = out; S.navSep2 = true;
+  }
+  /* Reading Log・Quotes をサイドメニューにも（一度だけ Index の下へ） */
+  if(APP === 'note' && !S.navRL1){
+    const o = (S.navOrder || []).filter(k => k !== 'read' && k !== 'quote');
+    const i = o.indexOf('index');
+    o.splice(i >= 0 ? i + 1 : o.length, 0, 'read', 'quote');
+    S.navOrder = o; S.navRL1 = true;
+  }
+  /* 区切り線（'sep:id'）・見出し（'hdr:名前'）も並びに入れられる */
+  const isTok = k => String(k).startsWith('sep:') || String(k).startsWith('hdr:');
+  S.navOrder = (S.navOrder || []).filter(k => NAVKEYS.includes(k) || isTok(k));
   NAVKEYS.forEach(k => { if(!S.navOrder.includes(k)) S.navOrder.push(k); });
+  box.querySelectorAll('.navsep, .navhdr').forEach(x => x.remove());
   S.navOrder.forEach(k => {
-    const el = box.querySelector(`[data-nav="${k}"]`);
+    let el = box.querySelector(`[data-nav="${k}"]`) || document.querySelector(`#side [data-nav="${k}"]`);
+    if(!el && String(k).startsWith('sep:')){
+      el = document.createElement('div');
+      el.className = 'navsep'; el.dataset.nav = k; el.draggable = true;
+      el.title = '区切り線（ドラッグで移動・右クリックで削除）';
+    }
+    if(!el && String(k).startsWith('hdr:')){
+      el = document.createElement('div');
+      el.className = 'side-label navhdr'; el.dataset.nav = k; el.draggable = true;
+      el.textContent = k.slice(4);
+      el.title = 'ここへページをドラッグで入れられます';
+    }
     if(el) box.appendChild(el);
   });
+  /* 右クリック：色・アイコン・区切り線 */
+  box.querySelectorAll('[data-nav]').forEach(el => {
+    const k = el.dataset.nav;
+    if(!k.startsWith('sep:') && !k.startsWith('hdr:')) applyNavStyle(el, k);
+    el.oncontextmenu = ev => {
+      ev.preventDefault();
+      if(k.startsWith('hdr:')) return;
+      navMenu(ev.clientX, ev.clientY, el, k, true);
+    };
+  });
+  const ntr = document.getElementById('navTrash');
+  if(ntr){
+    applyNavStyle(ntr, 'trash');
+    ntr.oncontextmenu = ev => { ev.preventDefault(); navMenu(ev.clientX, ev.clientY, ntr, 'trash', false); };
+  }
   box.querySelectorAll('[data-nav]').forEach(el => {
     const key = el.dataset.nav;
     el.ondragstart = ev => {
@@ -4065,7 +4170,7 @@ function renderNavOrder(){
       if(!dragNav || dragNav === key) return;
       ev.preventDefault(); ev.stopPropagation();
       const r = el.getBoundingClientRect();
-      const after = ev.clientY > r.top + r.height / 2;
+      const after = key.startsWith('hdr:') || ev.clientY > r.top + r.height / 2;   /* 見出しに落とすと、その下へ */
       el.classList.toggle('dropn', !after);
       el.classList.toggle('dropn-b', after);
     };
@@ -4075,9 +4180,9 @@ function renderNavOrder(){
       el.classList.remove('dropn', 'dropn-b');
       const src = dragNav || ev.dataTransfer.getData('text/plain');
       dragNav = null;
-      if(!src || src === key || !NAVKEYS.includes(src)) return;
+      if(!src || src === key || !(NAVKEYS.includes(src) || String(src).startsWith('sep:') || String(src).startsWith('hdr:'))) return;
       const r = el.getBoundingClientRect();
-      const after = ev.clientY > r.top + r.height / 2;
+      const after = key.startsWith('hdr:') || ev.clientY > r.top + r.height / 2;   /* 見出しに落とすと、その下へ */
       const o = S.navOrder.filter(x => x !== src);
       const at = o.indexOf(key);
       o.splice(after ? at + 1 : at, 0, src);
@@ -4087,6 +4192,58 @@ function renderNavOrder(){
   });
 }
 
+/* ページ（サイドメニューの項目）の色・アイコン：S.navStyle[キー] = {color, icon} */
+function applyNavStyle(el, k){
+  const st = (S.navStyle || {})[k] || {};
+  const ico = el.querySelector(':scope > .ico'); if(!ico) return;
+  if(el._origIco === undefined) el._origIco = ico.innerHTML;
+  ico.innerHTML = st.icon ? biconSvg(st.icon) : el._origIco;
+  ico.style.color = st.color || '';
+  ['--bh', '--bo', '--bc'].forEach(v => el.style.removeProperty(v));
+  if(st.color){
+    el.style.setProperty('--bh', st.color + '22');
+    el.style.setProperty('--bo', st.color + '3d');
+    el.style.setProperty('--bc', st.color);
+  }
+}
+function navMenu(x, y, el, k, canSep){
+  if(k.startsWith('sep:')){
+    const p = popup(x, y, `<button data-ns="del" style="color:#c0392b"><i class="ic">✕</i>区切り線を削除</button>`);
+    p.querySelector('[data-ns]').onclick = () => {
+      S.navOrder = S.navOrder.filter(z => z !== k); save(); p.remove(); renderNavOrder(); renderQuickNav();
+    };
+    return;
+  }
+  S.navStyle ||= {};
+  const st = S.navStyle[k] || {};
+  const name = (el.querySelector(':scope > .ico + span')?.textContent || k).trim();
+  const p = popup(x, y, `
+    <div style="font-size:11px;color:var(--muted);padding:5px 10px 2px;letter-spacing:.06em;font-weight:700">${esc(name)}</div>
+    ${canSep ? `<button data-ns="add"><i class="ic">―</i>この下に区切り線を入れる</button>` : ''}
+    <hr><div style="font-size:11px;color:var(--muted);padding:3px 10px 1px">色</div>
+    <div class="swatches" style="flex-wrap:wrap;width:196px">${BOARDC.map(c =>
+      `<button class="sw ${(st.color || '') === c ? 'on' : ''}" data-nc="${c}"
+        style="background:${c || 'repeating-linear-gradient(45deg,#eee,#eee 3px,#fff 3px,#fff 6px)'}"></button>`).join('')}
+      <label class="sw swc" title="ほかの色を選ぶ">＋<input type="color" id="ncPick"
+        value="${/^#[0-9a-f]{6}$/i.test(st.color || '') ? st.color : '#8a6a55'}"></label></div>
+    <hr><div style="font-size:11px;color:var(--muted);padding:3px 10px 1px">アイコン</div>
+    <div class="icgrid" style="${st.color ? `color:${st.color}` : ''}">
+      <button data-ni="" class="${!st.icon ? 'on' : ''}" title="元のアイコン">${el._origIco || ''}</button>${BICONS.map(e =>
+      `<button data-ni="${e[0]}" class="${st.icon === e[0] ? 'on' : ''}" title="${e[1]}">${biconSvg(e[0])}</button>`).join('')}</div>`);
+  const set = (f, v) => {
+    const o = {...(S.navStyle[k] || {})};
+    if(v) o[f] = v; else delete o[f];
+    if(Object.keys(o).length) S.navStyle[k] = o; else delete S.navStyle[k];
+    save(); p.remove(); render();
+  };
+  p.querySelector('[data-ns="add"]')?.addEventListener('click', () => {
+    const o = S.navOrder.slice(); o.splice(o.indexOf(k) + 1, 0, 'sep:' + uid());
+    S.navOrder = o; save(); p.remove(); renderNavOrder(); renderQuickNav();
+  });
+  p.querySelectorAll('[data-nc]').forEach(b => b.onclick = () => set('color', b.dataset.nc));
+  const pk = p.querySelector('#ncPick'); if(pk) pk.onchange = () => set('color', pk.value);
+  p.querySelectorAll('[data-ni]').forEach(b => b.onclick = () => set('icon', b.dataset.ni));
+}
 function renderSide(){
   renderNavOrder();
   /* Bookshelf・Read Memo・Read Log を開いているあいだは、サイドメニューをこげ茶に */
@@ -4225,6 +4382,14 @@ function renderSide(){
   }
   paintWork();
   document.getElementById('navSearch').classList.toggle('on', view.type === 'search');
+  {
+    const nt = document.getElementById('navTrash');
+    if(nt){
+      nt.classList.toggle('on', view.type === 'trash');
+      const c = document.getElementById('cntTrash'), n = (S.trash || []).length;
+      if(c){ c.textContent = n; c.style.display = n ? '' : 'none'; }
+    }
+  }
   document.getElementById('navTline')?.classList.toggle('on', view.type === 'timeline');
   const nvI = document.getElementById('navIssue');
   if(nvI){
@@ -4700,7 +4865,7 @@ const hasTime = k => !!(k.timer || (k.times && k.times.length)
 const hasQuote = k => !!k.quote;
 const PINICO = `<svg class="cdico" viewBox="0 0 16 16"><path d="M9.6 1.9l4.5 4.5-1.6.5-1 1-.4 3.1-4.7-4.7 3.1-.4 1-1z"/><path d="M6.4 6.3L2.2 13.8l7.5-4.2"/></svg>`;
 /* Cards / Quotes ページでも同じボタンを出す */
-const actTgl = k => (k.type === 'task' || k.type === 'heading' || k.type === 'book') ? '' :
+const actTgl = k => (APP === 'note' || k.type === 'task' || k.type === 'heading' || k.type === 'book') ? '' :
   `<button class="mkact" data-mkact="${k.id}"
     title="このメモをリンクした Action メモをつくる"><svg class="actck" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.2"/><path d="M5.2 8.2l2 2 3.7-4"/></svg>＋Action</button>`;
 const pinTgl = k => APP !== 'note' ? '' :
@@ -6175,7 +6340,7 @@ function showRT(el){
       <button data-fmt2="quote" title="引用">❝</button>
       <span class="sep"></span>
       <button class="w isu-btn" data-issue="1" title="Issue にする（もう一度押すと外す）">Issue</button>
-      <button class="w act-btn" data-act="1" title="Action にする（もう一度押すと外す）">Action</button>
+      ${APP === 'task' ? `<button class="w act-btn" data-act="1" title="Action にする（もう一度押すと外す）">Action</button>` : ''}
       <button class="w dd-btn" data-dd="1" title="Daily Discoveries にする（もう一度押すと外す）">DD</button>
       <button class="w lnk-btn" data-lnk="1" title="Link：この言葉のノートを Index ボードにつくり、このメモをそこへ並べる（もう一度押すと外す）">Link</button>
       <span class="sep"></span>
@@ -6311,7 +6476,7 @@ function cardMenu(e, cid){
     ${k.type !== 'heading' && !hasRead(k) ? `<button data-a="read"><i class="ic"><svg class="mico" viewBox="0 0 16 16"><path d="M2.6 3.1h4.1c.9 0 1.3.5 1.3 1.2v8.6c0-.6-.5-1-1.3-1H2.6z"/><path d="M13.4 3.1H9.3c-.9 0-1.3.5-1.3 1.2v8.6c0-.6.5-1 1.3-1h4.1z"/></svg></i>Read を追加</button>` : ''}
     ${isTask && !hasLog(k) ? `<button data-a="log"><i class="ic">💬</i>Message Log を追加</button>` : ''}
     ${k.type !== 'heading' ? `<button data-a="pdf"><i class="ic"><svg class="mico" viewBox="0 0 16 16"><path d="M3.4 2.4h6.3l3 3v8.2H3.4z"/><path d="M9.5 2.5v3.2h3.1"/><path d="M5.6 9.4h4.8M5.6 11.4h3.2"/></svg></i>PDF を添付</button>` : ''}
-    ${isTask ? `<button data-a="tonote"><i class="ic">→</i>Memo に変換</button>` : `<button data-a="totask"><i class="ic">→</i>${TASKONE} に変換</button>`}
+    ${isTask ? `<button data-a="tonote"><i class="ic">→</i>Memo に変換</button>` : APP === 'note' ? '' : `<button data-a="totask"><i class="ic">→</i>${TASKONE} に変換</button>`}
     ${APP === 'task' ? `<button data-a="tpl"><i class="ic">▤</i>${k.tpl ? 'テンプレートを解除' : 'テンプレートにする'}</button>` : ''}
     ${k.type !== 'heading' ? `<button data-a="ai"><i class="ic">✧</i>Claude に返事をもらう</button>` : ''}
     ${APP === 'task' ? `<hr><div class="cats">${CATS().map(([c, n]) => `<button class="cat ${k.color===c?'on':''}" data-c="${c}">
@@ -6361,14 +6526,7 @@ function cardMenu(e, cid){
     if(a === 'totask'){ k.type = 'task'; k.done = false; k.subs ||= []; }
     if(a === 'dup') f.col.cards.splice(f.idx + 1, 0,
       {...JSON.parse(JSON.stringify(k)), id:uid(), subs:(k.subs||[]).map(s => ({...s, id:uid()}))});
-    if(a === 'del'){
-      const nm = plain(k.title).trim() || plain(k.bodyTitle || '').trim() || '無題';
-      const sub = (k.subs || []).length;
-      if(!confirm(`「${nm}」を削除しますか？${sub ? `\n（サブタスク ${sub} 件も一緒に消えます）` : ''}`)){
-        p.remove(); return;
-      }
-      f.col.cards.splice(f.idx, 1);
-    }
+    if(a === 'del') trashCard(f);      /* 削除したメモはゴミ箱へ（あとで戻せる） */
     save(); p.remove(); render();
     if(a === 'body') document.querySelector(`[data-body="${cid}"]`)?.focus();
     if(a === 'log') document.querySelector(`[data-logtext^="${cid}|"]`)?.focus();
@@ -6871,6 +7029,93 @@ function wireDnD(root){
       save(); render();
     };
   });
+}
+
+/* ---------------- ゴミ箱 ----------------
+   削除したメモは S.trash に入れておき、あとで元の場所へ戻せる（30日たったものは自動で消す） */
+const TRASH_DAYS = 30;
+function trashPurge(){
+  S.trash ||= [];
+  const lim = Date.now() - TRASH_DAYS * 86400000;
+  S.trash = S.trash.filter(t => t.at >= lim);
+}
+function trashCard(f){
+  trashPurge();
+  const t = {id:uid(), at:Date.now(), board:f.board.id, col:f.col.id, idx:f.idx, card:f.card};
+  S.trash.unshift(t);
+  f.col.cards.splice(f.idx, 1);
+  trashToast(t);
+}
+function trashRestore(tid){
+  S.trash ||= [];
+  const i = S.trash.findIndex(t => t.id === tid); if(i < 0) return false;
+  const t = S.trash[i];
+  let b = S.boards.find(x => x.id === t.board);
+  let c = b && (b.cols || []).find(x => x.id === t.col);
+  if(!c){                                   /* 元の列が無くなっていたら、そのボード（無ければ最初のボード）の先頭の列へ */
+    b = b || S.boards.find(x => !isIdxB(x)) || S.boards[0];
+    if(!b.cols || !b.cols.length) b.cols = [{id:uid(), title:'リスト', w:288, cards:[]}];
+    c = b.cols[0];
+  }
+  c.cards.splice(Math.min(Math.max(0, t.idx || 0), c.cards.length), 0, t.card);
+  S.trash.splice(i, 1);
+  return true;
+}
+function trashTitle(k){
+  const B = k.book || {}, Q = k.quote || {}, R = k.read || {};
+  const s = plain(k.title).trim() || plain(k.bodyTitle || '').trim() || (B.title || '').trim()
+    || plain(Q.text || '').trim() || plain(R.memo || '').trim() || plain(k.body || '').trim() || '（無題）';
+  return s.length > 60 ? s.slice(0, 59) + '…' : s;
+}
+const TRASH_KIND = {note:'Memo', task:'Action', quote:'Quote', read:'Read', book:'Book', heading:'見出し'};
+let trashTT = 0;
+function trashToast(t){
+  document.querySelectorAll('.trashbar').forEach(n => n.remove());
+  const d = document.createElement('div');
+  d.className = 'updbar trashbar';
+  d.innerHTML = `<span>ゴミ箱に移しました</span><button>元に戻す</button>`;
+  document.body.appendChild(d);
+  d.querySelector('button').onclick = () => {
+    if(trashRestore(t.id)){ save(); render(); }
+    d.remove();
+  };
+  clearTimeout(trashTT);
+  trashTT = setTimeout(() => d.remove(), 7000);
+}
+function renderTrash(){
+  trashPurge();
+  const t = document.getElementById('pageTitle');
+  t.value = 'ゴミ箱'; t.disabled = true; t.oninput = null; t.style.color = '';
+  document.getElementById('topActions').innerHTML = (S.trash || []).length
+    ? `<button class="btn" id="trashEmpty">ゴミ箱を空にする</button>` : '';
+  const fmt = ms => { const d = new Date(ms); return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`; };
+  const v = document.getElementById('view');
+  const L = S.trash || [];
+  v.innerHTML = `<div class="trashwrap">
+    <div class="trashnote">削除したメモは ${TRASH_DAYS} 日間ここに残ります。「戻す」で元のボードに戻ります。</div>
+    ${L.length ? L.map(x => {
+      const b = S.boards.find(y => y.id === x.board);
+      return `<div class="trashrow">
+        <div class="trashmain">
+          <div class="trashttl">${esc(trashTitle(x.card))}</div>
+          <div class="trashsub">${esc(TRASH_KIND[x.card.type] || 'Memo')}　・　${esc(b ? b.name : '（削除されたボード）')}　・　${fmt(x.at)} に削除</div>
+        </div>
+        <button class="btn" data-trback="${x.id}">戻す</button>
+        <button class="btn trdel" data-trdel="${x.id}" title="完全に削除">完全に削除</button>
+      </div>`; }).join('') : '<div class="tl-empty">ゴミ箱は空です</div>'}
+  </div>`;
+  v.querySelectorAll('[data-trback]').forEach(el => el.onclick = () => {
+    if(trashRestore(el.dataset.trback)){ save(); render(); }
+  });
+  v.querySelectorAll('[data-trdel]').forEach(el => el.onclick = () => {
+    if(!confirm('このメモを完全に削除します。元に戻せません。よろしいですか？')) return;
+    S.trash = S.trash.filter(x => x.id !== el.dataset.trdel); save(); render();
+  });
+  const te = document.getElementById('trashEmpty');
+  if(te) te.onclick = () => {
+    if(!confirm(`ゴミ箱の ${S.trash.length} 件を完全に削除します。元に戻せません。よろしいですか？`)) return;
+    S.trash = []; save(); render();
+  };
 }
 
 /* ---------------- task page ---------------- */
@@ -10756,23 +11001,26 @@ function replyHTML(k){
 /* ページ下のタブ：サイドメニューの項目・One Step・各ボードへ。
    どれを出すかは右端の「⋯」から選ぶ（S.qnShow：キー → true/false） */
 function qnItems(){
-  const V = {tline:'timeline', search:'search', tasks:'tasks', pin:'pin', learn:'learn', issue:'issue',
+  const V = {trash:'trash', tline:'timeline', search:'search', tasks:'tasks', pin:'pin', learn:'learn', issue:'issue',
     times:'times', done:'done', replog:'replog', read:'read', quote:'quote', cards:'cards'};
   const out = [];
   /* サイドメニュー（表示している項目） */
-  document.querySelectorAll('#navList [data-nav]').forEach(el => {
-    if(el.style.display === 'none') return;
+  document.querySelectorAll('#navList .nav[data-nav]').forEach(el => {
+    if(el.style.display === 'none' || ['onestep', 'actions', 'read', 'quote'].includes(el.dataset.nav)) return;
     const k = el.dataset.nav;
     out.push({key:'n:' + k, sec:'メニュー', label:(el.querySelector('.ico + span')?.textContent || k).trim(),
-      ico:el.querySelector('.ico')?.innerHTML || '', go:() => el.click(),
+      ico:el.querySelector('.ico')?.innerHTML || '', color:((S.navStyle || {})[k] || {}).color || '', go:() => el.click(),
       on:() => k === 'index' ? (view.type === 'board' && isIdxB(board(view.id))) : (V[k] && view.type === V[k])});
   });
   const ot = document.getElementById('navTimer');
-  if(ot) out.push({key:'x:onestep', sec:'メニュー', label:'One Step', ico:ot.querySelector('.ico')?.innerHTML || '',
+  if(ot) out.push({key:'x:onestep', sec:'メニュー', label:'One Step', ico:ot.querySelector('.ico')?.innerHTML || '', color:((S.navStyle || {}).onestep || {}).color || '',
     go:() => ot.click(), on:() => false});
   const oa = document.getElementById('navActions');
-  if(oa) out.push({key:'x:actions', sec:'メニュー', label:'Actions', ico:oa.querySelector('.ico')?.innerHTML || '',
+  if(oa) out.push({key:'x:actions', sec:'メニュー', label:'Actions', ico:oa.querySelector('.ico')?.innerHTML || '', color:((S.navStyle || {}).actions || {}).color || '',
     go:() => oa.click(), on:() => oa.classList.contains('on')});
+  const otr = document.getElementById('navTrash');
+  if(otr) out.push({key:'n:trash', sec:'メニュー', label:'ゴミ箱', ico:otr.querySelector('.ico')?.innerHTML || '', color:((S.navStyle || {}).trash || {}).color || '',
+    go:() => otr.click(), on:() => view.type === 'trash'});
   /* Bookshelf の中のページ（Reading Log・Quotes）もタブにできる */
   if(APP === 'note'){
     out.push({key:'x:readlog', sec:'メニュー', label:'Reading Log', ico:RLOGICO,
@@ -10919,6 +11167,7 @@ function render(){
   else if(view.type === 'quote') renderCollection('quote');   /* Quotes も Bookshelf の中のページ（NOW の行つき） */
   else if(view.type === 'read') (APP === 'task' ? renderCollection('read') : renderBookLog());
   else if(view.type === 'done') renderDone();
+  else if(view.type === 'trash') renderTrash();
   else renderBoard();
   paintPageIco();
 }
@@ -10928,7 +11177,7 @@ function paintPageIco(){
   if(!el) return;
   const NAVID = {search:'navSearch', timeline:'navTline', tasks:'navTasks', pin:'navPin',
     learn:'navLearn', issue:'navIssue', times:'navTimes', done:'navDone', replog:'navRep',
-    read:'navRead', quote:'navQuote', cards:'navCards'};
+    read:'navRead', quote:'navQuote', cards:'navCards', trash:'navTrash'};
   let html = '', color = '';
   let b = view.type === 'board' ? board(view.id) : null;
   if(view.type === 'card'){ const f = findCard(view.id); if(f) b = f.board; }
@@ -10937,7 +11186,10 @@ function paintPageIco(){
     if(isIdxB(b)) html = document.querySelector('#navIndex .ico')?.innerHTML || '';
     else { html = bicon(b); color = b.color || ''; }
   } else if(NAVID[view.type]){
-    html = document.querySelector('#' + NAVID[view.type] + ' .ico')?.innerHTML || '';
+    const ne = document.getElementById(NAVID[view.type]);
+    html = ne?.querySelector('.ico')?.innerHTML || '';
+    const nk = ne?.dataset.nav || ne?.dataset.navk;
+    color = ((S.navStyle || {})[nk] || {}).color || '';
   }
   el.innerHTML = html;
   el.style.color = color;
@@ -12549,6 +12801,8 @@ document.getElementById('recBtn').onclick = e =>
 const hardReload = () =>
   location.replace(location.pathname + '?v=' + Date.now() + location.hash);
 document.getElementById('reloadBtn').onclick = hardReload;
+document.getElementById('trashBtn').onclick = () => { view = {type:'trash'}; q = ''; render(); };
+document.getElementById('navTrash').onclick = () => { view = {type:'trash'}; q = ''; render(); };
 /* 設定メニュー：Export・同期などをまとめる。押すと元のボタンの動きを、設定ボタンの位置で呼ぶ */
 document.getElementById('setBtn').onclick = e => {
   const sb = e.currentTarget;
