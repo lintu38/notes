@@ -1996,7 +1996,7 @@
   #navTimer.on,#navTimer.live{background:var(--bo,var(--panel));color:var(--ink);
     font-weight:500;box-shadow:var(--shadow)}
   #navTimer.on .ico,#navTimer.on .nico{stroke:none;color:inherit}
-  .timer-panel{position:fixed;top:0;right:0;width:432px;max-width:100vw;height:100vh;height:100dvh;padding-bottom:env(safe-area-inset-bottom);box-sizing:border-box;
+  .timer-panel{position:fixed;top:0;right:0;width:432px;max-width:100vw;height:100vh;height:100dvh;box-sizing:border-box;
     background:#FAF6EF;border-left:1px solid var(--line);
     box-shadow:-12px 0 32px -18px rgba(30,25,15,.35);
     z-index:900;display:flex;flex-direction:column;
@@ -13590,6 +13590,21 @@ const boot2 = () => {
     if(location.protocol === 'file:') return new URL('../Actions/Actions.html', location.href).href;
     return location.origin + '/Actions/Actions.html';
   }
+  /* iframe の中では画面下の余白（ホームバー分）が 0 になるので、単体と同じになるよう Notes 側の値を渡す */
+  function safeBottom(){
+    const d = document.createElement('div');
+    d.style.cssText = 'position:fixed;bottom:0;height:0;visibility:hidden;padding-bottom:env(safe-area-inset-bottom)';
+    document.body.appendChild(d); const v = parseFloat(getComputedStyle(d).paddingBottom) || 0; d.remove(); return v;
+  }
+  frame.addEventListener('load', () => {
+    try{
+      const doc = frame.contentDocument; if(!doc) return;
+      const b = safeBottom(); if(!b) return;
+      let st = doc.getElementById('notesSafe');
+      if(!st){ st = doc.createElement('style'); st.id = 'notesSafe'; doc.head.appendChild(st); }
+      st.textContent = `.tabs{padding-bottom:${b}px!important}`;
+    }catch(e){}
+  });
   let loaded = false;
   function open(){
     const tp = document.getElementById('timerPanel');
