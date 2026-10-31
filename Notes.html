@@ -1982,6 +1982,7 @@
     .tools.shsearch{flex-direction:row;align-items:center;flex-wrap:nowrap}
     .tools.shsearch .search{flex:1 1 auto;min-width:0;width:auto}
     .tools.shsearch > span{flex:0 0 auto}
+    .tools.shsearch .shsort{flex:0 0 auto}
     .daily-h{flex-wrap:wrap;gap:6px}
     .daily-h b{font-size:17px}
     .wx button{width:31px;height:31px}
@@ -2030,6 +2031,8 @@
   #navTimer.live{background:var(--bo,var(--panel));box-shadow:var(--shadow)}
   @media (max-width:560px){.timer-panel{width:100vw}}
   .timer-panel.act-panel{width:480px}
+  .shsort{font:inherit;font-size:12.5px;color:#5f4a37;background:#fff;border:1px solid var(--line);
+    border-radius:8px;padding:4px 6px;cursor:pointer}
   @media (max-width:560px){.timer-panel.act-panel{width:100vw}}
   #navActions.on{background:var(--bo,var(--panel));color:var(--ink);font-weight:500;box-shadow:var(--shadow)}
 
@@ -4634,13 +4637,16 @@ function wireShelfTop(){
     render();
   });
 }
-function shelfToolsHTML(curTab){
-  return `<div class="tools">
-    <div class="shnowrow"><span class="shnow">NOW</span>
+function shNowRowHTML(curTab){
+  return `<div class="shnowrow"><span class="shnow">NOW</span>
     <div class="seg">${SHELVES.map(([val, nm]) =>
       `<button data-shtab="${val}" class="${curTab===val?'on':''}">${nm}</button>`).join('')}</div>
     <button class="shlog ${view.type === 'read' ? 'on' : ''}" data-shpg="read" title="Reading Log" aria-label="Reading Log">${RLOGICO}</button>
-    <button class="shlog ${view.type === 'quote' ? 'on' : ''}" data-shpg="quote" title="Quotes" aria-label="Quotes">${QUOTEICO}</button></div>
+    <button class="shlog ${view.type === 'quote' ? 'on' : ''}" data-shpg="quote" title="Quotes" aria-label="Quotes">${QUOTEICO}</button></div>`;
+}
+function shelfToolsHTML(curTab){
+  return `<div class="tools">
+    ${shNowRowHTML(curTab)}
     <button class="btn shplus" id="shAdd" title="本を追加">＋</button>
     <div class="shrow2">${shViewSeg()}
     <button class="pickbook" id="shPick" title="ランダム選書">
@@ -9207,7 +9213,8 @@ function renderCard(){
     : `<button class="btn" id="ocBack">▦ ${esc(f.board.name)} へ戻る</button>`;
   const kids = f.col.cards.filter(x => x.parent === k.id);
   const v = document.getElementById('view');
-  v.innerHTML = `<div class="ocwrap"><div class="onecard">
+  const inShelf = APP === 'note' && f.board.name === 'Bookshelf';
+  v.innerHTML = `${inShelf ? `<div class="tools shcardnow">${shNowRowHTML(bookShelf(k))}</div>` : ''}<div class="ocwrap"><div class="onecard">
     ${cardHTML(k)}
     <div class="radds ocadds" style="margin:12px 0 0 0;opacity:1">
       <span class="raddlb">このメモに追加</span>
@@ -9228,6 +9235,7 @@ function renderCard(){
     view = par ? {type:'card', id:par.card.id} : {type:'board', id:f.board.id};
     render();
   };
+  if(inShelf) wireShelfTools(v);
   wireCards(v);
   v.querySelectorAll('[data-secadd]').forEach(el => el.onclick = () => {
     const [which, cid] = el.dataset.secadd.split('|');
@@ -9982,7 +9990,19 @@ function shelfList(st){
     const s = q.toLowerCase();
     L = L.filter(x => cardHay(x.card).includes(s));
   }
-  L.sort((a, b2) => ((b2.card.book.doneAt || '') + '').localeCompare((a.card.book.doneAt || '') + ''));
+  const ttl = k => ((k.book && k.book.title) || plain(k.title || '') || '').replace(/<[^>]*>/g, '').trim();
+  const aut = k => ((k.book && k.book.author) || '').trim();
+  const jp = (x, y) => x.localeCompare(y, 'ja');
+  const emptyLast = (x, y) => (!x && y) ? 1 : (x && !y) ? -1 : 0;
+  const by = {
+    done:   (a, b) => emptyLast((a.book||{}).doneAt, (b.book||{}).doneAt) || (((b.book||{}).doneAt || '') + '').localeCompare(((a.book||{}).doneAt || '') + '')
+                      || ((b.created || '') + '').localeCompare((a.created || '') + ''),
+    created:(a, b) => ((b.created || '') + '').localeCompare((a.created || '') + ''),
+    title:  (a, b) => emptyLast(ttl(a), ttl(b)) || jp(ttl(a), ttl(b)),
+    author: (a, b) => emptyLast(aut(a), aut(b)) || jp(aut(a), aut(b)) || jp(ttl(a), ttl(b))
+  }[S.shelfSort || 'done'] || null;
+  L.sort((x, y) => (by || (() => 0))(x.card, y.card));
+  if(!by) L.sort((a, b2) => ((b2.card.book.doneAt || '') + '').localeCompare((a.card.book.doneAt || '') + ''));
   return L;
 }
 function renderShelf(){
@@ -10001,6 +10021,8 @@ function renderShelf(){
     <div class="tools shsearch">
       <span class="shpgname">${st === 'done' ? '読んだ本' : st === 'stop' ? '途中終了' : 'ALL（すべての本）'}</span>
       <input class="search" id="q" placeholder="本を検索…" value="${esc(q)}">
+      <select class="shsort" id="shSort" title="並び順">${[['done','読了日'],['created','登録日'],['title','タイトル'],['author','著者']]
+        .map(([v2, nm]) => `<option value="${v2}"${(S.shelfSort || 'done') === v2 ? ' selected' : ''}>${nm}</option>`).join('')}</select>
       <span style="color:var(--muted);font-size:12.5px">${L.length} 冊</span>
     </div>
     ${L.length && S.shelfView !== 'detail' ? coverGridHTML(L.map(x => x.card))
@@ -10013,6 +10035,7 @@ function renderShelf(){
   const qi = document.getElementById('q');
   wireSearchInput(qi, (val, pos) => { q = val; renderShelf();
     const n = document.getElementById('q'); if(n){ n.focus(); n.setSelectionRange(pos, pos); } });
+  document.getElementById('shSort').onchange = e => { S.shelfSort = e.target.value; save(); renderShelf(); };
   wireShelfTools(v);
   wireShView(v, renderShelf);
   wireCards(v);
