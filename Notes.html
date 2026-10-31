@@ -13590,11 +13590,14 @@ const boot2 = () => {
   /* パソコンで直接開いているときは、同じ My Tools の Actions.html。Web 版では住所を一度だけ聞く */
   function src(ask){
     if(location.protocol === 'file:') return new URL('../Actions/Actions.html', location.href).href;
+    const DEF = location.origin + '/Actions/Actions.html';     /* GitHub Pages の Actions */
     let u = '';
     try{ u = localStorage.getItem(KEY) || ''; }catch(e){}
-    if(!u || ask){
-      const v = prompt('Actions の Web 版（GitHub Pages）の住所を入れてください\n例）https://○○.github.io/habits/Actions.html',
-        u || (location.origin + '/habits/Actions.html'));
+    if(/\/habits\/Actions\.html/i.test(u)) u = '';              /* 以前の仮の住所は使わない */
+    if(!u && !ask) return DEF;
+    if(ask){
+      const v = prompt('Actions の Web 版（GitHub Pages）の住所を入れてください\n例）https://○○.github.io/Actions/Actions.html',
+        u || DEF);
       if(v === null) return u;
       u = v.trim();
       try{ localStorage.setItem(KEY, u); }catch(e){}
