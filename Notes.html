@@ -6455,11 +6455,12 @@ function addMenu(e, colId, parentId, opts){
   const isShelf = !!(ownB && ownB.name === 'Bookshelf');
   const p = popup(r.left, r.bottom + 4, `
     ${(parentId
-      ? ['readmemo', 'quote', 'task']
+      ? (APP === 'note' ? ['readmemo', 'quote'] : ['readmemo', 'quote', 'task'])     /* Timeline・本のページ：Action は出さない */
       : APP !== 'note'
       ? ['task', 'note', 'quote', 'read']
       : isShelf
       ? ['book', 'readmemo', 'quote', 'task']
+      : (ownB && ownB.daily) ? ['note', 'read', 'quote']                            /* Daily Memo：Action は出さない */
       : ['note', 'task', 'read', 'quote']).map(t => NEWBTN[t]).join('')}
     ${parentId ? '' : `<button data-t="heading"><i class="ic">H</i>見出し</button>`}`);
   p.querySelectorAll('[data-t]').forEach(btn => btn.onclick = () => {
