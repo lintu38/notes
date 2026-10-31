@@ -106,7 +106,8 @@
     position:relative;transition:none}
   .side.hide{display:none}
   /* Bookshelf を開いているときのサイドメニュー（こげ茶） */
-  .side.daily{background:#d4c4c9;border-right-color:#c6b5ba}
+  .side.daily{background:#dcdecf;border-right-color:#cbcebd}   /* Daily Memo はくすみ黄緑 */
+  .side.daily .nav:hover{background:var(--bh,#cdd0bf)}
   .side.shelf{background:#402e22;color:#efe4d8;border-right-color:#32241a}
   .side.shelf .brand-sub{color:#c9a995}
   .side.shelf .brand button,.side.shelf .side-label.lbrow button{color:#cbb6a3}
@@ -4267,7 +4268,7 @@ function renderSide(){
   /* Bookshelf・Read Memo・Read Log を開いているあいだは、サイドメニューをこげ茶に */
   const shelfB = S.boards.find(b => b.name === 'Bookshelf');
   document.getElementById('side')?.classList.toggle('shelf',
-    view.type === 'shelf' || (APP === 'note' && (view.type === 'read' || view.type === 'times'))
+    view.type === 'shelf' || (APP === 'note' && (view.type === 'read' || view.type === 'times' || view.type === 'quote'))
     || (view.type === 'board' && !!shelfB && view.id === shelfB.id));
   /* Index を開いているときは、サイドメニューを薄いグレーブラウンに */
   const idxB = view.type === 'board' ? board(view.id) : null;
