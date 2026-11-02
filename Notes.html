@@ -106,10 +106,10 @@
     position:relative;transition:none}
   .side.hide{display:none}
   /* Bookshelf を開いているときのサイドメニュー（こげ茶） */
-  .side.daily{background:#ecdfe1;border-right-color:#dccbcf}   /* Memo & Note はくすみピンク */
-  .side.daily .nav:hover{background:var(--bh,#e0cfd3)}
-  .side.dlogside{background:#dcdecf;border-right-color:#cbcebd}   /* Daily Log はくすみ黄緑 */
-  .side.dlogside .nav:hover{background:var(--bh,#cdd0bf)}
+  .side.daily{background:#e3cfd3;border-right-color:#d3bac0}   /* Memo & Note は少し濃いめのくすみピンク */
+  .side.daily .nav:hover{background:var(--bh,#d8c0c6)}
+  .side.dlogside{background:#ecdfe1;border-right-color:#dccbcf}   /* Daily Log はくすみピンク */
+  .side.dlogside .nav:hover{background:var(--bh,#e0cfd3)}
   .side.shelf{background:#402e22;color:#efe4d8;border-right-color:#32241a}
   .side.shelf .brand-sub{color:#c9a995}
   .side.shelf .brand button,.side.shelf .side-label.lbrow button{color:#cbb6a3}
@@ -2984,6 +2984,9 @@
   .dl-qb:hover{background:color-mix(in srgb, var(--qc,#6c9a5b) 15%, #fff);border-color:color-mix(in srgb, var(--qc,#6c9a5b) 38%, #fff)}
   .dl-qbottom{margin:4px 0 8px}
   .dl-qbottom .dl-qh{margin-top:12px}
+  .dl-text.has-tm{display:flex;align-items:baseline;gap:10px}
+  .dl-text.has-tm > span:first-child{flex:1}
+  .dl-tm{font:500 12.5px var(--fdisp);color:#8a7f82;letter-spacing:.04em;font-variant-numeric:tabular-nums}
 </style>
 </head>
 <body>
@@ -11751,6 +11754,12 @@ function dlFixTo(e, b, addM){
   e.to = list.filter(c => to.includes(c)).concat(to.filter(c => !list.includes(c)));
 }
 
+/* 起床・就寝の時刻は、メモの右端に出す（本文は「起床（7:05）。」のまま。クリックすると直せる） */
+function dlTextBox(e){
+  const m = /^(起床|就寝)（(\d{1,2}:\d{2})）。$/.exec(String(e.text || '').trim());
+  if(m) return `<div class="dl-text has-tm" data-dledit="1"><span>${esc(m[1])}。</span><span class="dl-tm">${esc(m[2])}</span></div>`;
+  return `<div class="dl-text" data-dledit="1">${dlTextHTML(e.text)}</div>`;
+}
 /* ---- 本文：URL だけの行はカードに、文中の URL はリンクに ---- */
 function dlTextHTML(s){
   return String(s || '').split('\n').map(line => {
@@ -11827,7 +11836,7 @@ function dlEntryHTML(e, b, opt){
       </span><button type="button" class="dl-pin${e.pin ? ' on' : ''}" data-dlpin="1" title="${e.pin ? 'ピンを外す' : 'ピンを付ける（大事なメモ）'}">${DL_IC.pin}</button>${e.tag ? `<span class="dl-tag" data-dltag="1" title="クリックでタグを直す">${esc(e.tag)}</span>`
                : `<span class="dl-tag dl-tadd" data-dltag="1" title="タグを付ける">${DL_IC.tag}タグ</span>`}${DL_NOTE ? dlMemoBtn(e) : ''}${bd}</div>
     ${dlHasFT(e.kind) ? dlFromTo(e, b) : ''}
-    <div class="dl-text" data-dledit="1">${dlTextHTML(e.text)}</div>
+    ${dlTextBox(e)}
     <div class="dl-files">${(e.files || []).map(f => dlFileHTML(f, `data-dlrm="${f.id}"`)).join('')}</div>
   </div>`;
 }
@@ -12737,7 +12746,7 @@ const DL_QUICK = [
   {ic:'bowl',  lb:'昼食',   t:'昼食準備＆昼食'},
   {ic:'fork',  lb:'夕食',   t:'夕食準備＆夕食'},
   {ic:'cup',   lb:'間食',   t:'間食'},
-  {ic:'dish',  lb:'洗い物', t:'洗い物をした'},
+  {ic:'dish',  lb:'洗い物', t:'洗い物'},
   {ic:'bath',  lb:'お風呂', t:'シャンプー・お風呂etc.'},
   {ic:'yard',  lb:'屋外掃除', t:'屋外の掃除をした', opt:['玄関', '車庫', '庭', '外回り'], multi:true},
   {ic:'broom', lb:'室内掃除', t:'室内の掃除・整理整頓をした', multi:true,
