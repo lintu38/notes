@@ -2982,6 +2982,8 @@
   .dl-qb.to-notes{--qc:#c4909c}
   .dl-qb{background:color-mix(in srgb, var(--qc,#6c9a5b) 7%, #fff);color:color-mix(in srgb, var(--qc,#6c9a5b) 85%, #3a2f30)}
   .dl-qb:hover{background:color-mix(in srgb, var(--qc,#6c9a5b) 15%, #fff);border-color:color-mix(in srgb, var(--qc,#6c9a5b) 38%, #fff)}
+  .dl-qbottom{margin:4px 0 8px}
+  .dl-qbottom .dl-qh{margin-top:12px}
 </style>
 </head>
 <body>
@@ -12573,8 +12575,10 @@ function renderDlogPage(){
   const keep = v.scrollTop;
   const narrow = dlNarrow();
   if(dlBjOpen === null) dlBjOpen = !narrow;
+  /* スマホで古い順のときは、Quick Log を入力欄の下に（下にスクロールしたまま押せる） */
+  const qBottom = narrow && !S.dlogNewest;
   v.innerHTML = `<div class="dlwrap"><aside class="dlside">${narrow ? dlWeekCalHTML(marks, DLGS) : calendarHTML(marks, dlDay, dlCalM, !dlDay, 'すべての日')}
-    ${dlQuickHTML()}
+    ${qBottom ? '' : dlQuickHTML()}
     <button type="button" class="dl-bjh${dlBjOpen ? ' open' : ''}" id="dlBjT">${DL_IC.chev}Board の Daily Log</button>
     <div class="dl-bjump"${dlBjOpen ? '' : ' hidden'}>${(dlBoards() || []).map(b => `<button type="button" class="dl-bj" data-dlbj="${b.id}" style="--bc:${b.color || '#c9a227'}" title="${esc(b.name)} の Daily Log を開く"><i></i><span class="nm">${esc(b.name)}</span><span class="n">${(b.dlog || []).length || ''}</span>${dlSrcDot(b)}</button>`).join('')}</div></aside><div class="dlpage">
     <div class="dl-tools-row" style="padding-left:18px">
@@ -12593,7 +12597,7 @@ function renderDlogPage(){
     ${(() => {
       const list = rows.length ? dlListHTML(rows, {showBoard:true})
         : `<div class="dl-empty">${dlQ.trim() ? '見つかりませんでした。' : dlDay ? 'この日の記録はありません。' : '記録はまだありません。'}</div>`;
-      const comp = `<div class="dl-pcomp">${dlComposerHTML(dlBoardSel())}</div>`;
+      const comp = `<div class="dl-pcomp">${dlComposerHTML(dlBoardSel())}${qBottom ? `<div class="dl-qbottom">${dlQuickHTML()}</div>` : ''}</div>`;
       return S.dlogNewest ? comp + list : list + comp;
     })()}
   </div></div>`;
@@ -12610,6 +12614,7 @@ function renderDlogPage(){
   if(narrow) dlWireWeekCal(v.querySelector('.dlside'), DLGS, () => { if(dlDay) dlCalM = dlDay.slice(0, 7); dlToComp = true; renderDlogPage(); });
   v.querySelector('#dlBjT').onclick = () => { dlBjOpen = !dlBjOpen; renderDlogPage(); };
   dlWireQuick(v.querySelector('.dlside'));
+  if(qBottom) dlWireQuick(v.querySelector('.dl-qbottom'));
   v.scrollTop = keep;
   v.querySelector('#dlBf').onchange = e => { dlFilter = e.target.value; dlPageSel = ''; renderDlogPage(); };
   v.querySelector('#dlKf').onchange = e => { S.dlogKind = e.target.value; save(); renderDlogPage(); };
