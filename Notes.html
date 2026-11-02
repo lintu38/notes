@@ -11543,14 +11543,14 @@ const DL_KINDS = [
   {k:'contract', lb:'Contract', ic:'doc',    c:'#c4a22e'},
   {k:'payment',  lb:'Payment',  ic:'dollar', c:'#c4a22e'},
   {k:'waiting',  lb:'Waiting',  ic:'hand',   c:'#e08f35'},
-  {k:'mori',     lb:'Mori',     ic:'mori',   c:'#8a7a64'},
-  {k:'tools',    lb:'Tools',    ic:'phone',  c:'#6f8f8a'},
   /* ここから下は見出し「Others」 */
   {k:'private',  lb:'Private',  ic:'clover', c:'#6c9a5b'},
   {k:'shopping', lb:'Shopping', ic:'cart',   c:'#c07a5a'},
   {k:'tv',       lb:'TV',       ic:'tv',     c:'#7a8ca8'},
   {k:'reading',  lb:'Book',     ic:'bookck', c:'#c8443c'},
   {k:'people',   lb:'People',   ic:'people', c:'#b6809a'},
+  {k:'tools',    lb:'Tools',    ic:'phone',  c:'#c2a54e'},
+  {k:'mori',     lb:'Mori',     ic:'mori',   c:'#8a7a64'},
   {k:'',         lb:'Other',    ic:'',       c:'#b9aea9'}
 ];
 DL_KINDS.forEach((K, i) => K.grp = i < DL_KINDS.findIndex(x => x.k === 'private') ? 'Works' : 'Others');
@@ -12244,7 +12244,9 @@ function dlDrawPanel(scrollEnd, keepText){
   const tx = p.querySelector('#dlTx');
   if(tx){ const v = keepText !== undefined ? keepText : prevText; if(v){ tx.value = v; tx.dispatchEvent(new Event('input')); } }
   const body = p.querySelector('#dlBody');
-  if(scrollEnd) body.scrollTop = newest ? 0 : body.scrollHeight;
+  /* 古い順でも、昨日より前の日を開いたときは最初の記録から（記録した直後は入力欄） */
+  const pastP = dlPDay && dlPDay < today() && keepText === undefined;
+  if(scrollEnd) body.scrollTop = (newest || pastP) ? 0 : body.scrollHeight;
   else body.scrollTop = prevScroll;
   if(tx && (scrollEnd || keepText !== undefined)) setTimeout(() => tx.focus({preventScroll:true}), 30);
   dlBtnState();
@@ -12493,7 +12495,7 @@ function renderDlogPage(){
   if(pc){
     const keepT = renderDlogPage.keepText; renderDlogPage.keepText = undefined;
     dlWireComposer(pc, () => dlBoard(dlPageTarget()), (toNew, t) => {
-      renderDlogPage.keepText = t; dlToComp = !!toNew; renderDlogPage();
+      renderDlogPage.keepText = t; dlToComp = toNew ? 'post' : false; renderDlogPage();
       if(dlOpenId) dlDrawPanel(false);
       const tx2 = v.querySelector('.dl-pcomp #dlTx'); if(tx2) setTimeout(() => tx2.focus({preventScroll:true}), 30);
     }, () => dlDay);
@@ -12501,9 +12503,16 @@ function renderDlogPage(){
     if(bs) bs.onchange = () => { dlPageSel = bs.value; S.dlPageB = bs.value; save(); };
     const tx = pc.querySelector('#dlTx');
     if(tx && keepT){ tx.value = keepT; tx.dispatchEvent(new Event('input')); }
-    /* 古い順のときは、開いたとき・日を変えたとき・記録したときに入力欄まで下げる */
+    /* 古い順のときは、開いたとき・日を変えたとき・記録したときに入力欄まで下げる。
+       ただし昨日より前の日を開いたときは、いちばん上（最初の記録）から */
     if(dlToComp && !S.dlogNewest){
+      const past = dlToComp !== 'post' && dlDay && dlDay < today();
       requestAnimationFrame(() => {
+        if(past){
+          const f = v.querySelector('.dlpage .dl-day, .dlpage .dl-e');
+          v.scrollTop = f ? Math.max(0, v.scrollTop + f.getBoundingClientRect().top - v.getBoundingClientRect().top - 16) : 0;
+          return;
+        }
         const r = pc.getBoundingClientRect(), vr = v.getBoundingClientRect();
         v.scrollTop += r.bottom - vr.bottom + 24;
       });
