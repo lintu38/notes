@@ -2889,6 +2889,23 @@
   .dls-l{display:flex;flex-direction:column;gap:3px;font-size:11px;color:var(--muted);margin:6px 0}
   .dls-l input{font:12px var(--fdisp);padding:5px 8px;border:1px solid var(--line);border-radius:7px}
   .dls-dlg .hint{margin-left:0!important;padding-left:0!important;text-indent:0}
+  /* Notes Timeline の中の Daily Log */
+  .tl-dlog{display:flex;flex-direction:column;gap:6px;margin:4px 0 14px 60px}
+  .tl-dle{background:color-mix(in srgb, var(--bc,#c9a227) 5.5%, #f7f4ef);border-radius:9px;padding:7px 11px 8px;cursor:pointer}
+  .tl-dle:hover{background:color-mix(in srgb, var(--bc,#c9a227) 10%, #f7f4ef)}
+  .tl-dlh{display:flex;align-items:center;gap:6px;min-width:0}
+  .tl-dlh .sp{flex:1}
+  .tl-dlh .dl-k{width:18px;height:18px;background:transparent;cursor:inherit}
+  .tl-dlh .dl-k:hover{box-shadow:none}
+  .tl-dlh .dl-k > svg{width:14px!important;height:14px!important}
+  .tl-dlh .dl-k.dot::after{width:7px;height:7px}
+  .tl-dlk{font:600 10.5px var(--fdisp);color:#5f585a;letter-spacing:.04em}
+  .tl-dlh .dl-tag{font-size:9.5px;line-height:16px}
+  .tl-dlh .dl-bd{display:inline-flex;align-items:center;gap:5px;font:500 9.5px/16px var(--fdisp);color:#4a4244;border-radius:20px;padding:0 8px 0 6px;
+    background:color-mix(in srgb, var(--bc,#c9a227) 14%, #fff);border:1px solid color-mix(in srgb, var(--bc,#c9a227) 40%, #fff);white-space:nowrap}
+  .tl-dlh .dl-bd i{width:7px;height:7px;border-radius:2px;background:var(--bc,#c9a227)}
+  .tl-dlft{font-size:10px;color:var(--muted);margin:2px 0 0 24px}
+  .tl-dlt{font:400 13px/1.7 var(--fdisp);color:#2e282a;white-space:pre-wrap;overflow-wrap:anywhere;margin:2px 0 0 24px}
 </style>
 </head>
 <body>
@@ -2946,8 +2963,8 @@
     <div class="nav" id="navActions" data-nav="actions" draggable="true" title="Actions を開く"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><rect x="2.4" y="2.4" width="11.2" height="11.2" rx="2.4"/><path d="M5.2 8.2l2 2 3.6-4"/></svg></span><span>Actions</span></div>
     <div id="navList">
     <div class="nav" id="navSearch" data-nav="search" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><circle cx="7.2" cy="7.2" r="4.6"/><path d="M10.6 10.6l3.2 3.2"/></svg></span><span>Search &amp; Memories</span></div>
-    <div class="nav" id="navTline" data-nav="tline" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M4.2 1.8v12.4"/><circle cx="4.2" cy="4.2" r="1.6"/><circle cx="4.2" cy="10.4" r="1.6"/><path d="M7.4 4.2h6M7.4 10.4h6"/></svg></span><span>Timeline</span></div>
-    <div class="nav" id="navDlog" data-nav="dlog" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><rect x="2.2" y="3.4" width="11.6" height="10.4" rx="1.6"/><path d="M2.2 6.6h11.6M5.4 1.9v2.6M10.6 1.9v2.6"/></svg></span><span>Daily Log</span></div>
+    <div class="nav" id="navTline" data-nav="tline" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M4.2 1.8v12.4"/><circle cx="4.2" cy="4.2" r="1.6"/><circle cx="4.2" cy="10.4" r="1.6"/><path d="M7.4 4.2h6M7.4 10.4h6"/></svg></span><span>Notes Timeline</span></div>
+    <div class="nav" id="navDlog" data-nav="dlog" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><rect x="2.2" y="3.4" width="11.6" height="10.4" rx="1.6"/><path d="M2.2 6.6h11.6M5.4 1.9v2.6M10.6 1.9v2.6"/><path d="M5.6 10.1l1.6 1.6 3.2-3.2"/></svg></span><span>Daily Log</span></div>
     <div class="nav" id="navTasks" data-nav="tasks" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><circle cx="10.2" cy="2.9" r="1.5"/><path d="M4.2 14.2l2.1-3.4 1.6-1.1-1-3.1-2.4 1.5-1 2.1"/><path d="M6.9 6.6l2.6-1.3 1.6 2.4 2.4.9"/><path d="M11.6 13.9l-1.4-3.1-2.3-1.3"/></svg></span><span id="navTasksLb">Tasks</span><span class="cnt" id="cntAll">0</span></div>
     <div class="nav" id="navPin" data-nav="pin" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M9.6 1.9l4.5 4.5-1.6.5-1 1-.4 3.1-4.7-4.7 3.1-.4 1-1z"/><path d="M6.4 6.3L2.2 13.8l7.5-4.2"/></svg></span><span>Pin Memo</span><span class="cnt" id="cntPin">0</span></div>
     <div class="nav" id="navLearn" data-nav="learn" draggable="true" title="日々の発見"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M2.6 13.4V11l7.6-7.6 2.4 2.4L5 13.4z"/><path d="M9.4 4.2l2.4 2.4"/><path d="M2.6 13.4h10.8"/></svg></span><span>D Discoveries</span><span class="cnt" id="cntLearn">0</span></div>
@@ -5100,7 +5117,7 @@ function cardHTML(k){
     ${(k.type === 'note' || k.type === 'task') ? cardTgl('memo', k, k.memoCard)
       : k.type === 'quote' ? cardTgl('quote', k, k.quote && k.quote.card)
       : k.type === 'read' ? cardTgl('read', k, k.read && k.read.card) : ''}
-    ${k.type === 'book' ? `<button class="bread" data-bread="${k.id}" title="読んだ（記録してメモを残す）">${READICO}</button><button class="pkmini ${pickOn(k)?'on':''}" data-bpick="${k.id}"
+    ${k.type === 'book' ? `<button class="bread" data-bread="${k.id}" title="Daily Log に記録">${READICO}</button><button class="pkmini ${pickOn(k)?'on':''}" data-bpick="${k.id}"
       title="ランダム選書候補">${PICKICO}</button>` : pinTgl(k)}
     ${canTime(k) && k.type !== 'book' ? `<span class="tmwrap">${totChip(k)}${timerBtn(k)}</span>` : ''}
     <button class="menu" data-menu="${k.id}">⋯</button></div>`;
@@ -9684,6 +9701,7 @@ const TLKLB = {doc:'Read', cal:'Daily', read:'読んだ', want:'気になる', b
 /* アイコンを押すと、そのアイコンのメモだけに絞る */
 let tlFilt = '';
 function tlApplyFilter(){
+  document.querySelectorAll('.tl-dlog').forEach(n => n.style.display = tlFilt ? 'none' : '');
   document.querySelectorAll('.drop.tlv').forEach(drop => {
     drop.querySelectorAll(':scope > .card.tl').forEach(el => {
       const k = findCard(el.dataset.card)?.card;
@@ -9696,7 +9714,7 @@ function tlApplyFilter(){
         if(n.classList.contains('card') && n.style.display !== 'none'){ any = true; break; }
         n = n.nextElementSibling;
       }
-      h.style.display = any ? '' : 'none';
+      h.style.display = (any || (h.classList.contains('tl-dlday') && !tlFilt)) ? '' : 'none';
       const x = h.nextElementSibling;
       if(x && x.classList.contains('tl-dayx')) x.style.display = any ? '' : 'none';
     });
@@ -9897,7 +9915,7 @@ function tlItems(){
 }
 function renderTimeline(){
   const t = document.getElementById('pageTitle');
-  t.value = 'Timeline'; t.disabled = true; t.oninput = null; t.style.color = '';
+  t.value = 'Notes Timeline'; t.disabled = true; t.oninput = null; t.style.color = '';
   document.getElementById('topActions').innerHTML = '';
   const recent = tlRecentBooks();
   const chips = [...recent, ...tlExtra.map(id => findCard(id)?.card).filter(b => b && !recent.includes(b))];
@@ -9957,6 +9975,7 @@ function renderTimeline(){
   };
   wireCards(v);
   tlDeco(v);
+  setTimeout(() => dlsTimeline(v), 30);     /* tlDeco の絞り込みのあとに */
 }
 
 /* ---------------- 次に読む本を選ぶ ---------------- */
@@ -11490,8 +11509,9 @@ const DL_IC = {
   phone:'<svg viewBox="0 0 16 16"><rect x="4.3" y="1.8" width="7.4" height="12.4" rx="1.6"/><path d="M7.1 3.8h1.8M7.4 12h1.2"/></svg>',
   sync:'<svg viewBox="0 0 16 16"><path d="M13 6.2A5.2 5.2 0 0 0 3.6 4.6M3 9.8a5.2 5.2 0 0 0 9.4 1.6"/><path d="M3.4 2.3v2.5h2.5M12.6 13.7v-2.5h-2.5"/></svg>',
   line:'<svg viewBox="0 0 16 16"><path d="M8 2.6c3.3 0 6 2.1 6 4.8s-2.7 4.8-6 4.8c-.6 0-1.2-.1-1.8-.2L3.3 13.4l.7-2.3C2.8 10.2 2 8.9 2 7.4 2 4.7 4.7 2.6 8 2.6z"/></svg>',
+  bookck:'<svg viewBox="0 0 16 16"><path d="M3.4 12.6V3.2c0-.6.5-1 1-1h8.2v9.6H4.6a1.2 1.2 0 0 0 0 2.4h8"/><path d="M6.2 6.6l1.6 1.6 3-3.2"/></svg>',
   chev:'<svg viewBox="0 0 12 12"><path d="M3 4.6l3 3 3-3"/></svg>',
-  log:'<svg viewBox="0 0 18 18"><path d="M6.6 4.2h8M6.6 9h8M6.6 13.8h8"/><circle cx="3.4" cy="4.2" r="1.2"/><circle cx="3.4" cy="9" r="1.2"/><circle cx="3.4" cy="13.8" r="1.2"/></svg>',
+  log:'<svg viewBox="0 0 16 16"><rect x="2.2" y="3.4" width="11.6" height="10.4" rx="1.6"/><path d="M2.2 6.6h11.6M5.4 1.9v2.6M10.6 1.9v2.6"/><path d="M5.6 10.1l1.6 1.6 3.2-3.2"/></svg>',
   sort:'<svg viewBox="0 0 16 16"><path d="M5 2.8v10.4M2.6 10.8 5 13.2l2.4-2.4M11 13.2V2.8M8.6 5.2 11 2.8l2.4 2.4"/></svg>'
 };
 /* 種類。● をクリックすると選べる */
@@ -11512,7 +11532,7 @@ const DL_KINDS = [
   {k:'private',  lb:'Private',  ic:'clover', c:'#6c9a5b'},
   {k:'shopping', lb:'Shopping', ic:'cart',   c:'#c07a5a'},
   {k:'tv',       lb:'TV',       ic:'tv',     c:'#7a8ca8'},
-  {k:'reading',  lb:'Reading',  ic:'book',   c:'#9c7b4f'},
+  {k:'reading',  lb:'Book',     ic:'bookck', c:'#8a6a55'},
   {k:'people',   lb:'People',   ic:'people', c:'#b6809a'},
   {k:'',         lb:'Other',    ic:'',       c:'#b9aea9'}
 ];
@@ -12801,6 +12821,58 @@ function dlsSettings(anchor){
     dlsCfg = {}; try{ localStorage.removeItem(DLS_CFGK); }catch(e){}
     p.remove(); if(view.type === 'dlog') renderDlogPage();
   };
+}
+
+/* ---- Notes Timeline に Daily Log も並べる（日付ごとに、その日のメモの下へ） ----
+   Bookshelf の「読んだ」メモは Timeline にもともと出ているので、Daily Log 側の写し（src:'read'）は出さない */
+function dlsTimeline(v){
+  if(!DL_NOTE) return;
+  const page = v.querySelector('.tlpage'); if(!page) return;
+  v.querySelectorAll('.tl-dlog, .tl-dlday').forEach(n => n.remove());
+  const byDay = {};
+  dlBoards().forEach(b => (b.dlog || []).forEach(e => {
+    if(e.src === 'read') return;
+    const d = (e.at || '').slice(0, 10); if(!d) return;
+    (byDay[d] ||= []).push({e, b});
+  }));
+  const days = Object.keys(byDay).sort().reverse();
+  if(!days.length) return;
+  let drop = page.querySelector('.drop');
+  if(!drop){
+    page.querySelector('.tl-empty')?.remove();
+    page.insertAdjacentHTML('beforeend', '<div class="dailycards"><div class="drop tlv"></div></div>');
+    drop = page.querySelector('.drop');
+  }
+  const block = rows => `<div class="tl-dlog">${rows.sort((x, y) => (x.e.at || '').localeCompare(y.e.at || '') || dlOrd(x.e) - dlOrd(y.e)).map(({e, b}) => {
+    const K = dlKind(e.kind);
+    return `<div class="tl-dle" data-tldl="${(e.at || '').slice(0, 10)}" title="Daily Log で開く" style="--bc:${b.color || '#c9a227'}">
+      <div class="tl-dlh">${dlKBtn(e.kind, '', 'span')}<span class="tl-dlk">${e.kind ? esc(K.lb) : 'Daily Log'}</span>${e.pin ? `<span class="dl-rsp">${DL_IC.pin}</span>` : ''}<span class="sp"></span>
+        ${e.tag ? `<span class="dl-tag">${esc(e.tag)}</span>` : ''}<span class="dl-bd"><i></i>${esc(b.name)}</span></div>
+      ${dlHasFT(e.kind) ? `<div class="tl-dlft">${esc(e.from || 'M')} ▶ ${esc((e.to || []).join('、') || '—')}</div>` : ''}
+      ${e.text ? `<div class="tl-dlt">${dlTextHTML(e.text)}</div>` : ''}
+    </div>`;
+  }).join('')}</div>`;
+  const heads = () => [...drop.querySelectorAll(':scope > .tl-day')];
+  days.forEach(d => {
+    const h = heads().find(x => x.dataset.d === d);
+    if(h){
+      /* その日のいちばん下（次の日付の見出しの前）に */
+      let n = h.nextElementSibling, last = h;
+      while(n && !n.classList.contains('tl-day')){ last = n; n = n.nextElementSibling; }
+      last.insertAdjacentHTML('afterend', block(byDay[d]));
+    } else {
+      const r = tlRel(d);
+      const html = `<div class="tl-day tl-dlday" data-d="${d}">${r ? `<b>${r}</b><i>·</i><span>${tlMD(d)}</span>` : `<b>${tlMD(d)}</b>`}</div>` + block(byDay[d]);
+      const nx = heads().find(x => x.dataset.d < d);
+      if(nx) nx.insertAdjacentHTML('beforebegin', html); else drop.insertAdjacentHTML('beforeend', html);
+    }
+  });
+  drop.querySelectorAll('[data-tldl]').forEach(x => x.onclick = ev => {
+    if(ev.target.closest('a')) return;
+    dlDay = x.dataset.tldl; dlCalM = dlDay.slice(0, 7);
+    view = {type:'dlog'}; render();
+  });
+  if(typeof tlFilt !== 'undefined' && tlFilt) drop.querySelectorAll('.tl-dlog, .tl-dlday').forEach(n => n.style.display = 'none');
 }
 
 function render(){
