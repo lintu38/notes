@@ -2920,6 +2920,25 @@
     .dl-kind .dl-tag.dl-tadd{display:none}
     .dl-e.dlact .dl-kind .dl-tag.dl-tadd{display:inline-flex;opacity:1}
   }
+  /* 検索窓 */
+  .dl-qwrap{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);border-radius:8px;background:#fff;padding:0 8px;height:30px;box-sizing:border-box}
+  .dl-qwrap svg{width:13px;height:13px;fill:none;stroke:var(--muted);stroke-width:1.5;stroke-linecap:round;flex:none}
+  .dl-q{border:0;outline:none;background:none;font:12.5px var(--fdisp);color:var(--ink);width:140px;padding:0}
+  .dl-qwrap:focus-within{border-color:#cbbfb6;box-shadow:0 0 0 2px #efe8e1}
+  .dl-psearch{display:flex;align-items:center;gap:8px;margin-top:8px}
+  .dl-psearch .dl-qwrap{flex:1}
+  .dl-psearch .dl-q{width:100%}
+  .dl-psearch .cnt{font-size:11px;color:var(--muted);white-space:nowrap}
+  mark.dl-hit{background:#f6e3a6;color:inherit;border-radius:3px;padding:0 1px}
+  /* Notes の Search の Daily Log */
+  .sdl-m{display:inline-flex;align-items:center;gap:5px;font:600 10.5px var(--fdisp);color:#5f585a;margin-right:4px}
+  .sdl-m .dl-k{width:18px;height:18px;background:transparent}
+  .sdl-m .dl-k > svg{width:14px!important;height:14px!important}
+  .sdl-m .dl-k.dot::after{width:7px;height:7px}
+  .sdl-m .dl-bd{display:inline-flex;align-items:center;gap:4px;font:500 9.5px/16px var(--fdisp);color:#4a4244;border-radius:20px;padding:0 7px 0 6px;
+    background:color-mix(in srgb, var(--bc,#c9a227) 14%, #fff);border:1px solid color-mix(in srgb, var(--bc,#c9a227) 40%, #fff)}
+  .sdl-m .dl-bd i{width:7px;height:7px;border-radius:2px;background:var(--bc,#c9a227)}
+  .sdl-m .dl-k{color:var(--dl-c)!important}
 </style>
 </head>
 <body>
@@ -9193,7 +9212,7 @@ function renderSearch(){
   const sOf = k => [(k.quote && k.quote.source) || '', (k.read && k.read.source) || ''].map(v => v.trim());
   const active = s || searchAuthor || searchSource;
 
-  let cards = [], days = [];
+  let cards = [], days = [], dlHits = [];
   if(active){
     cards = allCards().filter(x => !s || cardHay(x.card).includes(s));
     if(searchAuthor) cards = cards.filter(x => aOf(x.card).includes(searchAuthor));
@@ -9206,6 +9225,10 @@ function renderSearch(){
       });
     }
     days.sort((a, b) => b.date.localeCompare(a.date));
+    if(s && !searchAuthor && !searchSource){
+      dlBoards().forEach(b => (b.dlog || []).forEach(e => { if(dlMatch({e, b}, s)) dlHits.push({e, b}); }));
+      dlHits.sort((a, b) => (b.e.at || '').localeCompare(a.e.at || ''));
+    }
   }
 
   document.getElementById('view').innerHTML = `
@@ -9220,13 +9243,19 @@ function renderSearch(){
             ${sources.map(s2 => `<option ${searchSource===s2?'selected':''}>${esc(s2)}</option>`).join('')}</select></span>
         ${searchAuthor || searchSource || searchQ ? `<button class="btn" id="sClear"
           style="padding:4px 12px;font-size:12px">条件をクリア</button>` : ''}
-        ${active ? `<span class="shits">${cards.length + days.length} 件</span>` : ''}
+        ${active ? `<span class="shits">${cards.length + days.length + dlHits.length} 件</span>` : ''}
       </div>
     </div>
     ${!active ? `${randBoxHTML()}
       <div class="empty">タイトル・本文・Memo・Quote・Read・Message Log・サブタスク・タグ、<br>
       Daily Memo の本文まで、すべてを対象に探します</div>`
-    : (cards.length + days.length) ? `
+    : (cards.length + days.length + dlHits.length) ? `
+      ${dlHits.length ? `<div class="sgrp"><div class="sgrp-h">Daily Log</div>
+        ${dlHits.map(({e, b}) => { const d = (e.at || '').slice(0, 10), K = dlKind(e.kind);
+          return `<div class="sday sdl" data-opendl="${d}" style="--bc:${b.color || '#c9a227'}">
+          <b>${d} ${d ? WD[parse(d).getDay()] : ''}</b>
+          <span class="sdl-m">${dlKBtn(e.kind, '', 'span')}${e.kind ? esc(K.lb) : ''}<span class="dl-bd"><i></i>${esc(b.name)}</span></span>
+          <span>${excerpt(e.text || e.tag || '', s, 120)}</span></div>`; }).join('')}</div>` : ''}
       ${days.length ? `<div class="sgrp"><div class="sgrp-h">Daily Memo</div>
         ${days.map(dy => `<div class="sday" data-openday="${dy.board.id}|${dy.date}">
           <b>${dy.date} ${WD[parse(dy.date).getDay()]}</b>
@@ -9262,6 +9291,8 @@ function renderSearch(){
   if(rn) rn.onclick = () => { pickRand(); renderSearch(); };
   const ro = document.getElementById('rnOpen');
   if(ro) ro.onclick = () => { if(randId){ view = {type:'card', id:randId}; render(); } };
+  v.querySelectorAll('[data-opendl]').forEach(el => el.onclick = () => {
+    dlDay = el.dataset.opendl || today(); dlCalM = dlDay.slice(0, 7); dlToComp = false; view = {type:'dlog'}; render(); });
   v.querySelectorAll('[data-goto]').forEach(el => el.onclick = () => {
     view = {type:'board', id:el.dataset.goto}; render(); });
   v.querySelectorAll('[data-openday]').forEach(el => el.onclick = () => {
@@ -11528,6 +11559,7 @@ const DL_IC = {
   ind:'<svg viewBox="0 0 16 16"><path d="M7 3.5h6.5M7 8h6.5M7 12.5h6.5"/><path d="M2.5 5.8 4.7 8l-2.2 2.2"/></svg>',
   outd:'<svg viewBox="0 0 16 16"><path d="M7 3.5h6.5M7 8h6.5M7 12.5h6.5"/><path d="M4.7 5.8 2.5 8l2.2 2.2"/></svg>',
   home:'<svg viewBox="0 0 16 16"><path d="M2.4 7.6 8 2.8l5.6 4.8"/><path d="M3.8 6.6v6.8h8.4V6.6"/><path d="M6.6 13.4V9.8h2.8v3.6"/></svg>',
+  search:'<svg viewBox="0 0 16 16"><circle cx="7.2" cy="7.2" r="4.6"/><path d="M10.6 10.6l3.2 3.2"/></svg>',
   chev:'<svg viewBox="0 0 12 12"><path d="M3 4.6l3 3 3-3"/></svg>',
   log:'<svg viewBox="0 0 16 16"><rect x="2.2" y="3.4" width="11.6" height="10.4" rx="1.6"/><path d="M2.2 6.6h11.6M5.4 1.9v2.6M10.6 1.9v2.6"/><path d="M5.6 10.1l1.6 1.6 3.2-3.2"/></svg>',
   sort:'<svg viewBox="0 0 16 16"><path d="M5 2.8v10.4M2.6 10.8 5 13.2l2.4-2.4M11 13.2V2.8M8.6 5.2 11 2.8l2.4 2.4"/></svg>'
@@ -12222,16 +12254,19 @@ function dlDrawPanel(scrollEnd, keepText){
   let rows = (b.dlog || []).map(e => ({e, b}));
   if(dlTagF) rows = rows.filter(r => (r.e.tag || '') === dlTagF);
   if(S.dlogPinOnly) rows = rows.filter(r => r.e.pin);
+  if(dlPQ.trim()) rows = rows.filter(r => dlMatch(r, dlPQ));
   const pmarks = {};
   rows.forEach(r => { const d = (r.e.at || '').slice(0, 10); if(d) pmarks[d] = (pmarks[d] || 0) + 1; });
   Object.keys(pmarks).forEach(d => pmarks[d] += ' 件');
-  if(dlPDay) rows = rows.filter(r => (r.e.at || '').slice(0, 10) === dlPDay);
+  if(dlPDay && !dlPQ.trim()) rows = rows.filter(r => (r.e.at || '').slice(0, 10) === dlPDay);
   const newest = !!S.dlogNewest;
-  const list = S.dlogPinOnly && !rows.length ? '<div class="dl-empty">ピンを付けたメモはありません。</div>'
+  const list = dlPQ.trim() && !rows.length ? '<div class="dl-empty">見つかりませんでした。</div>'
+    : S.dlogPinOnly && !rows.length ? '<div class="dl-empty">ピンを付けたメモはありません。</div>'
     : dlPDay && !rows.length ? '<div class="dl-empty">この日の記録はありません。</div>' : dlListHTML(rows, {showBoard:false});
   p.innerHTML = `<div class="dl-head"><h3>Daily Log<small>${esc(b.name)}</small></h3>${dlPinBtn()}${dlTagSel(btags)}${dlTagEdBtn(btags)}${dlOrdBtn()}
       <button type="button" class="dl-x" id="dlX" title="閉じる">×</button></div>
-    <div class="dl-calbar">${dlWeekCalHTML(pmarks, DLPS)}</div>
+    <div class="dl-calbar">${dlWeekCalHTML(pmarks, DLPS)}
+      <div class="dl-psearch"><span class="dl-qwrap">${DL_IC.search}<input type="search" id="dlPQ" class="dl-q" placeholder="この Board の Daily Log を検索" value="${esc(dlPQ)}" autocomplete="off"></span>${dlPQ.trim() ? `<span class="cnt">${rows.length} 件（すべての日から）</span>` : ''}</div></div>
     <div class="dl-body" id="dlBody">${newest ? dlComposerHTML() + list : list + dlComposerHTML()}</div>`;
   const redraw = (toNew, t) => dlDrawPanel(toNew, t);
   p.querySelector('#dlX').onclick = dlClose;
@@ -12242,6 +12277,8 @@ function dlDrawPanel(scrollEnd, keepText){
   dlWireComposer(p, b, redraw, () => dlPDay);
   dlWireWeekCal(p, DLPS, () => dlDrawPanel(true));
   dlWireList(p, () => dlDrawPanel(false));
+  dlWireSearch(p, '#dlPQ', () => dlPQ, x => { dlPQ = x; }, () => dlDrawPanel(false));
+  if(dlPQ.trim()) dlMarkHits(p.querySelector('.dl-body'), dlPQ);
   const tx = p.querySelector('#dlTx');
   if(tx){ const v = keepText !== undefined ? keepText : prevText; if(v){ tx.value = v; tx.dispatchEvent(new Event('input')); } }
   const body = p.querySelector('#dlBody');
@@ -12440,12 +12477,14 @@ function renderDlogPage(){
   if(dlTagF && !ptags.includes(dlTagF)) dlTagF = '';
   if(dlTagF) rows = rows.filter(r => (r.e.tag || '') === dlTagF);
   if(S.dlogPinOnly) rows = rows.filter(r => r.e.pin);
+  if(dlQ.trim()) rows = rows.filter(r => dlMatch(r, dlQ));
   /* 左のカレンダー：記録がある日に印。日を押すとその日だけ表示 */
   const marks = {};
   rows.forEach(r => { const d = (r.e.at || '').slice(0, 10); if(d) marks[d] = (marks[d] || 0) + 1; });
   Object.keys(marks).forEach(d => marks[d] = marks[d] + ' 件');
   dlCalM ||= (dlDay || today()).slice(0, 7);
-  if(dlDay) rows = rows.filter(r => (r.e.at || '').slice(0, 10) === dlDay);
+  /* 検索しているときは、すべての日から探す */
+  if(dlDay && !dlQ.trim()) rows = rows.filter(r => (r.e.at || '').slice(0, 10) === dlDay);
   const v = document.getElementById('view');
   const keep = v.scrollTop;
   const narrow = dlNarrow();
@@ -12454,6 +12493,7 @@ function renderDlogPage(){
     <button type="button" class="dl-bjh${dlBjOpen ? ' open' : ''}" id="dlBjT">${DL_IC.chev}Board の Daily Log</button>
     <div class="dl-bjump"${dlBjOpen ? '' : ' hidden'}>${(dlBoards() || []).map(b => `<button type="button" class="dl-bj" data-dlbj="${b.id}" style="--bc:${b.color || '#c9a227'}" title="${esc(b.name)} の Daily Log を開く"><i></i><span class="nm">${esc(b.name)}</span><span class="n">${(b.dlog || []).length || ''}</span></button>`).join('')}</div></aside><div class="dlpage">
     <div class="dl-tools-row" style="padding-left:18px">
+      <span class="dl-qwrap">${DL_IC.search}<input type="search" id="dlQ" class="dl-q" placeholder="検索" value="${esc(dlQ)}" autocomplete="off"></span>
       <select id="dlBf"><option value="">すべての Board</option>${boards.map(b =>
         `<option value="${b.id}" ${dlFilter === b.id ? 'selected' : ''}>${esc(b.name)}</option>`).join('')}</select>
 
@@ -12462,12 +12502,12 @@ function renderDlogPage(){
         `<option value="${K.k}" ${kf === K.k ? 'selected' : ''}>${esc(K.lb)}</option>`).join('')}</optgroup>`).join('')}</select>
       ${dlPinBtn()}
       ${dlOrdBtn()}
-      <span class="cnt">${rows.length} 件</span>
+      <span class="cnt">${rows.length} 件${dlQ.trim() ? '（すべての日から検索）' : ''}</span>
       <span class="sp" style="flex:1"></span>${typeof dlsStateHTML === 'function' ? dlsStateHTML() : ''}
     </div>
     ${(() => {
       const list = rows.length ? dlListHTML(rows, {showBoard:true})
-        : `<div class="dl-empty">${dlDay ? 'この日の記録はありません。' : '記録はまだありません。'}</div>`;
+        : `<div class="dl-empty">${dlQ.trim() ? '見つかりませんでした。' : dlDay ? 'この日の記録はありません。' : '記録はまだありません。'}</div>`;
       const comp = `<div class="dl-pcomp">${dlComposerHTML(dlBoardSel())}</div>`;
       return S.dlogNewest ? comp + list : list + comp;
     })()}
@@ -12494,6 +12534,8 @@ function renderDlogPage(){
   v.querySelector('#dlOrd').onclick = () => { S.dlogNewest = !S.dlogNewest; save(); renderDlogPage(); if(dlOpenId) dlDrawPanel(true); };
   document.addEventListener('click', dlsStateClick);
   dlWireList(v, () => { renderDlogPage(); if(dlOpenId) dlDrawPanel(false); });
+  dlWireSearch(v, '#dlQ', () => dlQ, x => { dlQ = x; }, () => { dlToComp = false; renderDlogPage(); });
+  if(dlQ.trim()){ dlMarkHits(v.querySelector('.dlpage'), dlQ); dlToComp = false; }
   /* ページの入力欄：Board を選んで記録する（日付はカレンダーで選んだ日） */
   const pc = v.querySelector('.dl-pcomp');
   if(pc){
@@ -12529,6 +12571,49 @@ function renderDlogPage(){
 /* スマホ（幅の狭い画面）：カレンダーは週で、押すと月。Board の一覧はたたむ */
 const dlNarrow = () => !!(window.matchMedia && window.matchMedia('(max-width:760px)').matches);
 let dlBjOpen = null;
+/* ---- 検索（本文・タグ・From/To・種類・Board 名。空白で区切ると全部を含むもの） ---- */
+let dlQ = '', dlPQ = '';
+function dlMatch(r, q){
+  const words = String(q || '').toLowerCase().split(/[\s\u3000]+/).filter(Boolean);
+  if(!words.length) return true;
+  const e = r.e, hay = [e.text, e.tag, e.from, ...(Array.isArray(e.to) ? e.to : []), dlKind(e.kind).lb, r.b.name,
+    ...(e.files || []).map(f => f.name)].join(' ').toLowerCase();
+  return words.every(w => hay.includes(w));
+}
+/* 見つかった言葉に色を付ける（本文の中だけ） */
+function dlMarkHits(root, q){
+  const words = String(q || '').split(/[\s\u3000]+/).filter(Boolean);
+  if(!root || !words.length) return;
+  const re = new RegExp('(' + words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')', 'gi');
+  root.querySelectorAll('.dl-text').forEach(t => {
+    const walk = document.createTreeWalker(t, NodeFilter.SHOW_TEXT), nodes = [];
+    while(walk.nextNode()) nodes.push(walk.currentNode);
+    nodes.forEach(n => {
+      if(!re.test(n.nodeValue)) return; re.lastIndex = 0;
+      const span = document.createElement('span');
+      span.innerHTML = esc(n.nodeValue).replace(re, '<mark class="dl-hit">$1</mark>');
+      n.replaceWith(...span.childNodes);
+    });
+  });
+}
+/* 検索窓：打つたびに少し待って描き直し、カーソルの位置を戻す */
+function dlWireSearch(root, sel, get, set, redraw){
+  const qi = root.querySelector(sel); if(!qi) return;
+  let t = null, ime = false;
+  /* 日本語の変換中は描き直さない（確定してから） */
+  qi.addEventListener('compositionstart', () => { ime = true; clearTimeout(t); });
+  qi.addEventListener('compositionend', () => { ime = false; qi.dispatchEvent(new Event('input')); });
+  qi.addEventListener('input', () => {
+    if(ime) return;
+    clearTimeout(t);
+    t = setTimeout(() => {
+      const pos = qi.selectionStart; set(qi.value); redraw();
+      const q2 = document.querySelector(sel);
+      if(q2){ q2.focus(); try{ q2.setSelectionRange(pos, pos); }catch(e){} }
+    }, 220);
+  });
+  qi.addEventListener('keydown', e => { if(e.key === 'Escape' && qi.value){ e.stopPropagation(); qi.value = ''; set(''); redraw(); } });
+}
 let dlPageSel = '';
 let dlToComp = true;          // 次に描くとき、入力欄まで下げる
 /* 共有の状態ボタン（押すと設定）。ページを描き直しても効くよう、document で受ける */
