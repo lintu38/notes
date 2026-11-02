@@ -12432,7 +12432,8 @@ function renderDlogPage(){
   dlBoards().forEach(b => (b.dlog || []).forEach(e => rows.push({e, b})));
   if(dlFilter) rows = rows.filter(r => r.b.id === dlFilter);
   const kf = S.dlogKind || 'all';
-  if(kf !== 'all') rows = rows.filter(r => (r.e.kind || '') === kf);
+  if(kf.startsWith('grp:')) rows = rows.filter(r => dlKind(r.e.kind).grp === kf.slice(4));   // Works / Others まとめて
+  else if(kf !== 'all') rows = rows.filter(r => (r.e.kind || '') === kf);
   const ptags = [...new Set(rows.map(r => (r.e.tag || '').trim()).filter(Boolean))];
   if(dlTagF && !ptags.includes(dlTagF)) dlTagF = '';
   if(dlTagF) rows = rows.filter(r => (r.e.tag || '') === dlTagF);
@@ -12455,7 +12456,7 @@ function renderDlogPage(){
         `<option value="${b.id}" ${dlFilter === b.id ? 'selected' : ''}>${esc(b.name)}</option>`).join('')}</select>
 
       ${dlTagSel(ptags)}${dlTagEdBtn(ptags)}
-      <select id="dlKf"><option value="all">すべての種類</option>${['Works', 'Others'].map(g => `<optgroup label="${g}">${DL_KINDS.filter(K => K.grp === g).map(K =>
+      <select id="dlKf"><option value="all">すべての種類</option>${['Works', 'Others'].map(g => `<optgroup label="${g}"><option value="grp:${g}" ${kf === 'grp:' + g ? 'selected' : ''}>${g}（すべて）</option>${DL_KINDS.filter(K => K.grp === g).map(K =>
         `<option value="${K.k}" ${kf === K.k ? 'selected' : ''}>${esc(K.lb)}</option>`).join('')}</optgroup>`).join('')}</select>
       ${dlPinBtn()}
       ${dlOrdBtn()}
