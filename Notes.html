@@ -2939,6 +2939,28 @@
     background:color-mix(in srgb, var(--bc,#c9a227) 14%, #fff);border:1px solid color-mix(in srgb, var(--bc,#c9a227) 40%, #fff)}
   .sdl-m .dl-bd i{width:7px;height:7px;border-radius:2px;background:var(--bc,#c9a227)}
   .sdl-m .dl-k{color:var(--dl-c)!important}
+  /* ワンタップ記録 */
+  .dl-qh{font:500 10.5px var(--fdisp);color:var(--muted);letter-spacing:.06em;margin:16px 6px 6px}
+  .dl-quick{display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:5px}
+  .dl-qb{display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 2px 6px;border-radius:9px;border:1px solid var(--line2);
+    background:color-mix(in srgb, #6c9a5b 6%, #fff);color:#5d7f50;font:500 10px var(--fdisp);cursor:pointer;min-width:0}
+  .dl-qb:hover{background:color-mix(in srgb, #6c9a5b 14%, #fff);border-color:color-mix(in srgb, #6c9a5b 35%, #fff)}
+  .dl-qb:active{transform:scale(.96)}
+  .dl-qb svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.35;stroke-linecap:round;stroke-linejoin:round}
+  .dl-qb span{color:#5f585a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  .dl-qopts{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 6px}
+  .dl-qopts button{padding:5px 12px;border-radius:16px;border:1px solid var(--line);background:#fff;font:12px var(--fdisp);color:#4a4244}
+  .dl-qopts button:hover,.dl-qopts button.on{background:#e8f0e3;border-color:#b9cfae;color:#3f6332}
+  .dl-e.dl-new1 .dl-text{animation:dlNew1 1.6s ease}
+  @keyframes dlNew1{0%{box-shadow:0 0 0 3px rgba(108,154,91,.45)}100%{box-shadow:0 0 0 0 rgba(108,154,91,0)}}
+  /* Notes：Memo & Note に書く／関連メモ・本のページを開く */
+  .dl-memob{width:22px;height:22px;padding:0;border-radius:6px;color:#c4bbbd;display:inline-flex;align-items:center;justify-content:center;opacity:0;transition:opacity .12s}
+  .dl-memob svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+  .dl-e:hover .dl-memob{opacity:1}
+  @media (hover:none){ .dl-memob{opacity:.6} }
+  .dl-memob:hover{background:#efe9e7;color:#8a6a55}
+  .dl-memob.on{opacity:1;color:#b5677d;background:#f6e9ec}
+  .dl-memob.on.book{color:#c8443c;background:#fbecea}
 </style>
 </head>
 <body>
@@ -11774,9 +11796,9 @@ function dlEntryHTML(e, b, opt){
         <button type="button" data-dlind="1" title="字下げする（アイコンごと）"${ind >= 3 ? ' disabled' : ''}>${DL_IC.ind}</button>
         <button type="button" data-dldate="1" title="日付を変える">${DL_IC.cal}</button>
         <button type="button" data-dlatt="1" title="画像・ファイルを足す">${DL_IC.clip}</button>
-        <button type="button" data-dledit="1" title="メモを直す">${DL_IC.edit}</button>
+        ${DL_NOTE ? '' : `<button type="button" data-dledit="1" title="メモを直す">${DL_IC.edit}</button>`}
         <button type="button" class="del" data-dldel="1" title="この記録を消す">${DL_IC.trash}</button>
-      </span><button type="button" class="dl-pin${e.pin ? ' on' : ''}" data-dlpin="1" title="${e.pin ? 'ピンを外す' : 'ピンを付ける（大事なメモ）'}">${DL_IC.pin}</button>${e.tag ? `<span class="dl-tag" data-dltag="1" title="クリックでタグを直す">${esc(e.tag)}</span>`
+      </span>${DL_NOTE ? dlMemoBtn(e) : ''}<button type="button" class="dl-pin${e.pin ? ' on' : ''}" data-dlpin="1" title="${e.pin ? 'ピンを外す' : 'ピンを付ける（大事なメモ）'}">${DL_IC.pin}</button>${e.tag ? `<span class="dl-tag" data-dltag="1" title="クリックでタグを直す">${esc(e.tag)}</span>`
                : `<span class="dl-tag dl-tadd" data-dltag="1" title="タグを付ける">${DL_IC.tag}タグ</span>`}${bd}</div>
     ${dlHasFT(e.kind) ? dlFromTo(e, b) : ''}
     <div class="dl-text" data-dledit="1">${dlTextHTML(e.text)}</div>
@@ -12099,6 +12121,8 @@ function dlWireList(root, redraw){
       if(!dlNarrow() || ev.target.closest('button, .dl-tag, .dl-bd, input')) return;
       row.classList.toggle('dlact');
     });
+    const mb = row.querySelector('[data-dlmemo]');
+    if(mb) mb.onclick = () => { const {e} = get(); if(e) dlMemoGo(e); };
     row.querySelectorAll('[data-dlind]').forEach(x => x.onclick = () => {
       const {e} = get(); if(!e) return;
       const n = Math.max(0, Math.min(3, (e.ind || 0) + (+x.dataset.dlind)));
@@ -12226,6 +12250,12 @@ const dlOrdBtn = () => `<button type="button" class="dl-ord" id="dlOrd" title="�
 
 /* その Board の Daily Log を開く（Tasks は Board へ移ってパネル、Notes はパネルだけ）。day が null なら今日 */
 function dlGoBoard(bid, day){
+  /* Notes：その Board の Daily Log だけをページに出す */
+  if(DL_NOTE){
+    dlClose(); dlFilter = bid; dlPageSel = '';
+    if(day !== null && day !== undefined){ dlDay = day; if(day) dlCalM = day.slice(0, 7); }
+    dlToComp = true; view = {type:'dlog'}; render(); return;
+  }
   if(!DL_NOTE){ dlClose(); view = {type:'board', id:bid}; render(); }
   if(day !== null && day !== undefined){ dlPDay = day; dlPRef = day || today(); dlOpen.keepDay = true; }
   dlOpen(bid); dlOpen.keepDay = false;
@@ -12490,6 +12520,7 @@ function renderDlogPage(){
   const narrow = dlNarrow();
   if(dlBjOpen === null) dlBjOpen = !narrow;
   v.innerHTML = `<div class="dlwrap"><aside class="dlside">${narrow ? dlWeekCalHTML(marks, DLGS) : calendarHTML(marks, dlDay, dlCalM, !dlDay, 'すべての日')}
+    ${dlQuickHTML()}
     <button type="button" class="dl-bjh${dlBjOpen ? ' open' : ''}" id="dlBjT">${DL_IC.chev}Board の Daily Log</button>
     <div class="dl-bjump"${dlBjOpen ? '' : ' hidden'}>${(dlBoards() || []).map(b => `<button type="button" class="dl-bj" data-dlbj="${b.id}" style="--bc:${b.color || '#c9a227'}" title="${esc(b.name)} の Daily Log を開く"><i></i><span class="nm">${esc(b.name)}</span><span class="n">${(b.dlog || []).length || ''}</span></button>`).join('')}</div></aside><div class="dlpage">
     <div class="dl-tools-row" style="padding-left:18px">
@@ -12524,6 +12555,7 @@ function renderDlogPage(){
   const ca = v.querySelector('.dlside #calAll'); if(ca) ca.onclick = () => { dlDay = ''; dlToComp = true; renderDlogPage(); };
   if(narrow) dlWireWeekCal(v.querySelector('.dlside'), DLGS, () => { if(dlDay) dlCalM = dlDay.slice(0, 7); dlToComp = true; renderDlogPage(); });
   v.querySelector('#dlBjT').onclick = () => { dlBjOpen = !dlBjOpen; renderDlogPage(); };
+  dlWireQuick(v.querySelector('.dlside'));
   v.scrollTop = keep;
   v.querySelector('#dlBf').onchange = e => { dlFilter = e.target.value; dlPageSel = ''; renderDlogPage(); };
   v.querySelector('#dlKf').onchange = e => { S.dlogKind = e.target.value; save(); renderDlogPage(); };
@@ -12613,6 +12645,114 @@ function dlWireSearch(root, sel, get, set, redraw){
     }, 220);
   });
   qi.addEventListener('keydown', e => { if(e.key === 'Escape' && qi.value){ e.stopPropagation(); qi.value = ''; set(''); redraw(); } });
+}
+/* ---- ワンタップ記録（Daily Log ページのカレンダーの下）：押すとその日に Home の記録を書く ---- */
+const DLQI = {
+  sun:'<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.8"/><path d="M8 1.6v1.6M8 12.8v1.6M1.6 8h1.6M12.8 8h1.6M3.5 3.5l1.1 1.1M11.4 11.4l1.1 1.1M3.5 12.5l1.1-1.1M11.4 4.6l1.1-1.1"/></svg>',
+  moon:'<svg viewBox="0 0 16 16"><path d="M12.8 10.2A5.6 5.6 0 0 1 5.8 3.2a5.6 5.6 0 1 0 7 7z"/></svg>',
+  bin:'<svg viewBox="0 0 16 16"><path d="M3 4.4h10M6.4 4.4V3a.6.6 0 0 1 .6-.6h2a.6.6 0 0 1 .6.6v1.4M4.2 4.4l.7 9a1 1 0 0 0 1 .9h4.2a1 1 0 0 0 1-.9l.7-9"/></svg>',
+  box:'<svg viewBox="0 0 16 16"><path d="M2.4 5 8 2.4 13.6 5v6.2L8 13.8l-5.6-2.6z"/><path d="M2.4 5 8 7.6 13.6 5M8 7.6v6.2"/></svg>',
+  wash:'<svg viewBox="0 0 16 16"><rect x="2.6" y="1.8" width="10.8" height="12.4" rx="1.6"/><circle cx="8" cy="9" r="3"/><path d="M4.6 4.2h1.6"/></svg>',
+  cup:'<svg viewBox="0 0 16 16"><path d="M2.6 6h8.4v3.6a3.4 3.4 0 0 1-3.4 3.4H6a3.4 3.4 0 0 1-3.4-3.4z"/><path d="M11 7h.9a1.5 1.5 0 0 1 0 3H11M5.4 2v2M8 2v2"/></svg>',
+  bowl:'<svg viewBox="0 0 16 16"><path d="M2 7.6h12a6 6 0 0 1-12 0z"/><path d="M6 13.4h4M9 2l3.4 4.4M11.4 1.6l2 4.4"/></svg>',
+  dish:'<svg viewBox="0 0 16 16"><ellipse cx="7" cy="10.4" rx="5" ry="2.4"/><path d="M12.6 2.4c.8 1.2 1.2 2 1.2 2.6a1.2 1.2 0 0 1-2.4 0c0-.6.4-1.4 1.2-2.6z"/></svg>',
+  bath:'<svg viewBox="0 0 16 16"><path d="M1.8 8h12.4v1.6a3.4 3.4 0 0 1-3.4 3.4H5.2a3.4 3.4 0 0 1-3.4-3.4z"/><path d="M3.4 8V3.6a1.4 1.4 0 0 1 2.8 0M4.6 13l-.6 1.2M11.4 13l.6 1.2"/></svg>',
+  yard:'<svg viewBox="0 0 16 16"><path d="M1.8 7.4 6 3.6l4.2 3.8M2.9 6.4V12h6.2V6.4"/><path d="M13.6 3.4 11.2 9.6M10 9.6h2.6l.8 3.4h-4.2z"/></svg>',
+  broom:'<svg viewBox="0 0 16 16"><path d="M12.6 2 8.4 7.6"/><path d="M6.2 7 10 9.8l-1.2 3.8c-2.4-.2-4.6-1.8-5.8-4z"/><path d="M5.4 11.2l-1.6 1.6M7 12.4l-1 1.4"/></svg>'
+};
+const DL_QUICK = [
+  {ic:'sun',   lb:'起床',   t:'起床'},
+  {ic:'moon',  lb:'就寝',   t:'就寝'},
+  {ic:'bin',   lb:'可燃ごみ', t:'可燃ごみ出し'},
+  {ic:'bin',   lb:'プラごみ', t:'プラごみ出し'},
+  {ic:'bin',   lb:'その他ごみ', t:'その他ごみ出し'},
+  {ic:'box',   lb:'空箱・宅配', t:'空箱出し・宅配取込み'},
+  {ic:'wash',  lb:'洗濯',   t:'洗濯した', opt:['全乾燥', '半乾燥']},
+  {ic:'cup',   lb:'朝食',   t:'朝食準備＆朝食'},
+  {ic:'bowl',  lb:'昼食',   t:'昼食準備＆昼食'},
+  {ic:'bowl',  lb:'夕食',   t:'夕食準備＆夕食'},
+  {ic:'dish',  lb:'洗い物', t:'洗い物をした'},
+  {ic:'bath',  lb:'お風呂', t:'シャンプー・お風呂etc.'},
+  {ic:'yard',  lb:'屋外掃除', t:'屋外の掃除をした', opt:['玄関', '車庫', '庭', '外回り'], multi:true},
+  {ic:'broom', lb:'室内掃除', t:'室内の掃除・整理整頓をした'}
+];
+function dlQuickHTML(){
+  return `<div class="dl-qh">ワンタップ記録</div><div class="dl-quick">${DL_QUICK.map((q, i) =>
+    `<button type="button" class="dl-qb" data-dlq="${i}" title="${esc(q.t + (q.opt ? '（' + q.opt.join('/') + '）' : '') + '。')}">${DLQI[q.ic]}<span>${esc(q.lb)}</span></button>`).join('')}</div>`;
+}
+function dlQuickAdd(text){
+  const b = dlBoard(dlPageTarget()); if(!b) return alert('記録する Board がありません');
+  const d0 = dlDay || today();
+  const ne = {id:uid(), at:d0 + dlNow().slice(10), ord:Date.now(), kind:'private', text};
+  (b.dlog ||= []).push(ne);
+  save(); dlToComp = 'post'; renderDlogPage(); if(dlOpenId) dlDrawPanel(false);
+  const el = document.querySelector(`#view .dl-e[data-dl="${b.id}|${ne.id}"]`);
+  if(el){ el.classList.add('dl-new1'); setTimeout(() => el.classList.remove('dl-new1'), 1600); }
+}
+function dlWireQuick(root){
+  root.querySelectorAll('[data-dlq]').forEach(x => x.onclick = () => {
+    const q = DL_QUICK[+x.dataset.dlq];
+    if(!q.opt) return dlQuickAdd(q.t + '。');
+    /* 選ぶもの（洗濯：全乾燥/半乾燥、屋外の掃除：場所）があるときは小さなメニュー */
+    const r = x.getBoundingClientRect(), on = [];
+    document.querySelectorAll('.dl-qpop').forEach(n => n.remove());
+    const p = popup(Math.max(8, Math.min(innerWidth - 230, r.left)), r.bottom + 6, `<div class="dpanel dl-qdlg" style="width:220px">
+      <h4>${esc(q.t)}</h4>
+      <div class="dl-qopts">${q.opt.map(o => `<button type="button" data-qo="${esc(o)}">${esc(o)}</button>`).join('')}</div>
+      ${q.multi ? '<div class="dfoot"><button id="dlQOk">記録</button></div>' : ''}</div>`);
+    p.classList.add('dl-qpop'); p.style.zIndex = 1000;
+    p.querySelectorAll('[data-qo]').forEach(b => b.onclick = () => {
+      const o = b.dataset.qo;
+      if(!q.multi){ p.remove(); return dlQuickAdd(`${q.t}（${o}）。`); }
+      const i = on.indexOf(o); if(i < 0) on.push(o); else on.splice(i, 1);
+      b.classList.toggle('on', i < 0);
+    });
+    const ok = p.querySelector('#dlQOk');
+    if(ok) ok.onclick = () => { p.remove(); dlQuickAdd(on.length ? `${q.t}（${q.opt.filter(o => on.includes(o)).join('・')}）。` : q.t + '。'); };
+  });
+}
+/* ---- Notes：Daily Log → Memo & Note（詳しく書く）・本のページ ---- */
+const dlMemoCard = e => (e.memo && typeof findCard === 'function') ? findCard(e.memo) : null;
+const dlReadSrc = e => (e.src === 'read' && /^rd-/.test(e.id) && typeof findCard === 'function') ? findCard(e.id.slice(3)) : null;
+function dlMemoBtn(e){
+  const rs = dlReadSrc(e);
+  if(rs) return `<button type="button" class="dl-memob on book" data-dlmemo="1" title="本のページを開く（メモも書けます）">${DL_IC.bookck}</button>`;
+  const on = !!dlMemoCard(e);
+  return `<button type="button" class="dl-memob${on ? ' on' : ''}" data-dlmemo="1" title="${on ? 'Memo & Note の関連メモを開く' : 'Memo & Note に書く'}">${DL_IC.edit}</button>`;
+}
+function dlMemoGo(e){
+  /* Bookshelf の「読んだ」メモ → その本のページ */
+  const rs = dlReadSrc(e);
+  if(rs){
+    const bookId = rs.card.parent || rs.card.id;
+    view = {type:'card', id:bookId}; render();
+    if(bookId !== rs.card.id && typeof flashCard === 'function') flashCard(rs.card.id);
+    return;
+  }
+  /* つないだメモがあれば、それを開く */
+  const f = dlMemoCard(e);
+  if(f){
+    if(f.board && f.board.daily && f.card.day){ dailySel = f.card.day; dailyMonth = f.card.day.slice(0, 7); dailyAll = false; }
+    view = {type:'card', id:f.card.id}; render();
+    return;
+  }
+  /* なければ、その日の Memo & Note に新しいメモを作って開く（1行目に Daily Log の本文） */
+  const dm = S.boards.find(b => b.daily); if(!dm) return alert('Memo & Note のボードが見つかりません');
+  if(!dm.cols || !dm.cols.length) dm.cols = [{id:uid(), title:'Daily', w:288, cards:[]}];
+  const d = (e.at || '').slice(0, 10) || today(), tm = (e.at || '').slice(11, 16) || nowHM();
+  const first = String(e.text || '').split('\n')[0].trim();
+  const k = {id:uid(), type:'note', title:'', body:first ? esc(first) + '<br>' : '', color:'', start:'', due:'',
+    repeat:{unit:'', n:1, days:[]}, done:false, subs:[], tags:[], day:d, ctime:tm,
+    memoReg:true, memoNo:nextNo('memoNo'), memoDate:d, memoTime:tm, tlNew:true, created:today(), updated:today()};
+  dm.cols[0].cards.unshift(k);
+  e.memo = k.id;
+  save();
+  dailySel = d; dailyMonth = d.slice(0, 7); dailyAll = false;
+  view = {type:'card', id:k.id}; render();
+  setTimeout(() => {
+    const el = document.querySelector(`[data-body="${k.id}"]`);
+    if(el){ el.focus(); const r = document.createRange(); r.selectNodeContents(el); r.collapse(false); const sl = getSelection(); sl.removeAllRanges(); sl.addRange(r); }
+  }, 60);
 }
 let dlPageSel = '';
 let dlToComp = true;          // 次に描くとき、入力欄まで下げる
@@ -12754,13 +12894,14 @@ function dlsRec(e, bid){
   const r = {id:e.id, bid, at:e.at || '', ord:typeof e.ord === 'number' ? e.ord : null, kind:e.kind || '',
     text:DL_NOTE ? (e.text || '') : dlsNoUrl(e.text), tag:e.tag || '', pin:!!e.pin, ind:e.ind || 0, from:e.from || '', to:Array.isArray(e.to) ? e.to : (e.to ? [e.to] : [])};
   if(e.src) r.src = e.src;
+  if(e.memo) r.memo = e.memo;           // Notes の Memo & Note のメモとのつながり
   return r;
 }
 /* 届いた1件の指紋（手元の指紋と同じ作り方。Tasks は URL を抜いた本文で比べる） */
 const dlsRemoteHash = rr => dlsHash({bid:rr.bid, at:rr.at || '', ord:typeof rr.ord === 'number' ? rr.ord : null, kind:rr.kind || '',
-  text:DL_NOTE ? (rr.text || '') : dlsNoUrl(rr.text), tag:rr.tag || '', pin:!!rr.pin, ind:rr.ind || 0, from:rr.from || '', to:rr.to || []});
+  text:DL_NOTE ? (rr.text || '') : dlsNoUrl(rr.text), tag:rr.tag || '', pin:!!rr.pin, ind:rr.ind || 0, memo:rr.memo || '', from:rr.from || '', to:rr.to || []});
 function dlsHash(r){
-  const s = JSON.stringify([r.bid, r.at, r.ord, r.kind, r.text, r.tag, r.pin, r.from, r.to].concat(r.ind ? [r.ind] : []));
+  const s = JSON.stringify([r.bid, r.at, r.ord, r.kind, r.text, r.tag, r.pin, r.from, r.to].concat(r.ind ? [r.ind] : [], r.memo ? ['m:' + r.memo] : []));
   let h = 5381; for(let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
   return h.toString(36) + '.' + s.length;
 }
@@ -12802,6 +12943,7 @@ function dlsApply(r, rboards){
   if(r.tag) e.tag = r.tag; else delete e.tag;
   if(r.pin) e.pin = true; else delete e.pin;
   if(r.ind) e.ind = r.ind; else delete e.ind;
+  if(r.memo) e.memo = r.memo; else delete e.memo;
   if(dlHasFT(r.kind) || r.from || (r.to && r.to.length)){ e.from = r.from || 'M'; e.to = r.to || []; }
   else { delete e.from; delete e.to; }
   if(r.src) e.src = r.src;
