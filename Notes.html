@@ -12629,6 +12629,9 @@ function dlsRec(e, bid){
   if(e.src) r.src = e.src;
   return r;
 }
+/* 届いた1件の指紋（手元の指紋と同じ作り方。Tasks は URL を抜いた本文で比べる） */
+const dlsRemoteHash = rr => dlsHash({bid:rr.bid, at:rr.at || '', ord:typeof rr.ord === 'number' ? rr.ord : null, kind:rr.kind || '',
+  text:DL_NOTE ? (rr.text || '') : dlsNoUrl(rr.text), tag:rr.tag || '', pin:!!rr.pin, ind:rr.ind || 0, from:rr.from || '', to:rr.to || []});
 function dlsHash(r){
   const s = JSON.stringify([r.bid, r.at, r.ord, r.kind, r.text, r.tag, r.pin, r.from, r.to].concat(r.ind ? [r.ind] : []));
   let h = 5381; for(let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
@@ -12733,7 +12736,7 @@ async function dlsSync(why){
     const rdCh = DL_NOTE ? dlsReadMemos() : false;
     const remote = await dlsGet(c);
     const R = remote.entries, known = dlsKnown(), now = Date.now();
-    const out = {...R};
+    const out = {...R}, rhs = {};
     let push = false, changed = rdCh;
     /* 手元の記録 */
     const local = {};
@@ -12745,6 +12748,10 @@ async function dlsSync(why){
         out[r.id] = {...r, upd:now}; push = true;
       } else if(rr && (rr.upd || 0) > (k.upd || 0)){
         dlsApply(rr, remote.boards); changed = true;     // 向こうで直した・消した
+      } else if(rr && !rr.del){
+        /* 時刻は同じでも中身が違う（前の版では受け取れなかった字下げなど）→ 向こうに合わせる */
+        const rh = dlsRemoteHash(rr);
+        if(rh !== h && rh !== k.rh){ dlsApply(rr, remote.boards); changed = true; rhs[r.id] = rh; }
       }
     });
     /* 手元で消したもの */
@@ -12783,6 +12790,7 @@ async function dlsSync(why){
     dlBoards().forEach(b => (b.dlog || []).forEach(e => {
       const r = dlsRec(e, b.id);
       nk[e.id] = {h:dlsHash(r), upd:(out[e.id] && out[e.id].upd) || now};
+      const rh0 = rhs[e.id] || (known[e.id] && known[e.id].rh); if(rh0) nk[e.id].rh = rh0;
     }));
     if(DL_NOTE){ DLS.known = nk; DLS.at = now; try{ localStorage.setItem(DLS_DATAK, JSON.stringify(DLS)); }catch(e){} }
     else { S.dlsKnown = nk; S.dlsAt = now; dlsSaveQuiet(); }
