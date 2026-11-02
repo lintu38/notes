@@ -106,8 +106,10 @@
     position:relative;transition:none}
   .side.hide{display:none}
   /* Bookshelf を開いているときのサイドメニュー（こげ茶） */
-  .side.daily{background:#dcdecf;border-right-color:#cbcebd}   /* Daily Memo はくすみ黄緑 */
-  .side.daily .nav:hover{background:var(--bh,#cdd0bf)}
+  .side.daily{background:#ecdfe1;border-right-color:#dccbcf}   /* Memo & Note はくすみピンク */
+  .side.daily .nav:hover{background:var(--bh,#e0cfd3)}
+  .side.dlogside{background:#dcdecf;border-right-color:#cbcebd}   /* Daily Log はくすみ黄緑 */
+  .side.dlogside .nav:hover{background:var(--bh,#cdd0bf)}
   .side.shelf{background:#402e22;color:#efe4d8;border-right-color:#32241a}
   .side.shelf .brand-sub{color:#c9a995}
   .side.shelf .brand button,.side.shelf .side-label.lbrow button{color:#cbb6a3}
@@ -4045,8 +4047,10 @@ function load(){
   }
   /* Daily Memo と Bookshelf はいつも置いておく（消してしまっても空で作り直す） */
   if(APP === 'note'){
+    /* Daily Memo は「Memo & Note」に（一度だけ） */
+    if(!S.memoNote1){ const dm = S.boards.find(b => b.daily && (b.name || '').trim() === 'Daily Memo'); if(dm) dm.name = 'Memo & Note'; S.memoNote1 = true; }
     if(!S.boards.some(b => b.daily))
-      S.boards.push({id:uid(), name:'Daily Memo', color:'#b5677d', daily:true, days:{}, cols:[], icon:'cal'});
+      S.boards.push({id:uid(), name:'Memo & Note', color:'#b5677d', daily:true, days:{}, cols:[], icon:'cal'});
     if(!S.boards.some(b => b.name === 'Bookshelf'))
       S.boards.push({id:uid(), name:'Bookshelf', color:'#8a6a55', cols:[{id:uid(), title:'本', w:300, cards:[]}], icon:'book'});
   }
@@ -4596,6 +4600,7 @@ function renderSide(){
   document.getElementById('side')?.classList.toggle('idx',
     !!(idxB && (idxB.idx || (idxB.name || '').trim() === 'Index')) || !!(idxK && idxK.card.lnkIdx));
   document.getElementById('side')?.classList.toggle('daily', !!(idxB && idxB.daily));
+  document.getElementById('side')?.classList.toggle('dlogside', view.type === 'dlog');
   /* Index のノートを開いたときは、タイトルを細い線で囲む */
   document.getElementById('pageTitle')?.classList.toggle('idxttl', !!(idxK && idxK.card.lnkIdx));
   const list = document.getElementById('boardList');
