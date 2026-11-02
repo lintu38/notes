@@ -12743,7 +12743,9 @@ const DL_QUICK = [
   {ic:'movie', lb:'Movie',  t:'映画『』を観た', kind:'tv', title:true, opt:['映画館', 'TV'], fmt:o => `${o}にて、映画『』を観た`}
 ];
 function dlQuickHTML(){
-  return `<div class="dl-qh">Quick Log</div><div class="dl-quick">${DL_QUICK.map((q, i) =>
+  /* Notes に入るボタンを先に、Tasks（シアン）のボタンを後ろに */
+  const ord = DL_QUICK.map((q, i) => [q, i]).sort((A, B) => (!!A[0].to - !!B[0].to) || (A[1] - B[1]));
+  return `<div class="dl-qh">Quick Log</div><div class="dl-quick">${ord.map(([q, i]) =>
     `<button type="button" class="dl-qb ${q.to ? 'to-tasks' : 'to-notes'}" data-dlq="${i}" title="${esc(q.t + (q.opt ? '（' + q.opt.join('/') + '）' : '') + '。')}">${DLQI[q.ic]}<span>${esc(q.lb)}</span></button>`).join('')}</div>`;
 }
 function dlQuickBoard(to){
