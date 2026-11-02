@@ -2987,6 +2987,13 @@
   .dl-text.has-tm{display:flex;align-items:baseline;gap:10px}
   .dl-text.has-tm > span:first-child{flex:1}
   .dl-tm{font:500 12.5px var(--fdisp);color:#8a7f82;letter-spacing:.04em;font-variant-numeric:tabular-nums}
+  .dl-memob.still{cursor:default}  .dl-memob.still:hover{background:#f6e9ec;color:#b5677d}
+  .dl-more{display:none;width:26px;height:22px;padding:0;border-radius:6px;border:1px solid var(--line);background:#fff;color:#8a7f82;font-size:14px;line-height:1;align-items:center;justify-content:center;flex:none}
+  @media (max-width:760px){
+    .dl-more{display:inline-flex}
+    .dl-e.dlact .dl-more{background:#efe6df;color:var(--ink)}
+    .dl-e.dlact .dl-kind .dl-tools button{width:30px;height:28px}
+  }
 </style>
 </head>
 <body>
@@ -11834,7 +11841,7 @@ function dlEntryHTML(e, b, opt){
         ${DL_NOTE ? '' : `<button type="button" data-dledit="1" title="メモを直す">${DL_IC.edit}</button>`}
         <button type="button" class="del" data-dldel="1" title="この記録を消す">${DL_IC.trash}</button>
       </span><button type="button" class="dl-pin${e.pin ? ' on' : ''}" data-dlpin="1" title="${e.pin ? 'ピンを外す' : 'ピンを付ける（大事なメモ）'}">${DL_IC.pin}</button>${e.tag ? `<span class="dl-tag" data-dltag="1" title="クリックでタグを直す">${esc(e.tag)}</span>`
-               : `<span class="dl-tag dl-tadd" data-dltag="1" title="タグを付ける">${DL_IC.tag}タグ</span>`}${DL_NOTE ? dlMemoBtn(e) : ''}${bd}</div>
+               : `<span class="dl-tag dl-tadd" data-dltag="1" title="タグを付ける">${DL_IC.tag}タグ</span>`}${dlMemoBtn(e)}${bd}<button type="button" class="dl-more" data-dlmore="1" title="操作（削除・字下げ・日付など）">⋯</button></div>
     ${dlHasFT(e.kind) ? dlFromTo(e, b) : ''}
     ${dlTextBox(e)}
     <div class="dl-files">${(e.files || []).map(f => dlFileHTML(f, `data-dlrm="${f.id}"`)).join('')}</div>
@@ -12156,6 +12163,9 @@ function dlWireList(root, redraw){
       if(!dlNarrow() || ev.target.closest('button, .dl-tag, .dl-bd, input')) return;
       row.classList.toggle('dlact');
     });
+    /* スマホ：⋯ で、削除・字下げ・日付などのボタンを出す */
+    const mr = row.querySelector('[data-dlmore]');
+    if(mr) mr.onclick = ev => { ev.stopPropagation(); row.classList.toggle('dlact'); };
     const mb = row.querySelector('[data-dlmemo]');
     if(mb) mb.onclick = () => { const {e} = get(); if(e) dlMemoGo(e); };
     row.querySelectorAll('[data-dlind]').forEach(x => x.onclick = () => {
@@ -12811,6 +12821,8 @@ function dlWireQuick(root){
 const dlMemoCard = e => (e.memo && typeof findCard === 'function') ? findCard(e.memo) : null;
 const dlReadSrc = e => (e.src === 'read' && /^rd-/.test(e.id) && typeof findCard === 'function') ? findCard(e.id.slice(3)) : null;
 function dlMemoBtn(e){
+  /* Tasks：Notes で詳しいメモを書いた記録には、色付きの鉛筆だけ（押しても飛ばない） */
+  if(!DL_NOTE) return e.memo ? `<span class="dl-memob on still" title="Notes の Memo & Note に詳しいメモがあります">${DL_IC.edit}</span>` : '';
   const rs = dlReadSrc(e);
   if(rs) return `<button type="button" class="dl-memob on book" data-dlmemo="1" title="本のページを開く（メモも書けます）">${DL_IC.bookck}</button>`;
   const on = !!dlMemoCard(e);
