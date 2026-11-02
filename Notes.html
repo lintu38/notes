@@ -2910,6 +2910,14 @@
   .dlside .dl-pcal .cd{height:34px}
   .cal.dl-pcal .cal-f{display:flex!important}
   .cal.dl-pcal .cal-h{display:flex!important;justify-content:space-between!important;width:100%}
+  .dl-kl{white-space:nowrap;flex:none}
+  @media (max-width:760px){
+    .dl-kind{flex-wrap:wrap;row-gap:2px;cursor:pointer}
+    .dl-kind .dl-tools{display:none}
+    .dl-e.dlact .dl-kind .dl-tools{display:inline-flex;opacity:1;order:9;width:100%;justify-content:flex-end}
+    .dl-kind .dl-tag.dl-tadd{display:none}
+    .dl-e.dlact .dl-kind .dl-tag.dl-tadd{display:inline-flex;opacity:1}
+  }
 </style>
 </head>
 <body>
@@ -11721,7 +11729,7 @@ function dlEntryHTML(e, b, opt){
   return `<div class="dl-e${opt.last ? ' last' : ''}${e.pin ? ' pinned' : ''}${ind ? ' ind' : ''}" data-dl="${b.id}|${e.id}" style="--bc:${b.color || '#c9a227'};--ind:${ind}">
     <span class="dl-line"></span>
     ${dlKBtn(e.kind, 'data-dlkind="1"')}
-    <div class="dl-kind">${e.kind ? esc(K.lb) : ''}<span class="sp"></span>
+    <div class="dl-kind"><span class="dl-kl">${e.kind ? esc(K.lb) : ''}</span><span class="sp"></span>
       <span class="dl-tools">
         <button type="button" class="grip" data-dlgrip="1" title="ドラッグで並べ替え（ほかの日へ移すと日付も変わります）">${DL_IC.grip}</button>
         <button type="button" data-dlind="-1" title="字下げを戻す"${ind ? '' : ' disabled'}>${DL_IC.outd}</button>
@@ -12048,6 +12056,11 @@ function dlWireList(root, redraw){
     };
     const tt = row.querySelector('[data-dlto]');
     if(tt) tt.onclick = () => { const {b, e} = get(); if(e) dlToMenu(tt, e, b, redraw); };
+    const kr = row.querySelector('.dl-kind');
+    if(kr) kr.addEventListener('click', ev => {
+      if(!dlNarrow() || ev.target.closest('button, .dl-tag, .dl-bd, input')) return;
+      row.classList.toggle('dlact');
+    });
     row.querySelectorAll('[data-dlind]').forEach(x => x.onclick = () => {
       const {e} = get(); if(!e) return;
       const n = Math.max(0, Math.min(3, (e.ind || 0) + (+x.dataset.dlind)));
@@ -12450,15 +12463,15 @@ function renderDlogPage(){
   </div></div>`;
   v.querySelectorAll('.dlside [data-cal]').forEach(x => x.onclick = () => {
     const d = x.dataset.cal;
-    dlDay = dlDay === d ? '' : d; dlCalM = d.slice(0, 7); renderDlogPage();
+    dlDay = dlDay === d ? '' : d; dlCalM = d.slice(0, 7); dlToComp = true; renderDlogPage();
   });
   v.querySelectorAll('.dlside [data-cm]').forEach(x => x.onclick = () => {
     const [y, m] = dlCalM.split('-').map(Number), d = new Date(y, m - 1 + (+x.dataset.cm), 1);
     dlCalM = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; renderDlogPage();
   });
   v.querySelectorAll('[data-dlbj]').forEach(x => x.onclick = () => dlGoBoard(x.dataset.dlbj, dlDay));
-  const ca = v.querySelector('.dlside #calAll'); if(ca) ca.onclick = () => { dlDay = ''; renderDlogPage(); };
-  if(narrow) dlWireWeekCal(v.querySelector('.dlside'), DLGS, () => { if(dlDay) dlCalM = dlDay.slice(0, 7); renderDlogPage(); });
+  const ca = v.querySelector('.dlside #calAll'); if(ca) ca.onclick = () => { dlDay = ''; dlToComp = true; renderDlogPage(); };
+  if(narrow) dlWireWeekCal(v.querySelector('.dlside'), DLGS, () => { if(dlDay) dlCalM = dlDay.slice(0, 7); dlToComp = true; renderDlogPage(); });
   v.querySelector('#dlBjT').onclick = () => { dlBjOpen = !dlBjOpen; renderDlogPage(); };
   v.scrollTop = keep;
   v.querySelector('#dlBf').onchange = e => { dlFilter = e.target.value; dlPageSel = ''; renderDlogPage(); };
@@ -12475,7 +12488,7 @@ function renderDlogPage(){
   if(pc){
     const keepT = renderDlogPage.keepText; renderDlogPage.keepText = undefined;
     dlWireComposer(pc, () => dlBoard(dlPageTarget()), (toNew, t) => {
-      renderDlogPage.keepText = t; renderDlogPage();
+      renderDlogPage.keepText = t; dlToComp = !!toNew; renderDlogPage();
       if(dlOpenId) dlDrawPanel(false);
       const tx2 = v.querySelector('.dl-pcomp #dlTx'); if(tx2) setTimeout(() => tx2.focus({preventScroll:true}), 30);
     }, () => dlDay);
@@ -12483,6 +12496,14 @@ function renderDlogPage(){
     if(bs) bs.onchange = () => { dlPageSel = bs.value; S.dlPageB = bs.value; save(); };
     const tx = pc.querySelector('#dlTx');
     if(tx && keepT){ tx.value = keepT; tx.dispatchEvent(new Event('input')); }
+    /* 古い順のときは、開いたとき・日を変えたとき・記録したときに入力欄まで下げる */
+    if(dlToComp && !S.dlogNewest){
+      requestAnimationFrame(() => {
+        const r = pc.getBoundingClientRect(), vr = v.getBoundingClientRect();
+        v.scrollTop += r.bottom - vr.bottom + 24;
+      });
+    }
+    dlToComp = false;
   }
 }
 /* ページの入力欄で記録する Board（絞り込み中ならその Board） */
@@ -12490,6 +12511,7 @@ function renderDlogPage(){
 const dlNarrow = () => !!(window.matchMedia && window.matchMedia('(max-width:760px)').matches);
 let dlBjOpen = null;
 let dlPageSel = '';
+let dlToComp = true;          // 次に描くとき、入力欄まで下げる
 /* 共有の状態ボタン（押すと設定）。ページを描き直しても効くよう、document で受ける */
 function dlsStateClick(ev){
   const b = ev.target.closest && ev.target.closest('#dlsState');
@@ -12511,6 +12533,7 @@ const nvDlog = document.getElementById('navDlog');
 if(nvDlog) nvDlog.onclick = () => {
   /* 開いたときは「今日」を表示 */
   if(view.type !== 'dlog'){ dlDay = today(); dlCalM = dlDay.slice(0, 7); }
+  dlToComp = true;
   dlClose(); view = {type:'dlog'}; render();
 };
 
