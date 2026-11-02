@@ -12405,7 +12405,7 @@ function dlDayHTML(day){
   return `<div class="rs-callb" style="margin-top:16px">Daily Log${rows.length ? `　${rows.length} 件` : ''}</div>
     ${rows.length ? `<div class="dl-rs">${rows.map(({e, b}) => {
       const K = dlKind(e.kind);
-      return `<div class="dl-rse" data-dlrs="${b.id}|${e.id}" title="この Board の Daily Log を開く">
+      return `<div class="dl-rse" data-dlrs="${b.id}|${e.id}" title="${DL_NOTE ? 'Daily Log で開く' : 'この Board の Daily Log を開く'}">
         <div class="dl-rsh">${dlKBtn(e.kind, '', 'span')}<span class="dl-rsk">${e.kind ? esc(K.lb) : ''}</span>${e.pin ? `<span class="dl-rsp">${DL_IC.pin}</span>` : ''}<span class="sp"></span>
           ${e.tag ? `<span class="dl-tag">${esc(e.tag)}</span>` : ''}<span class="dl-bd" style="--bc:${b.color || '#c9a227'}"><i></i>${esc(b.name)}</span></div>
         ${dlHasFT(e.kind) ? `<div class="dl-rsft">${esc(e.from || 'M')} ▶ ${esc((e.to || []).join('、') || '—')}</div>` : ''}
@@ -12419,6 +12419,8 @@ function dlWireDay(root){
     if(ev.target.closest('a')) return;
     const [bid] = x.dataset.dlrs.split('|');
     const e = dlFind(x.dataset.dlrs).e;
+    /* Notes：Daily Log のページをその日で開く */
+    if(DL_NOTE){ dlDay = e ? (e.at || '').slice(0, 10) : today(); dlCalM = dlDay.slice(0, 7); dlToComp = true; view = {type:'dlog'}; render(); return; }
     dlGoBoard(bid, e ? (e.at || '').slice(0, 10) : today());
   });
 }   // カレンダーで選んだ日・表示している月
@@ -12521,6 +12523,7 @@ function renderDlogPage(){
     }
     dlToComp = false;
   }
+  dlRefreshRight();
 }
 /* ページの入力欄で記録する Board（絞り込み中ならその Board） */
 /* スマホ（幅の狭い画面）：カレンダーは週で、押すと月。Board の一覧はたたむ */
@@ -13529,15 +13532,27 @@ function renderRight(){
   rsMonth ||= sel.slice(0, 7);
 
   const notes = allCards().filter(x => noteLike(x.card));
-  const marks = {};
-  notes.forEach(x => {
-    const dd = noteDate(x.card);               // No. の横の日付で紐づける
-    if(dd) marks[dd] = (marks[dd] || 0) + 1;
-  });
   const mk = {};
-  Object.entries(marks).forEach(([k2, v]) => mk[k2] = `${v} 件`);
+  if(APP === 'note'){
+    /* 印：その日の Daily Log と Notes Timeline の件数 */
+    const nD = {}, nT = {};
+    dlBoards().forEach(b2 => (b2.dlog || []).forEach(e => { const d = (e.at || '').slice(0, 10); if(d) nD[d] = (nD[d] || 0) + 1; }));
+    tlItems().forEach(k => { const d = tlDateOf(k); if(d) nT[d] = (nT[d] || 0) + 1; });
+    new Set([...Object.keys(nD), ...Object.keys(nT)]).forEach(d =>
+      mk[d] = [nD[d] ? `Daily Log ${nD[d]} 件` : '', nT[d] ? `Notes ${nT[d]} 件` : ''].filter(Boolean).join('・'));
+  } else {
+    const marks = {};
+    notes.forEach(x => {
+      const dd = noteDate(x.card);               // No. の横の日付で紐づける
+      if(dd) marks[dd] = (marks[dd] || 0) + 1;
+    });
+    Object.entries(marks).forEach(([k2, v]) => mk[k2] = `${v} 件`);
+  }
 
-  const hit = notes.filter(x => noteDate(x.card) === sel);
+  const hit = APP === 'note'
+    ? tlItems().filter(k => tlDateOf(k) === sel).map(k => ({card:k, board:(findCard(k.id) || {}).board || {}}))
+        .sort((a, b) => String(tlTimeOf(a.card) || '').localeCompare(String(tlTimeOf(b.card) || '')))
+    : notes.filter(x => noteDate(x.card) === sel);
   const label = k => esc((k.read && k.read.source ? `『${k.read.source}』` : '')
     || (k.bodyTitle || '').trim() || plain(k.title).trim());
   const preview = (k, kind) => {
@@ -13640,8 +13655,8 @@ function renderRight(){
         <div class="rs-fmt">${fmtBar()}</div>
       </div>
     </div>`}
-    ${APP === 'task' ? '' : `<div class="rs-list">
-      <div class="rs-lb">${sel} ${WD[parse(sel).getDay()]}曜 に作成　${hit.length} 件</div>
+    ${APP === 'task' ? '' : `<div class="dl-rswrap" data-day="${sel}">${dlDayHTML(sel)}</div><div class="rs-list">
+      <div class="rs-callb" style="margin-top:16px">Notes Timeline${hit.length ? `　${hit.length} 件` : ''}</div>
       ${hit.length ? hit.map(x => {
         const k = x.card;
         const kind = k.type === 'read' || (hasRead(k) && !hasMemo(k) && !hasQuote(k)) ? 'Read'
@@ -13657,10 +13672,11 @@ function renderRight(){
           <div class="rs-d">${noteDate(k) || '—'}${
             k.updated && k.updated !== noteDate(k) ? ` ・ Updated ${k.updated}` : ''}</div>
         </div>`;
-      }).join('') : `<div class="rs-empty">この日のメモはありません</div>`}
+      }).join('') : `<div class="rs-empty" style="padding:4px 2px 2px">この日のメモはありません</div>`}
     </div>`}`;
 
   wireFmt(box);
+  box.querySelectorAll('.dl-rswrap').forEach(dlWireDay);
   box.querySelectorAll('[data-rtab]').forEach(b2 => b2.onclick = () => {
     S.rsTab = b2.dataset.rtab; save(); renderRight();
   });
