@@ -2696,7 +2696,7 @@
   .dl-day b{font-size:14px;font-weight:600;color:var(--brown);letter-spacing:.04em}
   .dl-day span{font-size:12px;color:var(--dl-time)}
   .dl-day .wd-sat{color:#5f7d99}.dl-day .wd-sun{color:#8e3a4f}
-  .dl-e{position:relative;margin:0 0 20px var(--pad);min-height:24px}
+  .dl-e{position:relative;margin:0 0 20px calc(var(--pad) + var(--ind,0) * 28px);min-height:24px}
   .dl-e > .dl-time{position:absolute;left:calc(-1 * var(--pad));width:var(--gut);top:1px;text-align:right;
     font:400 12px/22px 'Montserrat',sans-serif;color:var(--dl-time);font-variant-numeric:tabular-nums;letter-spacing:.02em;
     cursor:pointer;border-radius:5px}
@@ -2704,7 +2704,7 @@
   .dl-datein{position:absolute;right:0;top:24px;width:150px;font:12px var(--fdisp);padding:3px 6px;border:1px solid var(--line);border-radius:7px;background:#fff;z-index:3}
   .dl-e > .dl-time input{position:absolute;right:0;top:-2px;width:190px;font:12px var(--fdisp);padding:3px 6px;
     border:1px solid var(--line);border-radius:7px;background:#fff;z-index:3}
-  .dl-e > .dl-line{position:absolute;left:calc(-1 * var(--pad) + var(--gut) + 15px);width:1px;top:0;bottom:-20px;background:var(--dl-line)}
+  .dl-e > .dl-line{position:absolute;left:calc(-1 * var(--pad) + var(--gut) + 15px - var(--ind,0) * 28px);width:1px;top:0;bottom:-20px;background:var(--dl-line)}
   .dl-e.last > .dl-line{bottom:0}
   .dl-e > .dl-k{position:absolute;left:calc(-1 * var(--pad) + var(--gut) + 3.5px);top:0}
   .dl-kind{font:600 11px/22px var(--fdisp);color:#4a4244;letter-spacing:.04em;display:flex;align-items:center;gap:8px;min-height:22px}
@@ -2901,6 +2901,15 @@
   .dls-dlg .dls-pw > input{flex:1 1 auto!important;width:auto!important;min-width:0}
   .dls-dlg .dls-pw > button{flex:0 0 auto!important;width:auto!important;white-space:nowrap}
   .dl-tsub{font:500 10.5px var(--fdisp);color:var(--muted);letter-spacing:.06em;white-space:nowrap;align-self:center;margin-left:4px;padding-top:5px;flex:none}
+  .dl-tools button:disabled{opacity:.3;cursor:default}
+  .dl-bjh{display:flex;align-items:center;gap:5px;background:none;border:0;padding:4px 6px;margin:12px 0 4px;border-radius:7px;cursor:pointer;width:100%;text-align:left}
+  .dl-bjh:hover{background:#f1ece6;color:var(--ink)}
+  .dl-bjh svg{width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;transform:rotate(-90deg);transition:transform .15s}
+  .dl-bjh.open svg{transform:none}
+  .dl-bjump[hidden]{display:none}
+  .dlside .dl-pcal .cd{height:34px}
+  .cal.dl-pcal .cal-f{display:flex!important}
+  .cal.dl-pcal .cal-h{display:flex!important;justify-content:space-between!important;width:100%}
 </style>
 </head>
 <body>
@@ -11503,6 +11512,8 @@ const DL_IC = {
   sync:'<svg viewBox="0 0 16 16"><path d="M13 6.2A5.2 5.2 0 0 0 3.6 4.6M3 9.8a5.2 5.2 0 0 0 9.4 1.6"/><path d="M3.4 2.3v2.5h2.5M12.6 13.7v-2.5h-2.5"/></svg>',
   line:'<svg viewBox="0 0 16 16"><path d="M8 2.6c3.3 0 6 2.1 6 4.8s-2.7 4.8-6 4.8c-.6 0-1.2-.1-1.8-.2L3.3 13.4l.7-2.3C2.8 10.2 2 8.9 2 7.4 2 4.7 4.7 2.6 8 2.6z"/></svg>',
   bookck:'<svg viewBox="0 0 16 16"><path d="M3.4 12.6V3.2c0-.6.5-1 1-1h8.2v9.6H4.6a1.2 1.2 0 0 0 0 2.4h8"/><path d="M6.2 6.6l1.6 1.6 3-3.2"/></svg>',
+  ind:'<svg viewBox="0 0 16 16"><path d="M7 3.5h6.5M7 8h6.5M7 12.5h6.5"/><path d="M2.5 5.8 4.7 8l-2.2 2.2"/></svg>',
+  outd:'<svg viewBox="0 0 16 16"><path d="M7 3.5h6.5M7 8h6.5M7 12.5h6.5"/><path d="M4.7 5.8 2.5 8l2.2 2.2"/></svg>',
   chev:'<svg viewBox="0 0 12 12"><path d="M3 4.6l3 3 3-3"/></svg>',
   log:'<svg viewBox="0 0 16 16"><rect x="2.2" y="3.4" width="11.6" height="10.4" rx="1.6"/><path d="M2.2 6.6h11.6M5.4 1.9v2.6M10.6 1.9v2.6"/><path d="M5.6 10.1l1.6 1.6 3.2-3.2"/></svg>',
   sort:'<svg viewBox="0 0 16 16"><path d="M5 2.8v10.4M2.6 10.8 5 13.2l2.4-2.4M11 13.2V2.8M8.6 5.2 11 2.8l2.4 2.4"/></svg>'
@@ -11706,12 +11717,15 @@ function dlEntryHTML(e, b, opt){
   const K = dlKind(e.kind);
   const bd = opt.showBoard
     ? `<span class="dl-bd" data-dlboard="${b.id}" style="--bc:${b.color || '#c9a227'}" title="Board を開く"><i></i>${esc(b.name)}</span>` : '';
-  return `<div class="dl-e${opt.last ? ' last' : ''}${e.pin ? ' pinned' : ''}" data-dl="${b.id}|${e.id}" style="--bc:${b.color || '#c9a227'}">
+  const ind = Math.max(0, Math.min(3, e.ind || 0));
+  return `<div class="dl-e${opt.last ? ' last' : ''}${e.pin ? ' pinned' : ''}${ind ? ' ind' : ''}" data-dl="${b.id}|${e.id}" style="--bc:${b.color || '#c9a227'};--ind:${ind}">
     <span class="dl-line"></span>
     ${dlKBtn(e.kind, 'data-dlkind="1"')}
     <div class="dl-kind">${e.kind ? esc(K.lb) : ''}<span class="sp"></span>
       <span class="dl-tools">
         <button type="button" class="grip" data-dlgrip="1" title="ドラッグで並べ替え（ほかの日へ移すと日付も変わります）">${DL_IC.grip}</button>
+        <button type="button" data-dlind="-1" title="字下げを戻す"${ind ? '' : ' disabled'}>${DL_IC.outd}</button>
+        <button type="button" data-dlind="1" title="字下げする（アイコンごと）"${ind >= 3 ? ' disabled' : ''}>${DL_IC.ind}</button>
         <button type="button" data-dldate="1" title="日付を変える">${DL_IC.cal}</button>
         <button type="button" data-dlatt="1" title="画像・ファイルを足す">${DL_IC.clip}</button>
         <button type="button" data-dledit="1" title="メモを直す">${DL_IC.edit}</button>
@@ -12034,6 +12048,12 @@ function dlWireList(root, redraw){
     };
     const tt = row.querySelector('[data-dlto]');
     if(tt) tt.onclick = () => { const {b, e} = get(); if(e) dlToMenu(tt, e, b, redraw); };
+    row.querySelectorAll('[data-dlind]').forEach(x => x.onclick = () => {
+      const {e} = get(); if(!e) return;
+      const n = Math.max(0, Math.min(3, (e.ind || 0) + (+x.dataset.dlind)));
+      if(n) e.ind = n; else delete e.ind;
+      save(); redraw();
+    });
     row.querySelector('[data-dlpin]').onclick = () => {
       const {e} = get(); if(!e) return;
       if(e.pin) delete e.pin; else e.pin = true;
@@ -12192,7 +12212,7 @@ function dlDrawPanel(scrollEnd, keepText){
     : dlPDay && !rows.length ? '<div class="dl-empty">この日の記録はありません。</div>' : dlListHTML(rows, {showBoard:false});
   p.innerHTML = `<div class="dl-head"><h3>Daily Log<small>${esc(b.name)}</small></h3>${dlPinBtn()}${dlTagSel(btags)}${dlTagEdBtn(btags)}${dlOrdBtn()}
       <button type="button" class="dl-x" id="dlX" title="閉じる">×</button></div>
-    <div class="dl-calbar">${dlPanelCalHTML(pmarks)}</div>
+    <div class="dl-calbar">${dlWeekCalHTML(pmarks, DLPS)}</div>
     <div class="dl-body" id="dlBody">${newest ? dlComposerHTML() + list : list + dlComposerHTML()}</div>`;
   const redraw = (toNew, t) => dlDrawPanel(toNew, t);
   p.querySelector('#dlX').onclick = dlClose;
@@ -12201,7 +12221,7 @@ function dlDrawPanel(scrollEnd, keepText){
   p.querySelector('#dlPinF').onclick = () => { S.dlogPinOnly = !S.dlogPinOnly; save(); dlDrawPanel(true); };
   const te = p.querySelector('#dlTagEd'); if(te) te.onclick = () => dlTagManager(te, [b], () => dlDrawPanel(false));
   dlWireComposer(p, b, redraw, () => dlPDay);
-  dlWirePanelCal(p, () => dlDrawPanel(true));
+  dlWireWeekCal(p, DLPS, () => dlDrawPanel(true));
   dlWireList(p, () => dlDrawPanel(false));
   const tx = p.querySelector('#dlTx');
   if(tx){ const v = keepText !== undefined ? keepText : prevText; if(v){ tx.value = v; tx.dispatchEvent(new Event('input')); } }
@@ -12294,13 +12314,19 @@ let dlFilter = '';
 let dlDay = today(), dlCalM = '';
 /* Board の Daily Log パネルの上のカレンダー：ふだんは1週間、押すと1か月 */
 let dlPDay = '', dlPRef = '', dlPMonthly = false;
-function dlPanelCalHTML(marks){
-  const sel = dlPDay, ref = dlPRef || sel || today();
+/* 週⇄月のカレンダーの状態（パネル用・ページ用） */
+const DLPS = {get day(){ return dlPDay; }, set day(v){ dlPDay = v; }, get ref(){ return dlPRef; }, set ref(v){ dlPRef = v; },
+  get mon(){ return dlPMonthly; }, set mon(v){ dlPMonthly = v; }};
+let dlGRef = '', dlGMonthly = false;
+const DLGS = {get day(){ return dlDay; }, set day(v){ dlDay = v; }, get ref(){ return dlGRef; }, set ref(v){ dlGRef = v; },
+  get mon(){ return dlGMonthly; }, set mon(v){ dlGMonthly = v; }};
+function dlWeekCalHTML(marks, st){
+  const sel = st.day, ref = st.ref || sel || today();
   const p2 = n => String(n).padStart(2, '0');
   const key = d => `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`;
   const r = parse(ref);
   let days = [], title;
-  if(dlPMonthly){
+  if(st.mon){
     const y = r.getFullYear(), m = r.getMonth();
     const lead = new Date(y, m, 1).getDay(), last = new Date(y, m + 1, 0).getDate();
     for(let i = 0; i < lead; i++) days.push(null);
@@ -12320,35 +12346,35 @@ function dlPanelCalHTML(marks){
     return `<button type="button" class="cd ${cls} ${k === sel ? 'sel' : ''} ${k === today() ? 'tdy' : ''}" data-pcal="${k}"
       title="${hn ? esc(hn) + (marks[k] ? ' ・ ' : '') : ''}${marks[k] ? esc(marks[k]) : (hn ? '' : 'なし')}">${d.getDate()}${marks[k] ? '<i></i>' : ''}</button>`;
   }).join('');
-  return `<div class="cal dl-pcal${dlPMonthly ? ' mon' : ''}">
-    <div class="cal-h"><button type="button" data-pmv="-1" title="${dlPMonthly ? '前の月' : '前の週'}">‹</button>
-      <button type="button" class="dl-pct" data-pmode="1" title="${dlPMonthly ? '週の表示にもどす' : '月の表示にする'}"><b>${title}</b>${DL_IC.chev || ''}<span class="dl-pmd">${dlPMonthly ? 'Monthly' : 'Weekly'}</span></button>
-      <button type="button" data-pmv="1" title="${dlPMonthly ? '次の月' : '次の週'}">›</button></div>
+  return `<div class="cal dl-pcal${st.mon ? ' mon' : ''}">
+    <div class="cal-h"><button type="button" data-pmv="-1" title="${st.mon ? '前の月' : '前の週'}">‹</button>
+      <button type="button" class="dl-pct" data-pmode="1" title="${st.mon ? '週の表示にもどす' : '月の表示にする'}"><b>${title}</b>${DL_IC.chev || ''}<span class="dl-pmd">${st.mon ? 'Monthly' : 'Weekly'}</span></button>
+      <button type="button" data-pmv="1" title="${st.mon ? '次の月' : '次の週'}">›</button></div>
     <div class="cal-w">${WD.map((x, i) => `<span class="${i === 0 ? 'sun' : i === 6 ? 'sat' : ''}">${x}</span>`).join('')}</div>
     <div class="cal-g">${cells}</div>
     <div class="cal-f"><button type="button" data-ptoday="1">今日</button><button type="button" data-pall="1" class="${sel ? '' : 'on'}">すべての日</button>
       ${sel ? `<span class="dl-psel">${parse(sel).getMonth() + 1}/${parse(sel).getDate()} の記録だけ表示中</span>` : ''}</div>
   </div>`;
 }
-function dlWirePanelCal(root, redraw){
+function dlWireWeekCal(root, st, redraw){
   const p2 = n => String(n).padStart(2, '0');
   const key = d => `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`;
   root.querySelectorAll('[data-pcal]').forEach(x => x.onclick = () => {
-    const d = x.dataset.pcal; dlPDay = dlPDay === d ? '' : d; dlPRef = d; redraw();
+    const d = x.dataset.pcal; st.day = st.day === d ? '' : d; st.ref = d; redraw();
   });
   root.querySelectorAll('[data-pmv]').forEach(x => x.onclick = () => {
-    const r = parse(dlPRef || dlPDay || today()), n = +x.dataset.pmv;
-    dlPRef = key(dlPMonthly ? new Date(r.getFullYear(), r.getMonth() + n, 1) : new Date(r.getFullYear(), r.getMonth(), r.getDate() + 7 * n));
+    const r = parse(st.ref || st.day || today()), n = +x.dataset.pmv;
+    st.ref = key(st.mon ? new Date(r.getFullYear(), r.getMonth() + n, 1) : new Date(r.getFullYear(), r.getMonth(), r.getDate() + 7 * n));
     redraw();
   });
   const md = root.querySelector('[data-pmode]');
   if(md) md.onclick = () => {
-    dlPMonthly = !dlPMonthly;
-    if(!dlPMonthly) dlPRef = (dlPDay && (dlPRef || '').slice(0, 7) === dlPDay.slice(0, 7)) ? dlPDay : dlPRef;
+    st.mon = !st.mon;
+    if(!st.mon) st.ref = (st.day && (st.ref || '').slice(0, 7) === st.day.slice(0, 7)) ? st.day : st.ref;
     redraw();
   };
-  const td = root.querySelector('[data-ptoday]'); if(td) td.onclick = () => { dlPRef = today(); dlPDay = today(); redraw(); };
-  const al = root.querySelector('[data-pall]'); if(al) al.onclick = () => { dlPDay = ''; redraw(); };
+  const td = root.querySelector('[data-ptoday]'); if(td) td.onclick = () => { st.ref = today(); st.day = today(); redraw(); };
+  const al = root.querySelector('[data-pall]'); if(al) al.onclick = () => { st.day = ''; redraw(); };
 }
 /* Calendar（右のサイド）の「この日のメモ」の下：その日の Daily Log（全 Board・古い順） */
 function dlDayHTML(day){
@@ -12398,9 +12424,11 @@ function renderDlogPage(){
   if(dlDay) rows = rows.filter(r => (r.e.at || '').slice(0, 10) === dlDay);
   const v = document.getElementById('view');
   const keep = v.scrollTop;
-  v.innerHTML = `<div class="dlwrap"><aside class="dlside">${calendarHTML(marks, dlDay, dlCalM, !dlDay, 'すべての日')}
-    <div class="dl-bjh">Board の Daily Log</div>
-    <div class="dl-bjump">${(dlBoards() || []).map(b => `<button type="button" class="dl-bj" data-dlbj="${b.id}" style="--bc:${b.color || '#c9a227'}" title="${esc(b.name)} の Daily Log を開く"><i></i><span class="nm">${esc(b.name)}</span><span class="n">${(b.dlog || []).length || ''}</span></button>`).join('')}</div></aside><div class="dlpage">
+  const narrow = dlNarrow();
+  if(dlBjOpen === null) dlBjOpen = !narrow;
+  v.innerHTML = `<div class="dlwrap"><aside class="dlside">${narrow ? dlWeekCalHTML(marks, DLGS) : calendarHTML(marks, dlDay, dlCalM, !dlDay, 'すべての日')}
+    <button type="button" class="dl-bjh${dlBjOpen ? ' open' : ''}" id="dlBjT">${DL_IC.chev}Board の Daily Log</button>
+    <div class="dl-bjump"${dlBjOpen ? '' : ' hidden'}>${(dlBoards() || []).map(b => `<button type="button" class="dl-bj" data-dlbj="${b.id}" style="--bc:${b.color || '#c9a227'}" title="${esc(b.name)} の Daily Log を開く"><i></i><span class="nm">${esc(b.name)}</span><span class="n">${(b.dlog || []).length || ''}</span></button>`).join('')}</div></aside><div class="dlpage">
     <div class="dl-tools-row" style="padding-left:18px">
       <select id="dlBf"><option value="">すべての Board</option>${boards.map(b =>
         `<option value="${b.id}" ${dlFilter === b.id ? 'selected' : ''}>${esc(b.name)}</option>`).join('')}</select>
@@ -12430,6 +12458,8 @@ function renderDlogPage(){
   });
   v.querySelectorAll('[data-dlbj]').forEach(x => x.onclick = () => dlGoBoard(x.dataset.dlbj, dlDay));
   const ca = v.querySelector('.dlside #calAll'); if(ca) ca.onclick = () => { dlDay = ''; renderDlogPage(); };
+  if(narrow) dlWireWeekCal(v.querySelector('.dlside'), DLGS, () => { if(dlDay) dlCalM = dlDay.slice(0, 7); renderDlogPage(); });
+  v.querySelector('#dlBjT').onclick = () => { dlBjOpen = !dlBjOpen; renderDlogPage(); };
   v.scrollTop = keep;
   v.querySelector('#dlBf').onchange = e => { dlFilter = e.target.value; dlPageSel = ''; renderDlogPage(); };
   v.querySelector('#dlKf').onchange = e => { S.dlogKind = e.target.value; save(); renderDlogPage(); };
@@ -12456,6 +12486,9 @@ function renderDlogPage(){
   }
 }
 /* ページの入力欄で記録する Board（絞り込み中ならその Board） */
+/* スマホ（幅の狭い画面）：カレンダーは週で、押すと月。Board の一覧はたたむ */
+const dlNarrow = () => !!(window.matchMedia && window.matchMedia('(max-width:760px)').matches);
+let dlBjOpen = null;
 let dlPageSel = '';
 /* 共有の状態ボタン（押すと設定）。ページを描き直しても効くよう、document で受ける */
 function dlsStateClick(ev){
@@ -12592,12 +12625,12 @@ function dlsKeepUrls(remote, local){
 }
 function dlsRec(e, bid){
   const r = {id:e.id, bid, at:e.at || '', ord:typeof e.ord === 'number' ? e.ord : null, kind:e.kind || '',
-    text:DL_NOTE ? (e.text || '') : dlsNoUrl(e.text), tag:e.tag || '', pin:!!e.pin, from:e.from || '', to:Array.isArray(e.to) ? e.to : (e.to ? [e.to] : [])};
+    text:DL_NOTE ? (e.text || '') : dlsNoUrl(e.text), tag:e.tag || '', pin:!!e.pin, ind:e.ind || 0, from:e.from || '', to:Array.isArray(e.to) ? e.to : (e.to ? [e.to] : [])};
   if(e.src) r.src = e.src;
   return r;
 }
 function dlsHash(r){
-  const s = JSON.stringify([r.bid, r.at, r.ord, r.kind, r.text, r.tag, r.pin, r.from, r.to]);
+  const s = JSON.stringify([r.bid, r.at, r.ord, r.kind, r.text, r.tag, r.pin, r.from, r.to].concat(r.ind ? [r.ind] : []));
   let h = 5381; for(let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
   return h.toString(36) + '.' + s.length;
 }
@@ -12638,6 +12671,7 @@ function dlsApply(r, rboards){
   if(typeof r.ord === 'number') e.ord = r.ord; else delete e.ord;
   if(r.tag) e.tag = r.tag; else delete e.tag;
   if(r.pin) e.pin = true; else delete e.pin;
+  if(r.ind) e.ind = r.ind; else delete e.ind;
   if(dlHasFT(r.kind) || r.from || (r.to && r.to.length)){ e.from = r.from || 'M'; e.to = r.to || []; }
   else { delete e.from; delete e.to; }
   if(r.src) e.src = r.src;
@@ -14662,8 +14696,8 @@ const boot = () => {
       if(sh) sh.color = '#b06a80';
       S.shelfPink1 = true; save();
     }
-    /* 起動時は Timeline を開く */
-    view = {type:'timeline'};
+    /* 起動時は Daily Log の今日を開く */
+    view = {type:'dlog'}; dlDay = today(); dlCalM = dlDay.slice(0, 7);
   }
   render();
 };
