@@ -3054,7 +3054,7 @@
     <div class="nav" id="navTline" data-nav="tline" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M4.2 1.8v12.4"/><circle cx="4.2" cy="4.2" r="1.6"/><circle cx="4.2" cy="10.4" r="1.6"/><path d="M7.4 4.2h6M7.4 10.4h6"/></svg></span><span>Notes Timeline</span></div>
     <div class="nav" id="navDlog" data-nav="dlog" draggable="true" title="Daily Log（Notes & Tasks Shared）"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><rect x="2.2" y="3.4" width="11.6" height="10.4" rx="1.6"/><path d="M2.2 6.6h11.6M5.4 1.9v2.6M10.6 1.9v2.6"/><path d="M5.6 10.1l1.6 1.6 3.2-3.2"/></svg></span><span>Daily Log</span></div>
     <div class="nav" id="navTasks" data-nav="tasks" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><circle cx="10.2" cy="2.9" r="1.5"/><path d="M4.2 14.2l2.1-3.4 1.6-1.1-1-3.1-2.4 1.5-1 2.1"/><path d="M6.9 6.6l2.6-1.3 1.6 2.4 2.4.9"/><path d="M11.6 13.9l-1.4-3.1-2.3-1.3"/></svg></span><span id="navTasksLb">Tasks</span><span class="cnt" id="cntAll">0</span></div>
-    <div class="nav" id="navPin" data-nav="pin" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M9.6 1.9l4.5 4.5-1.6.5-1 1-.4 3.1-4.7-4.7 3.1-.4 1-1z"/><path d="M6.4 6.3L2.2 13.8l7.5-4.2"/></svg></span><span>Pin Memo</span><span class="cnt" id="cntPin">0</span></div>
+    <div class="nav" id="navPin" data-nav="pin" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M8 14.6s4.7-4.5 4.7-8.2a4.7 4.7 0 0 0-9.4 0c0 3.7 4.7 8.2 4.7 8.2z"/><circle cx="8" cy="6.4" r="1.7"/></svg></span><span>Pin Memo</span><span class="cnt" id="cntPin">0</span></div>
     <div class="nav" id="navLearn" data-nav="learn" draggable="true" title="日々の発見"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M2.6 13.4V11l7.6-7.6 2.4 2.4L5 13.4z"/><path d="M9.4 4.2l2.4 2.4"/><path d="M2.6 13.4h10.8"/></svg></span><span>D Discoveries</span><span class="cnt" id="cntLearn">0</span></div>
     <div class="nav" id="navIssue" data-nav="issue" draggable="true" title="問い"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M3.2 1.9v12.4"/><path d="M3.2 2.6h9.6l-2 3.1 2 3.1H3.2z"/></svg></span><span>Issue</span><span class="cnt" id="cntIssue">0</span></div>
     <div class="nav" id="navTimes" data-nav="times" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 4.6V8l2.4 1.6"/></svg></span><span id="navTimesLb">Time Log</span><span class="cnt" id="cntTime"></span></div>
@@ -3221,7 +3221,7 @@ const REPORT_BOARDS = [];
 const needsReport = b => REPORT_BOARDS.includes((b.name || '').trim());
 const TEXTC = [['既定','#2b2426'],['赤','#c0392b'],['橙','#c47f1a'],['緑','#3f8046'],['青','#3d6fe0'],['紫','#7b52c0'],['灰','#8b8285']];
 const WD = ['日','月','火','水','木','金','土'];
-const PINSMALL = '<svg class="pinico" viewBox="0 0 16 16"><path d="M9.6 1.9l4.5 4.5-1.6.5-1 1-.4 3.1-4.7-4.7 3.1-.4 1-1z"/><path d="M6.4 6.3L2.2 13.8l7.5-4.2"/></svg>';
+const PINSMALL = '<svg class="pinico" viewBox="0 0 16 16"><path d="M8 14.6s4.7-4.5 4.7-8.2a4.7 4.7 0 0 0-9.4 0c0 3.7 4.7 8.2 4.7 8.2z"/><circle cx="8" cy="6.4" r="1.7"/></svg>';
 const FICON = '<svg class="fico" viewBox="0 0 16 16"><path d="M1.7 12.8V3.7h4.1l1.4 1.7h7.1v7.4z"/></svg>';
 const uid = () => Math.random().toString(36).slice(2, 9);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -3231,7 +3231,7 @@ let S, view = {type:'board', id:null}, filter = 'all', q = '', folded = {}, tagF
 
 /* ---------------- dates & repeat ---------------- */
 const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-const today = () => iso(new Date());
+const today = () => { const d = new Date(); if(d.getHours() < 5) d.setDate(d.getDate() - 1); return iso(d); };   /* 日付は朝 5 時に変わる */
 /* 記録上の1日は朝5時から。5時より前は前の日として扱う */
 const DAYSTART = 5;
 const bizToday = () => {
@@ -4305,7 +4305,7 @@ function boardMenu(x, y, id){
       ${esc(b.name)}</div>
     <button data-ba="open"><i class="ic">${bicon(b)}</i>開く</button>
     <button data-ba="rename"><i class="ic">✎</i>名前を変更</button>
-    <button data-ba="pin"><i class="ic"><svg class="pinico" viewBox="0 0 16 16"><path d="M9.6 1.9l4.5 4.5-1.6.5-1 1-.4 3.1-4.7-4.7 3.1-.4 1-1z"/><path d="M6.4 6.3L2.2 13.8l7.5-4.2"/></svg></i>${b.pin ? 'ピン留めを外す' : 'ピン留めする'}</button>
+    <button data-ba="pin"><i class="ic"><svg class="pinico" viewBox="0 0 16 16"><path d="M8 14.6s4.7-4.5 4.7-8.2a4.7 4.7 0 0 0-9.4 0c0 3.7 4.7 8.2 4.7 8.2z"/><circle cx="8" cy="6.4" r="1.7"/></svg></i>${b.pin ? 'ピン留めを外す' : 'ピン留めする'}</button>
     <hr><div style="font-size:11px;color:var(--muted);padding:3px 10px 1px">色</div>
     <div class="swatches" style="flex-wrap:wrap;width:196px">${BOARDC.map(c =>
       `<button class="sw ${b.color===c?'on':''}" data-bc="${c}"
@@ -5285,7 +5285,7 @@ const hasLog = k => Array.isArray(k.logs);
 const hasTime = k => !!(k.timer || (k.times && k.times.length)
   || (canTime(k) && view && view.type === 'card' && Array.isArray(k.times)));
 const hasQuote = k => !!k.quote;
-const PINICO = `<svg class="cdico" viewBox="0 0 16 16"><path d="M9.6 1.9l4.5 4.5-1.6.5-1 1-.4 3.1-4.7-4.7 3.1-.4 1-1z"/><path d="M6.4 6.3L2.2 13.8l7.5-4.2"/></svg>`;
+const PINICO = `<svg class="cdico" viewBox="0 0 16 16"><path d="M8 14.6s4.7-4.5 4.7-8.2a4.7 4.7 0 0 0-9.4 0c0 3.7 4.7 8.2 4.7 8.2z"/><circle cx="8" cy="6.4" r="1.7"/></svg>`;
 /* Cards / Quotes ページでも同じボタンを出す */
 const actTgl = k => (APP === 'note' || k.type === 'task' || k.type === 'heading' || k.type === 'book') ? '' :
   `<button class="mkact" data-mkact="${k.id}"
@@ -11653,7 +11653,9 @@ const dlKBtn = (k, attrs, tag) => {
   return `<${t} ${t === 'button' ? 'type="button" title="種類を選ぶ"' : ''} class="dl-k${K.ic ? '' : ' dot'}" style="--dl-c:${K.c}" ${attrs || ''}>${K.ic ? DL_IC[K.ic] : ''}</${t}>`;
 };
 const dlPad = n => String(n).padStart(2, '0');
-const dlNow = () => { const d = new Date(); return `${iso(d)}T${dlPad(d.getHours())}:${dlPad(d.getMinutes())}`; };
+/* Daily Log の日付は朝 5 時に変わる（0〜5 時の記録は前の日に入る） */
+const dlToday = () => { const d = new Date(); if(d.getHours() < 5) d.setDate(d.getDate() - 1); return iso(d); };
+const dlNow = () => { const d = new Date(); return `${dlToday()}T${dlPad(d.getHours())}:${dlPad(d.getMinutes())}`; };
 const DL_WD = '日月火水木金土';
 let dlTagF = '';              // タグで絞り込み（'' はすべて）
 const dlTagSel = tags => tags.length ? `<select class="dl-tagf" id="dlTagF" title="タグで絞り込む"><option value="">すべての Tag</option>${tags.map(t => `<option value="${esc(t)}" ${dlTagF === t ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select>` : '';
@@ -12332,12 +12334,12 @@ function dlGoBoard(bid, day){
     dlToComp = true; view = {type:'dlog'}; render(); return;
   }
   if(!DL_NOTE){ dlClose(); view = {type:'board', id:bid}; render(); }
-  if(day !== null && day !== undefined){ dlPDay = day; dlPRef = day || today(); dlOpen.keepDay = true; }
+  if(day !== null && day !== undefined){ dlPDay = day; dlPRef = day || dlToday(); dlOpen.keepDay = true; }
   dlOpen(bid); dlOpen.keepDay = false;
 }
 /* ---- Board のパネル ---- */
 function dlOpen(bid){
-  if(dlOpenId !== bid && !dlOpen.keepDay){ dlPDay = today(); dlPRef = dlPDay; }   // 開いたときは「今日」
+  if(dlOpenId !== bid && !dlOpen.keepDay){ dlPDay = dlToday(); dlPRef = dlPDay; }   // 開いたときは「今日」
   dlOpenId = bid; dlPend = []; dlNewKind = '';
   dlDrawPanel(true);
 }
@@ -12388,7 +12390,7 @@ function dlDrawPanel(scrollEnd, keepText){
   if(tx){ const v = keepText !== undefined ? keepText : prevText; if(v){ tx.value = v; tx.dispatchEvent(new Event('input')); } }
   const body = p.querySelector('#dlBody');
   /* 古い順でも、昨日より前の日を開いたときは最初の記録から（記録した直後は入力欄） */
-  const pastP = dlPDay && dlPDay < today() && keepText === undefined;
+  const pastP = dlPDay && dlPDay < dlToday() && keepText === undefined;
   if(scrollEnd) body.scrollTop = (newest || pastP) ? 0 : body.scrollHeight;
   else body.scrollTop = prevScroll;
   if(tx && (scrollEnd || keepText !== undefined)) setTimeout(() => tx.focus({preventScroll:true}), 30);
@@ -12474,7 +12476,7 @@ function dlPrompt(cid, why, tm){
 
 /* ---- すべての Daily Log をまとめたページ ---- */
 let dlFilter = '';
-let dlDay = today(), dlCalM = '';
+let dlDay = dlToday(), dlCalM = '';
 /* Board の Daily Log パネルの上のカレンダー：ふだんは1週間、押すと1か月 */
 let dlPDay = '', dlPRef = '', dlPMonthly = false;
 /* 週⇄月のカレンダーの状態（パネル用・ページ用） */
@@ -12484,7 +12486,7 @@ let dlGRef = '', dlGMonthly = false;
 const DLGS = {get day(){ return dlDay; }, set day(v){ dlDay = v; }, get ref(){ return dlGRef; }, set ref(v){ dlGRef = v; },
   get mon(){ return dlGMonthly; }, set mon(v){ dlGMonthly = v; }};
 function dlWeekCalHTML(marks, st){
-  const sel = st.day, ref = st.ref || sel || today();
+  const sel = st.day, ref = st.ref || sel || dlToday();
   const p2 = n => String(n).padStart(2, '0');
   const key = d => `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`;
   const r = parse(ref);
@@ -12506,7 +12508,7 @@ function dlWeekCalHTML(marks, st){
     if(!d) return `<span class="cd out"></span>`;
     const k = key(d), wd = d.getDay(), hn = holName(k);
     const cls = hn || wd === 0 ? 'sun' : wd === 6 ? 'sat' : '';
-    return `<button type="button" class="cd ${cls} ${k === sel ? 'sel' : ''} ${k === today() ? 'tdy' : ''}" data-pcal="${k}"
+    return `<button type="button" class="cd ${cls} ${k === sel ? 'sel' : ''} ${k === dlToday() ? 'tdy' : ''}" data-pcal="${k}"
       title="${hn ? esc(hn) + (marks[k] ? ' ・ ' : '') : ''}${marks[k] ? esc(marks[k]) : (hn ? '' : 'なし')}">${d.getDate()}${marks[k] ? '<i></i>' : ''}</button>`;
   }).join('');
   return `<div class="cal dl-pcal${st.mon ? ' mon' : ''}">
@@ -12526,7 +12528,7 @@ function dlWireWeekCal(root, st, redraw){
     const d = x.dataset.pcal; st.day = st.day === d ? '' : d; st.ref = d; redraw();
   });
   root.querySelectorAll('[data-pmv]').forEach(x => x.onclick = () => {
-    const r = parse(st.ref || st.day || today()), n = +x.dataset.pmv;
+    const r = parse(st.ref || st.day || dlToday()), n = +x.dataset.pmv;
     st.ref = key(st.mon ? new Date(r.getFullYear(), r.getMonth() + n, 1) : new Date(r.getFullYear(), r.getMonth(), r.getDate() + 7 * n));
     redraw();
   });
@@ -12536,7 +12538,7 @@ function dlWireWeekCal(root, st, redraw){
     if(!st.mon) st.ref = (st.day && (st.ref || '').slice(0, 7) === st.day.slice(0, 7)) ? st.day : st.ref;
     redraw();
   };
-  const td = root.querySelector('[data-ptoday]'); if(td) td.onclick = () => { st.ref = today(); st.day = today(); redraw(); };
+  const td = root.querySelector('[data-ptoday]'); if(td) td.onclick = () => { st.ref = dlToday(); st.day = dlToday(); redraw(); };
   const al = root.querySelector('[data-pall]'); if(al) al.onclick = () => { st.day = ''; redraw(); };
 }
 /* Calendar（右のサイド）の「この日のメモ」の下：その日の Daily Log（全 Board・古い順） */
@@ -12562,8 +12564,8 @@ function dlWireDay(root){
     const [bid] = x.dataset.dlrs.split('|');
     const e = dlFind(x.dataset.dlrs).e;
     /* Notes：Daily Log のページをその日で開く */
-    if(DL_NOTE){ dlDay = e ? (e.at || '').slice(0, 10) : today(); dlCalM = dlDay.slice(0, 7); dlToComp = true; view = {type:'dlog'}; render(); return; }
-    dlGoBoard(bid, e ? (e.at || '').slice(0, 10) : today());
+    if(DL_NOTE){ dlDay = e ? (e.at || '').slice(0, 10) : dlToday(); dlCalM = dlDay.slice(0, 7); dlToComp = true; view = {type:'dlog'}; render(); return; }
+    dlGoBoard(bid, e ? (e.at || '').slice(0, 10) : dlToday());
   });
 }   // カレンダーで選んだ日・表示している月
 function renderDlogPage(){
@@ -12587,7 +12589,7 @@ function renderDlogPage(){
   const marks = {};
   rows.forEach(r => { const d = (r.e.at || '').slice(0, 10); if(d) marks[d] = (marks[d] || 0) + 1; });
   Object.keys(marks).forEach(d => marks[d] = marks[d] + ' 件');
-  dlCalM ||= (dlDay || today()).slice(0, 7);
+  dlCalM ||= (dlDay || dlToday()).slice(0, 7);
   /* 検索しているときは、すべての日から探す */
   if(dlDay && !dlQ.trim()) rows = rows.filter(r => (r.e.at || '').slice(0, 10) === dlDay);
   const v = document.getElementById('view');
@@ -12662,7 +12664,7 @@ function renderDlogPage(){
     /* 古い順のときは、開いたとき・日を変えたとき・記録したときに入力欄まで下げる。
        ただし昨日より前の日を開いたときは、いちばん上（最初の記録）から */
     if(dlToComp && !S.dlogNewest){
-      const past = dlToComp !== 'post' && dlDay && dlDay < today();
+      const past = dlToComp !== 'post' && dlDay && dlDay < dlToday();
       requestAnimationFrame(() => {
         if(past){
           const f = v.querySelector('.dlpage .dl-day, .dlpage .dl-e');
@@ -12779,7 +12781,7 @@ function dlQuickBoard(to){
 }
 function dlQuickAdd(text, kind, caret, to){
   const b = dlQuickBoard(to); if(!b) return alert('記録する Board がありません');
-  const d0 = dlDay || today();
+  const d0 = dlDay || dlToday();
   const ne = {id:uid(), at:d0 + dlNow().slice(10), ord:Date.now(), kind:kind || 'private', text};
   (b.dlog ||= []).push(ne);
   save(); dlToComp = 'post'; renderDlogPage(); if(dlOpenId) dlDrawPanel(false);
@@ -12858,11 +12860,11 @@ function dlMemoGo(e){
   /* なければ、その日の Memo & Note に新しいメモを作って開く（1行目に Daily Log の本文） */
   const dm = S.boards.find(b => b.daily); if(!dm) return alert('Memo & Note のボードが見つかりません');
   if(!dm.cols || !dm.cols.length) dm.cols = [{id:uid(), title:'Daily', w:288, cards:[]}];
-  const d = (e.at || '').slice(0, 10) || today(), tm = (e.at || '').slice(11, 16) || nowHM();
+  const d = (e.at || '').slice(0, 10) || dlToday(), tm = (e.at || '').slice(11, 16) || nowHM();
   const first = String(e.text || '').split('\n')[0].trim();
   const k = {id:uid(), type:'note', title:'', body:first ? esc(first) + '<br>' : '', color:'', start:'', due:'',
     repeat:{unit:'', n:1, days:[]}, done:false, subs:[], tags:[], day:d, ctime:tm,
-    memoReg:true, memoNo:nextNo('memoNo'), memoDate:d, memoTime:tm, tlNew:true, created:today(), updated:today()};
+    memoReg:true, memoNo:nextNo('memoNo'), memoDate:d, memoTime:tm, tlNew:true, created:dlToday(), updated:dlToday()};
   dm.cols[0].cards.unshift(k);
   e.memo = k.id;
   save();
@@ -12897,7 +12899,7 @@ function dlBoardSel(){
 const nvDlog = document.getElementById('navDlog');
 if(nvDlog) nvDlog.onclick = () => {
   /* 開いたときは「今日」を表示 */
-  if(view.type !== 'dlog'){ dlDay = today(); dlCalM = dlDay.slice(0, 7); }
+  if(view.type !== 'dlog'){ dlDay = dlToday(); dlCalM = dlDay.slice(0, 7); }
   dlToComp = true;
   dlClose(); view = {type:'dlog'}; render();
 };
