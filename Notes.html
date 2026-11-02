@@ -2889,23 +2889,17 @@
   .dls-l{display:flex;flex-direction:column;gap:3px;font-size:11px;color:var(--muted);margin:6px 0}
   .dls-l input{font:12px var(--fdisp);padding:5px 8px;border:1px solid var(--line);border-radius:7px}
   .dls-dlg .hint{margin-left:0!important;padding-left:0!important;text-indent:0}
-  /* Notes Timeline の中の Daily Log */
-  .tl-dlog{display:flex;flex-direction:column;gap:6px;margin:4px 0 14px 60px}
-  .tl-dle{background:color-mix(in srgb, var(--bc,#c9a227) 5.5%, #f7f4ef);border-radius:9px;padding:7px 11px 8px;cursor:pointer}
-  .tl-dle:hover{background:color-mix(in srgb, var(--bc,#c9a227) 10%, #f7f4ef)}
-  .tl-dlh{display:flex;align-items:center;gap:6px;min-width:0}
-  .tl-dlh .sp{flex:1}
-  .tl-dlh .dl-k{width:18px;height:18px;background:transparent;cursor:inherit}
-  .tl-dlh .dl-k:hover{box-shadow:none}
-  .tl-dlh .dl-k > svg{width:14px!important;height:14px!important}
-  .tl-dlh .dl-k.dot::after{width:7px;height:7px}
-  .tl-dlk{font:600 10.5px var(--fdisp);color:#5f585a;letter-spacing:.04em}
-  .tl-dlh .dl-tag{font-size:9.5px;line-height:16px}
-  .tl-dlh .dl-bd{display:inline-flex;align-items:center;gap:5px;font:500 9.5px/16px var(--fdisp);color:#4a4244;border-radius:20px;padding:0 8px 0 6px;
-    background:color-mix(in srgb, var(--bc,#c9a227) 14%, #fff);border:1px solid color-mix(in srgb, var(--bc,#c9a227) 40%, #fff);white-space:nowrap}
-  .tl-dlh .dl-bd i{width:7px;height:7px;border-radius:2px;background:var(--bc,#c9a227)}
-  .tl-dlft{font-size:10px;color:var(--muted);margin:2px 0 0 24px}
-  .tl-dlt{font:400 13px/1.7 var(--fdisp);color:#2e282a;white-space:pre-wrap;overflow-wrap:anywhere;margin:2px 0 0 24px}
+  .dls-dlg textarea{font:11px ui-monospace,monospace;padding:5px 8px;border:1px solid var(--line);border-radius:7px;resize:vertical;width:100%;box-sizing:border-box}
+  .dls-code{margin-top:6px}
+  .dls-copy{display:block;width:100%;margin:6px 0 2px;padding:7px 10px;border-radius:8px;border:1px solid #d9cbc1;background:#f6f1ec;color:#5a4e46;font:12px var(--fdisp)}
+  .dls-copy:hover{background:#efe6df}
+  .dls-more{margin-top:4px;font-size:11px;color:var(--muted)}
+  .dls-more summary{cursor:pointer;margin:4px 0}
+  .dls-pw{display:flex;gap:6px}
+  .dls-pw input{flex:1;min-width:0}
+  .dls-pw button{font-size:10.5px;color:var(--muted);padding:2px 8px;border:1px solid var(--line);border-radius:7px;background:#fff}
+  .dls-dlg .dls-pw > input{flex:1 1 auto!important;width:auto!important;min-width:0}
+  .dls-dlg .dls-pw > button{flex:0 0 auto!important;width:auto!important;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -9701,7 +9695,6 @@ const TLKLB = {doc:'Read', cal:'Daily', read:'読んだ', want:'気になる', b
 /* アイコンを押すと、そのアイコンのメモだけに絞る */
 let tlFilt = '';
 function tlApplyFilter(){
-  document.querySelectorAll('.tl-dlog').forEach(n => n.style.display = tlFilt ? 'none' : '');
   document.querySelectorAll('.drop.tlv').forEach(drop => {
     drop.querySelectorAll(':scope > .card.tl').forEach(el => {
       const k = findCard(el.dataset.card)?.card;
@@ -9714,7 +9707,7 @@ function tlApplyFilter(){
         if(n.classList.contains('card') && n.style.display !== 'none'){ any = true; break; }
         n = n.nextElementSibling;
       }
-      h.style.display = (any || (h.classList.contains('tl-dlday') && !tlFilt)) ? '' : 'none';
+      h.style.display = any ? '' : 'none';
       const x = h.nextElementSibling;
       if(x && x.classList.contains('tl-dayx')) x.style.display = any ? '' : 'none';
     });
@@ -9975,7 +9968,6 @@ function renderTimeline(){
   };
   wireCards(v);
   tlDeco(v);
-  setTimeout(() => dlsTimeline(v), 30);     /* tlDeco の絞り込みのあとに */
 }
 
 /* ---------------- 次に読む本を選ぶ ---------------- */
@@ -11532,7 +11524,7 @@ const DL_KINDS = [
   {k:'private',  lb:'Private',  ic:'clover', c:'#6c9a5b'},
   {k:'shopping', lb:'Shopping', ic:'cart',   c:'#c07a5a'},
   {k:'tv',       lb:'TV',       ic:'tv',     c:'#7a8ca8'},
-  {k:'reading',  lb:'Book',     ic:'bookck', c:'#8a6a55'},
+  {k:'reading',  lb:'Book',     ic:'bookck', c:'#c8443c'},
   {k:'people',   lb:'People',   ic:'people', c:'#b6809a'},
   {k:'',         lb:'Other',    ic:'',       c:'#b9aea9'}
 ];
@@ -12541,7 +12533,8 @@ const dlsHead = (c, json) => {
 async function dlsGet(c){
   const r = await fetch(`https://api.github.com/gists/${c.gist}`, {headers:dlsHead(c), cache:'no-store'});
   if(r.status === 404) throw new Error('Gist が見つかりません');
-  if(r.status === 401) throw new Error('トークンが違います');
+  if(r.status === 401) throw new Error('トークンが違います（GitHub に受け付けられませんでした。Notes の設定コードを貼り直してください）');
+  if(r.status === 403) throw new Error('トークンに Gist の権限がありません');
   if(!r.ok) throw new Error('取得できません（' + r.status + '）');
   const g = await r.json();
   const f = g.files && g.files[DLS_FILE];
@@ -12796,23 +12789,58 @@ function dlsSettings(anchor){
   const c = dlsConf();
   const p = popup(Math.max(12, Math.min(innerWidth - 372, r.right - 360)), r.bottom + 6, `<div class="dpanel dls-dlg" style="width:360px;max-width:94vw">
     <h4>Daily Log の共有（Tasks ⇄ Notes）</h4>
-    ${DL_NOTE ? `<div class="hint">Notes の「同期」の設定（Gist・トークン・合言葉）をそのまま使います。Tasks にも同じものを入れてください。</div>`
-    : `<div class="hint">Notes の「同期」と同じ Gist ID・トークン・合言葉を入れてください。Gist に「${DLS_FILE}」を1つ足すだけで、Notes の本体のデータには触りません。</div>
-    <label class="dls-l">Gist ID<input id="dlsGist" value="${esc(c.gist || '')}" spellcheck="false"></label>
-    <label class="dls-l">トークン<input id="dlsTok" type="password" value="${esc(c.token || '')}" spellcheck="false"></label>
-    <label class="dls-l">合言葉<input id="dlsPass" type="password" value="${esc(c.pass || '')}" spellcheck="false"></label>`}
+    ${DL_NOTE ? `<div class="hint">Notes の「同期」の設定（Gist・トークン・合言葉）をそのまま使います。<br>Tasks には、下のボタンでコピーした「設定コード」を貼り付けてください。</div>
+    ${dlsOn() ? `<button type="button" class="dls-copy" id="dlsCopy">Tasks 用の設定コードをコピー</button>
+    <textarea class="dls-code" id="dlsCodeOut" readonly hidden></textarea>` : '<div class="hint" style="color:#b4483f">Notes の「同期」（GitHub Gist）がまだ設定されていません。</div>'}`
+    : `<div class="hint">Notes の Daily Log ページ右上の「共有」→「Tasks 用の設定コードをコピー」で出るコードを、ここに貼り付けてください。<br>（Gist に「${DLS_FILE}」を1つ足すだけで、Notes の本体のデータには触りません）</div>
+    <label class="dls-l">設定コード（Notes からコピー）<textarea id="dlsCode" rows="2" spellcheck="false" autocomplete="off" placeholder="DLS1:…"></textarea></label>
+    <details class="dls-more"${c.gist ? ' open' : ''}><summary>手で入れる（Gist ID・トークン・合言葉）</summary>
+    <label class="dls-l">Gist ID（ghp_ ではない、英数字だけの番号）<input id="dlsGist" value="${esc(c.gist || '')}" spellcheck="false" autocomplete="off"></label>
+    <label class="dls-l">トークン（ghp_ または github_pat_ で始まる）<span class="dls-pw"><input id="dlsTok" type="password" value="${esc(c.token || '')}" spellcheck="false" autocomplete="new-password"><button type="button" data-dlseye="dlsTok">表示</button></span></label>
+    <label class="dls-l">合言葉<span class="dls-pw"><input id="dlsPass" type="password" value="${esc(c.pass || '')}" spellcheck="false" autocomplete="new-password"><button type="button" data-dlseye="dlsPass">表示</button></span></label>
+    </details>`}
     <div class="hint" style="margin-top:6px">${esc(dlsMsg || '')}</div>
     <div class="dfoot">${DL_NOTE ? '' : '<button id="dlsOff">共有をやめる</button>'}<button id="dlsNow">今すぐ同期</button><button id="dlsOk">${DL_NOTE ? '閉じる' : '保存'}</button></div>
   </div>`);
   p.classList.add('dls-pop'); p.style.zIndex = 1000;
-  const keep = () => {
-    if(DL_NOTE) return;
-    dlsCfg = {gist:p.querySelector('#dlsGist').value.trim(), token:p.querySelector('#dlsTok').value.trim(), pass:p.querySelector('#dlsPass').value};
-    try{ localStorage.setItem(DLS_CFGK, JSON.stringify(dlsCfg)); }catch(e){}
+  p.querySelectorAll('[data-dlseye]').forEach(b => b.onclick = () => {
+    const i = p.querySelector('#' + b.dataset.dlseye); const on = i.type === 'password';
+    i.type = on ? 'text' : 'password'; b.textContent = on ? '隠す' : '表示';
+  });
+  /* Notes：設定コードをコピー（トークンは画面に出さない） */
+  const cp = p.querySelector('#dlsCopy');
+  if(cp) cp.onclick = async () => {
+    const code = 'DLS1:' + btoa(unescape(encodeURIComponent(JSON.stringify({gist:c.gist, token:c.token, pass:c.pass}))));
+    try{ await navigator.clipboard.writeText(code); cp.textContent = 'コピーしました。Tasks に貼り付けてください'; }
+    catch(e){ const o = p.querySelector('#dlsCodeOut'); o.hidden = false; o.value = code; o.select(); cp.textContent = '下のコードを選んでコピーしてください'; }
   };
-  p.querySelector('#dlsOk').onclick = () => { keep(); p.remove(); dlsSync('save').then(() => { if(view.type === 'dlog') renderDlogPage(); }); };
+  /* Tasks：設定コードを貼ると、Gist ID・トークン・合言葉に入る */
+  const ci = p.querySelector('#dlsCode');
+  const fromCode = () => {
+    const v = (ci.value || '').replace(/\s+/g, '');
+    if(!v) return true;
+    try{
+      const o = JSON.parse(decodeURIComponent(escape(atob(v.replace(/^DLS1:/, '')))));
+      p.querySelector('#dlsGist').value = o.gist || ''; p.querySelector('#dlsTok').value = o.token || ''; p.querySelector('#dlsPass').value = o.pass || '';
+      p.querySelector('.dls-more').open = true; ci.value = ''; ci.placeholder = '読み込みました';
+      return true;
+    }catch(e){ alert('設定コードが読めません。Notes でコピーし直してください'); return false; }
+  };
+  if(ci) ci.addEventListener('input', () => { if(/^DLS1:\S{20,}/.test(ci.value.trim())) fromCode(); });
+  const keep = () => {
+    if(DL_NOTE) return true;
+    if(ci && !fromCode()) return false;
+    let gist = p.querySelector('#dlsGist').value.replace(/\s+/g, ''), token = p.querySelector('#dlsTok').value.replace(/\s+/g, '');
+    /* Gist の URL を貼ったときは最後の部分だけ。トークンと入れ違えていたら入れ替える */
+    gist = gist.replace(/^.*gist\.github\.com\/(?:[^/]+\/)?/i, '').replace(/[/?#].*$/, '');
+    if(/^(ghp_|github_pat_|gho_)/.test(gist) && !/^(ghp_|github_pat_|gho_)/.test(token)) [gist, token] = [token, gist];
+    dlsCfg = {gist, token, pass:p.querySelector('#dlsPass').value};
+    try{ localStorage.setItem(DLS_CFGK, JSON.stringify(dlsCfg)); }catch(e){}
+    return true;
+  };
+  p.querySelector('#dlsOk').onclick = () => { if(!keep()) return; p.remove(); dlsSync('save').then(() => { if(view.type === 'dlog') renderDlogPage(); }); };
   p.querySelector('#dlsNow').onclick = async () => {
-    keep(); const b = p.querySelector('#dlsNow'); b.disabled = true; b.textContent = '同期中…';
+    if(!keep()) return; const b = p.querySelector('#dlsNow'); b.disabled = true; b.textContent = '同期中…';
     await dlsSync('now'); p.remove(); if(view.type === 'dlog') renderDlogPage(); dlsSettings(anchor.isConnected ? anchor : document.getElementById('dlsState') || anchor);
   };
   const off = p.querySelector('#dlsOff');
@@ -12821,58 +12849,6 @@ function dlsSettings(anchor){
     dlsCfg = {}; try{ localStorage.removeItem(DLS_CFGK); }catch(e){}
     p.remove(); if(view.type === 'dlog') renderDlogPage();
   };
-}
-
-/* ---- Notes Timeline に Daily Log も並べる（日付ごとに、その日のメモの下へ） ----
-   Bookshelf の「読んだ」メモは Timeline にもともと出ているので、Daily Log 側の写し（src:'read'）は出さない */
-function dlsTimeline(v){
-  if(!DL_NOTE) return;
-  const page = v.querySelector('.tlpage'); if(!page) return;
-  v.querySelectorAll('.tl-dlog, .tl-dlday').forEach(n => n.remove());
-  const byDay = {};
-  dlBoards().forEach(b => (b.dlog || []).forEach(e => {
-    if(e.src === 'read') return;
-    const d = (e.at || '').slice(0, 10); if(!d) return;
-    (byDay[d] ||= []).push({e, b});
-  }));
-  const days = Object.keys(byDay).sort().reverse();
-  if(!days.length) return;
-  let drop = page.querySelector('.drop');
-  if(!drop){
-    page.querySelector('.tl-empty')?.remove();
-    page.insertAdjacentHTML('beforeend', '<div class="dailycards"><div class="drop tlv"></div></div>');
-    drop = page.querySelector('.drop');
-  }
-  const block = rows => `<div class="tl-dlog">${rows.sort((x, y) => (x.e.at || '').localeCompare(y.e.at || '') || dlOrd(x.e) - dlOrd(y.e)).map(({e, b}) => {
-    const K = dlKind(e.kind);
-    return `<div class="tl-dle" data-tldl="${(e.at || '').slice(0, 10)}" title="Daily Log で開く" style="--bc:${b.color || '#c9a227'}">
-      <div class="tl-dlh">${dlKBtn(e.kind, '', 'span')}<span class="tl-dlk">${e.kind ? esc(K.lb) : 'Daily Log'}</span>${e.pin ? `<span class="dl-rsp">${DL_IC.pin}</span>` : ''}<span class="sp"></span>
-        ${e.tag ? `<span class="dl-tag">${esc(e.tag)}</span>` : ''}<span class="dl-bd"><i></i>${esc(b.name)}</span></div>
-      ${dlHasFT(e.kind) ? `<div class="tl-dlft">${esc(e.from || 'M')} ▶ ${esc((e.to || []).join('、') || '—')}</div>` : ''}
-      ${e.text ? `<div class="tl-dlt">${dlTextHTML(e.text)}</div>` : ''}
-    </div>`;
-  }).join('')}</div>`;
-  const heads = () => [...drop.querySelectorAll(':scope > .tl-day')];
-  days.forEach(d => {
-    const h = heads().find(x => x.dataset.d === d);
-    if(h){
-      /* その日のいちばん下（次の日付の見出しの前）に */
-      let n = h.nextElementSibling, last = h;
-      while(n && !n.classList.contains('tl-day')){ last = n; n = n.nextElementSibling; }
-      last.insertAdjacentHTML('afterend', block(byDay[d]));
-    } else {
-      const r = tlRel(d);
-      const html = `<div class="tl-day tl-dlday" data-d="${d}">${r ? `<b>${r}</b><i>·</i><span>${tlMD(d)}</span>` : `<b>${tlMD(d)}</b>`}</div>` + block(byDay[d]);
-      const nx = heads().find(x => x.dataset.d < d);
-      if(nx) nx.insertAdjacentHTML('beforebegin', html); else drop.insertAdjacentHTML('beforeend', html);
-    }
-  });
-  drop.querySelectorAll('[data-tldl]').forEach(x => x.onclick = ev => {
-    if(ev.target.closest('a')) return;
-    dlDay = x.dataset.tldl; dlCalM = dlDay.slice(0, 7);
-    view = {type:'dlog'}; render();
-  });
-  if(typeof tlFilt !== 'undefined' && tlFilt) drop.querySelectorAll('.tl-dlog, .tl-dlday').forEach(n => n.style.display = 'none');
 }
 
 function render(){
