@@ -2900,6 +2900,7 @@
   .dls-pw button{font-size:10.5px;color:var(--muted);padding:2px 8px;border:1px solid var(--line);border-radius:7px;background:#fff}
   .dls-dlg .dls-pw > input{flex:1 1 auto!important;width:auto!important;min-width:0}
   .dls-dlg .dls-pw > button{flex:0 0 auto!important;width:auto!important;white-space:nowrap}
+  .dl-tsub{font:500 10.5px var(--fdisp);color:var(--muted);letter-spacing:.06em;white-space:nowrap;align-self:center;margin-left:4px;padding-top:5px;flex:none}
 </style>
 </head>
 <body>
@@ -2958,7 +2959,7 @@
     <div id="navList">
     <div class="nav" id="navSearch" data-nav="search" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><circle cx="7.2" cy="7.2" r="4.6"/><path d="M10.6 10.6l3.2 3.2"/></svg></span><span>Search &amp; Memories</span></div>
     <div class="nav" id="navTline" data-nav="tline" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M4.2 1.8v12.4"/><circle cx="4.2" cy="4.2" r="1.6"/><circle cx="4.2" cy="10.4" r="1.6"/><path d="M7.4 4.2h6M7.4 10.4h6"/></svg></span><span>Notes Timeline</span></div>
-    <div class="nav" id="navDlog" data-nav="dlog" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><rect x="2.2" y="3.4" width="11.6" height="10.4" rx="1.6"/><path d="M2.2 6.6h11.6M5.4 1.9v2.6M10.6 1.9v2.6"/><path d="M5.6 10.1l1.6 1.6 3.2-3.2"/></svg></span><span>Daily Log</span></div>
+    <div class="nav" id="navDlog" data-nav="dlog" draggable="true" title="Daily Log（Notes & Tasks Shared）"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><rect x="2.2" y="3.4" width="11.6" height="10.4" rx="1.6"/><path d="M2.2 6.6h11.6M5.4 1.9v2.6M10.6 1.9v2.6"/><path d="M5.6 10.1l1.6 1.6 3.2-3.2"/></svg></span><span>Daily Log</span></div>
     <div class="nav" id="navTasks" data-nav="tasks" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><circle cx="10.2" cy="2.9" r="1.5"/><path d="M4.2 14.2l2.1-3.4 1.6-1.1-1-3.1-2.4 1.5-1 2.1"/><path d="M6.9 6.6l2.6-1.3 1.6 2.4 2.4.9"/><path d="M11.6 13.9l-1.4-3.1-2.3-1.3"/></svg></span><span id="navTasksLb">Tasks</span><span class="cnt" id="cntAll">0</span></div>
     <div class="nav" id="navPin" data-nav="pin" draggable="true"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M9.6 1.9l4.5 4.5-1.6.5-1 1-.4 3.1-4.7-4.7 3.1-.4 1-1z"/><path d="M6.4 6.3L2.2 13.8l7.5-4.2"/></svg></span><span>Pin Memo</span><span class="cnt" id="cntPin">0</span></div>
     <div class="nav" id="navLearn" data-nav="learn" draggable="true" title="日々の発見"><span class="ico"><svg class="nico" viewBox="0 0 16 16"><path d="M2.6 13.4V11l7.6-7.6 2.4 2.4L5 13.4z"/><path d="M9.4 4.2l2.4 2.4"/><path d="M2.6 13.4h10.8"/></svg></span><span>D Discoveries</span><span class="cnt" id="cntLearn">0</span></div>
@@ -11345,7 +11346,7 @@ function replyHTML(k){
    どれを出すかは右端の「⋯」から選ぶ（S.qnShow：キー → true/false） */
 function qnItems(){
   const V = {trash:'trash', tline:'timeline', search:'search', tasks:'tasks', pin:'pin', learn:'learn', issue:'issue',
-    times:'times', done:'done', replog:'replog', read:'read', quote:'quote', cards:'cards'};
+    times:'times', done:'done', replog:'replog', read:'read', quote:'quote', cards:'cards', dlog:'dlog'};
   const out = [];
   /* サイドメニュー（表示している項目） */
   document.querySelectorAll('#navList .nav[data-nav]').forEach(el => {
@@ -11402,7 +11403,7 @@ function renderQuickNav(){
   if(!box) return;
   const its = qnSorted(qnItems()).filter(x => qnShown(x.key));
   box.innerHTML = its.map((x, i) => `<button class="qn ${x.on()?'on':''}" data-qi="${i}" draggable="true"
-    title="${esc(x.label)}（ドラッグで並べ替え）" aria-label="${esc(x.label)}"
+    title="${esc(x.label)}${x.key === 'n:dlog' ? '（Notes & Tasks Shared）' : '（ドラッグで並べ替え）'}" aria-label="${esc(x.label)}"
     style="${x.color?`--ln:${x.color};--c:color-mix(in srgb, ${x.color} 38%, #fff)`:''}">${x.ico || esc(x.label)}</button>`).join('')
     + `<button class="qn qset" data-qset title="表示するタブ・並び順を選ぶ" aria-label="表示するタブ・並び順を選ぶ">⋯</button>`;
   box.style.gridTemplateColumns = `repeat(${its.length}, minmax(0,1fr)) 30px`;
@@ -12218,6 +12219,26 @@ function dlRefreshRight(){
   if(!box) return;
   box.innerHTML = dlDayHTML(box.dataset.day); dlWireDay(box);
 }
+/* Daily Log のページ：タイトルの右に小さく「Notes & Tasks Shared」（ほかのページでは消す） */
+function dlTitleSub(){
+  const t = document.getElementById('pageTitle'); if(!t) return;
+  let sub = document.getElementById('dlTitleSub');
+  if(view.type !== 'dlog'){
+    if(sub){ sub.remove(); if(!DL_NOTE) dlFitTitle(); else t.style.width = ''; }
+    return;
+  }
+  if(!sub){
+    sub = document.createElement('span'); sub.id = 'dlTitleSub'; sub.className = 'dl-tsub';
+    sub.textContent = 'Notes & Tasks Shared';
+    t.after(sub);
+  }
+  const cv = dlTitleSub.cv || (dlTitleSub.cv = document.createElement('canvas'));
+  const cx = cv.getContext('2d'), cs = getComputedStyle(t);
+  cx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+  const ls = parseFloat(cs.letterSpacing) || 0;
+  const pad = (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0) + (parseFloat(cs.borderLeftWidth) || 0) * 2;
+  t.style.width = Math.ceil(cx.measureText(t.value || ' ').width + ls * (t.value.length + 1) + pad + 6) + 'px';
+}
 /* タイトルの右のボタン（Board のときだけ） */
 /* Board のタイトル欄を文字の長さに合わせて、ボタンがすぐ右に来るようにする */
 function dlFitTitle(){
@@ -12241,7 +12262,7 @@ function dlBtnState(){
   const b = board(view.id);
   btn.classList.toggle('on', dlOpenId === b.id);
   btn.innerHTML = DL_IC.log;
-  btn.title = 'Daily Log';
+  btn.title = 'Daily Log（Notes & Tasks Shared）';
 }
 if(document.getElementById('dlogBtn')) document.getElementById('dlogBtn').onclick = () => {
   if(view.type !== 'board') return;
@@ -12900,6 +12921,7 @@ function render(){
   paintPageIco();
   /* Daily Log のパネルは、Daily Log のページの上でだけ */
   if(dlOpenId && view.type !== 'dlog') dlClose();
+  dlTitleSub();
 }
 /* タイトルの左に、サイドメニューと同じアイコンを出す */
 function paintPageIco(){
