@@ -12329,10 +12329,24 @@ function dlWireDrag(root, redraw){
         /* その日の番号（時刻のミリ秒）を小さい順に集めて、見えている順に配り直す
            （番号の大きさは時刻のままなので、ほかの端末で書いた記録とも正しく並ぶ） */
         const newest = !!S.dlogNewest;
-        const xs = rowsOfDay.map(r2 => dlFind(r2.dataset.dl).e).filter(Boolean);
-        const vals = xs.map(x => Math.round(dlOrd(x))).sort((a, b2) => a - b2);
-        for(let i = 1; i < vals.length; i++) if(vals[i] <= vals[i - 1]) vals[i] = vals[i - 1] + 1;
-        (newest ? xs.slice().reverse() : xs).forEach((x, i) => { x.ord = vals[i]; });
+        /* 動かした記録だけ、すぐ上と下の記録の間の番号にする（ほかの記録の番号は変えない）。
+           ボードのパネル・全体のページ・Notes のどこから見ても、同じ並びになる */
+        const idx = rowsOfDay.indexOf(el);
+        const nb = i => (rowsOfDay[i] && dlFind(rowsOfDay[i].dataset.dl).e) || null;
+        const nUp = nb(idx - 1), nDn = nb(idx + 1);
+        const lo = newest ? nDn : nUp, hi = newest ? nUp : nDn;      // 番号の小さい側・大きい側
+        const L = lo ? dlOrd(lo) : null, H = hi ? dlOrd(hi) : null;
+        let done = true;
+        if(L !== null && H !== null){ if(H - L >= 2) e.ord = Math.round((L + H) / 2); else done = false; }
+        else if(L !== null) e.ord = Math.round(L) + 60000;
+        else if(H !== null) e.ord = Math.round(H) - 60000;
+        if(!done){
+          /* 間が空いていないとき（同じ番号どうし）は、その日の番号を見えている順に配り直す */
+          const xs = rowsOfDay.map(r2 => dlFind(r2.dataset.dl).e).filter(Boolean);
+          const vals = xs.map(x => Math.round(dlOrd(x))).sort((a, b2) => a - b2);
+          for(let i = 1; i < vals.length; i++) if(vals[i] <= vals[i - 1]) vals[i] = vals[i - 1] + 1000;
+          (newest ? xs.slice().reverse() : xs).forEach((x, i) => { x.ord = vals[i]; });
+        }
         save(); redraw();
       };
       /* 並べ替えで要素を動かすと捕捉が外れるので、画面全体で受け取る */
@@ -12562,7 +12576,7 @@ function dlWireWeekCal(root, st, redraw){
 function dlDayHTML(day){
   const rows = [];
   (dlBoards() || []).forEach(b => (b.dlog || []).forEach(e => { if((e.at || '').slice(0, 10) === day) rows.push({e, b}); }));
-  rows.sort((x, y) => (x.e.at || '').localeCompare(y.e.at || '') || (dlOrd(x.e) - dlOrd(y.e)));
+  rows.sort((x, y) => dlOrd(x.e) - dlOrd(y.e));     // Daily Log と同じ並び（ドラッグした順）
   return `<div class="rs-callb" style="margin-top:16px">Daily Log${rows.length ? `　${rows.length} 件` : ''}</div>
     ${rows.length ? `<div class="dl-rs">${rows.map(({e, b}) => {
       const K = dlKind(e.kind);
