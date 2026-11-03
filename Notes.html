@@ -2994,6 +2994,12 @@
     .dl-e.dlact .dl-more{background:#efe6df;color:var(--ink)}
     .dl-e.dlact .dl-kind .dl-tools button{width:30px;height:28px}
   }
+  /* メッセージは引用の縦線、相手からのメッセージは紺色の文字 */
+  .dl-text.msg{position:relative;padding-left:19px}
+  .dl-text.msg::before{content:'';position:absolute;left:9px;top:7px;bottom:7px;width:2px;border-radius:2px;background:#c8bcbf}
+  .dl-text.msg.other::before{background:#9fb0cf}
+  .dl-text.msg.other{color:#2f4a7c}
+  .dl-text.msg.other a{color:#2f4a7c}
 </style>
 </head>
 <body>
@@ -11767,7 +11773,9 @@ function dlFixTo(e, b, addM){
 function dlTextBox(e){
   const m = /^(起床|就寝)（(\d{1,2}:\d{2})）。$/.exec(String(e.text || '').trim());
   if(m) return `<div class="dl-text has-tm" data-dledit="1"><span>${esc(m[1])}。</span><span class="dl-tm">${esc(m[2])}</span></div>`;
-  return `<div class="dl-text" data-dledit="1">${dlTextHTML(e.text)}</div>`;
+  /* メッセージ（Chatwork・Gmail・LINE）は引用の線。From が M 以外なら本文を紺色に */
+  const cls = dlHasFT(e.kind) ? ' msg' + (e.from && e.from !== 'M' ? ' other' : '') : '';
+  return `<div class="dl-text${cls}" data-dledit="1">${dlTextHTML(e.text)}</div>`;
 }
 /* ---- 本文：URL だけの行はカードに、文中の URL はリンクに ---- */
 function dlTextHTML(s){
