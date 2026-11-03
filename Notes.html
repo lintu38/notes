@@ -11995,7 +11995,13 @@ function dlListHTML(rows, opt){
   return `<div class="dl-list">${h}</div>`;
 }
 /* 並び順：ドラッグで決めた順（ord）、なければ記録した時刻 */
-const dlOrd = e => typeof e.ord === 'number' ? e.ord : (Date.parse(e.at) || 0);
+/* 並び順：ドラッグで決めた順（ord：記録した時刻のミリ秒）。
+   前の版のドラッグで付いた小さい番号（1000, 2000…）や番号のないものは、記録した時刻で並べる
+   （朝 5 時前の記録は、その日のいちばん後ろ＝夜遅く扱い） */
+const dlAtMs = at => { const t = Date.parse(at) || 0; const h = +(String(at || '').slice(11, 13)) || 0; return h < 5 && t ? t + 864e5 : t; };
+const dlOrd = e => (typeof e.ord === 'number' && e.ord > 1e11) ? e.ord : dlAtMs(e.at) + (typeof e.ord === 'number' ? e.ord / 1e6 : 0);
+/* 新しく書く記録の番号：今日なら今の時刻、ほかの日ならその日のその時刻 */
+const dlOrdFor = at => { const t = dlAtMs(at), n = Date.now(); return Math.abs(n - t) < 6e4 * 2 ? n : t + (n % 60000); };
 const dlFind = key => {
   const [bid, eid] = String(key || '').split('|');
   const b = dlBoard(bid); if(!b) return {};
@@ -12035,7 +12041,8 @@ function dlWireComposer(root, b0, redraw, dayFn){
     const tag = tg ? tg.value.trim() : '';
     const b = B(); if(!b){ alert('Board を選んでください'); return; }
     const d0 = dayFn ? dayFn() : '';
-    const ne = {id:uid(), at:(d0 ? d0 + dlNow().slice(10) : dlNow()), ord:Date.now(), kind:dlNewKind, text, files:dlPend, ...(tag ? {tag} : {})};
+    const ne = {id:uid(), at:(d0 ? d0 + dlNow().slice(10) : dlNow()), ord:0, kind:dlNewKind, text, files:dlPend, ...(tag ? {tag} : {})};
+    ne.ord = dlOrdFor(ne.at);
     dlFTDefault(ne, b);
     (b.dlog ||= []).push(ne);
     dlPend = []; dlNewKind = ''; dlNewTag = tag ? '' : dlNewTag;
@@ -12109,7 +12116,7 @@ function dlWireList(root, redraw){
       try{ inp.showPicker && inp.showPicker(); }catch(_){}
       const done = ok => {
         if(ok && inp.value && inp.value !== (e.at || '').slice(0, 10)){
-          e.at = inp.value + (e.at || 'T00:00').slice(10); e.ord = Date.now(); save();
+          e.at = inp.value + (e.at || 'T00:00').slice(10); e.ord = dlAtMs(e.at); save();
         }
         redraw();
       };
@@ -12311,11 +12318,13 @@ function dlWireDrag(root, redraw){
         const rowsOfDay = [];
         let n = h ? h.nextElementSibling : list.firstElementChild;
         while(n && !n.classList.contains('dl-day')){ if(n.classList.contains('dl-e')) rowsOfDay.push(n); n = n.nextElementSibling; }
+        /* その日の番号（時刻のミリ秒）を小さい順に集めて、見えている順に配り直す
+           （番号の大きさは時刻のままなので、ほかの端末で書いた記録とも正しく並ぶ） */
         const newest = !!S.dlogNewest;
-        rowsOfDay.forEach((r2, i) => {
-          const x = dlFind(r2.dataset.dl).e;
-          if(x) x.ord = newest ? (rowsOfDay.length - i) * 1000 : (i + 1) * 1000;
-        });
+        const xs = rowsOfDay.map(r2 => dlFind(r2.dataset.dl).e).filter(Boolean);
+        const vals = xs.map(x => Math.round(dlOrd(x))).sort((a, b2) => a - b2);
+        for(let i = 1; i < vals.length; i++) if(vals[i] <= vals[i - 1]) vals[i] = vals[i - 1] + 1;
+        (newest ? xs.slice().reverse() : xs).forEach((x, i) => { x.ord = vals[i]; });
         save(); redraw();
       };
       /* 並べ替えで要素を動かすと捕捉が外れるので、画面全体で受け取る */
@@ -12753,15 +12762,15 @@ const DL_QUICK = [
   {ic:'bin',   lb:'ごみ出し', t:'ごみ出し', opt:['可燃', 'プラ', 'ペットボトル', '紙', 'ビン', '新聞', '段ボール'], multi:true, to:'LIFE'},
   {ic:'box',   lb:'ら宅配',  t:'ら・空箱出し・宅配取込み', to:'LIFE'},
   {ic:'cart',  lb:'ら注文',  t:'ら・注文確定', to:'LIFE'},
-  {ic:'wash',  lb:'洗濯',   t:'洗濯した', opt:['全乾燥', '半乾燥']},
+  {ic:'wash',  lb:'洗濯',   t:'洗濯', opt:['全乾燥', '半乾燥']},
   {ic:'rice',  lb:'朝食',   t:'朝食準備＆朝食'},
   {ic:'bowl',  lb:'昼食',   t:'昼食準備＆昼食'},
   {ic:'fork',  lb:'夕食',   t:'夕食準備＆夕食'},
   {ic:'cup',   lb:'間食',   t:'間食'},
   {ic:'dish',  lb:'洗い物', t:'洗い物'},
   {ic:'bath',  lb:'お風呂', t:'シャンプー・お風呂etc.'},
-  {ic:'yard',  lb:'屋外掃除', t:'屋外の掃除をした', opt:['玄関', '車庫', '庭', '外回り'], multi:true},
-  {ic:'broom', lb:'室内掃除', t:'室内の掃除・整理整頓をした', multi:true,
+  {ic:'yard',  lb:'屋外掃除', t:'屋外の掃除', opt:['玄関', '車庫', '庭', '外回り'], multi:true},
+  {ic:'broom', lb:'室内掃除', t:'室内の掃除・整理整頓', multi:true,
     opt:['和室', '洋間', 'キッチン', '洗濯室', '1F廊下', '1Fトイレ・洗面所', '2Fトイレ・洗面所', 'お風呂', '脱衣洗面所', '表玄関', '裏玄関', '縁側']},
   {ic:'music', lb:'音楽',   t:'音楽鑑賞'},
   /* 『』の中に題名を書く（押すとすぐ書ける） */
@@ -12782,7 +12791,8 @@ function dlQuickBoard(to){
 function dlQuickAdd(text, kind, caret, to){
   const b = dlQuickBoard(to); if(!b) return alert('記録する Board がありません');
   const d0 = dlDay || dlToday();
-  const ne = {id:uid(), at:d0 + dlNow().slice(10), ord:Date.now(), kind:kind || 'private', text};
+  const ne = {id:uid(), at:d0 + dlNow().slice(10), ord:0, kind:kind || 'private', text};
+  ne.ord = dlOrdFor(ne.at);
   (b.dlog ||= []).push(ne);
   save(); dlToComp = 'post'; renderDlogPage(); if(dlOpenId) dlDrawPanel(false);
   const el = document.querySelector(`#view .dl-e[data-dl="${b.id}|${ne.id}"]`);
@@ -13109,7 +13119,7 @@ function dlsReadMemos(){
     const cur = dlsFindLocal(id);
     if(cur){ cur.e.at = v.at; cur.e.text = v.text; return; }
     const b = dlsBoardFor(DLS_NOTES);
-    (b.dlog ||= []).push({id, at:v.at, ord:Date.parse(v.at) || Date.now(), kind:'reading', text:v.text, src:'read'});
+    (b.dlog ||= []).push({id, at:v.at, ord:dlAtMs(v.at) || Date.now(), kind:'reading', text:v.text, src:'read'});
   });
   Object.keys(rd).forEach(id => {
     if(out[id]) return;
