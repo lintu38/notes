@@ -3000,6 +3000,20 @@
   .dl-text.msg.other::before{background:#9fb0cf}
   .dl-text.msg.other{color:#2f4a7c}
   .dl-text.msg.other a{color:#2f4a7c}
+  /* メッセージの中の引用（深さぶんの縦線） */
+  .dl-ql{padding-left:calc(var(--qd) * 11px + 4px);color:#8a7f82;font-size:.95em;
+    background:repeating-linear-gradient(to right, #d3c8cb 0 2px, transparent 2px 11px) left top / calc(var(--qd) * 11px) 100% no-repeat}
+  .dl-text.other .dl-ql{color:#6f7f9c;background-image:repeating-linear-gradient(to right, #b6c2da 0 2px, transparent 2px 11px)}
+  /* メモ群のタイトル */
+  .dl-gt{font:700 13.5px/1.5 var(--fdisp);color:#4a3f42;letter-spacing:.03em;margin:2px 0 4px;cursor:pointer;
+    padding-left:9px;border-left:3px solid color-mix(in srgb, var(--bc,#c9a227) 60%, #fff)}
+  .dl-gt:hover{color:var(--ink)}
+  /* 道具のボタンを少し大きく */
+  .dl-tools{gap:3px}
+  .dl-tools button{width:28px;height:26px}
+  .dl-tools svg{width:16px;height:16px;stroke-width:1.45}
+  .dl-pin,.dl-memob{width:26px;height:26px}
+  .dl-pin svg,.dl-memob svg{width:15px;height:15px}
 </style>
 </head>
 <body>
@@ -11621,6 +11635,9 @@ const DL_IC = {
   outd:'<svg viewBox="0 0 16 16"><path d="M7 3.5h6.5M7 8h6.5M7 12.5h6.5"/><path d="M4.7 5.8 2.5 8l2.2 2.2"/></svg>',
   home:'<svg viewBox="0 0 16 16"><path d="M2.4 7.6 8 2.8l5.6 4.8"/><path d="M3.8 6.6v6.8h8.4V6.6"/><path d="M6.6 13.4V9.8h2.8v3.6"/></svg>',
   search:'<svg viewBox="0 0 16 16"><circle cx="7.2" cy="7.2" r="4.6"/><path d="M10.6 10.6l3.2 3.2"/></svg>',
+  quote:'<svg viewBox="0 0 16 16"><path d="M6.4 3.4 2.6 7l3.8 3.6"/><path d="M2.8 7h6.4a4 4 0 0 1 4 4v1.6"/></svg>',
+  fax:'<svg viewBox="0 0 16 16"><path d="M4.4 6V2.2h5.4l1.8 1.8V6"/><rect x="2" y="6" width="12" height="6.4" rx="1.2"/><path d="M4.6 12.4v1.8h6.8v-1.8M4.6 9.2h4.4"/><circle cx="11.6" cy="8.6" r=".6"/></svg>',
+  gtitle:'<svg viewBox="0 0 16 16"><path d="M3 3.4h10M8 3.4v9.4"/></svg>',
   chev:'<svg viewBox="0 0 12 12"><path d="M3 4.6l3 3 3-3"/></svg>',
   log:'<svg viewBox="0 0 16 16"><rect x="2.2" y="3.4" width="11.6" height="10.4" rx="1.6"/><path d="M2.2 6.6h11.6M5.4 1.9v2.6M10.6 1.9v2.6"/><path d="M5.6 10.1l1.6 1.6 3.2-3.2"/></svg>',
   sort:'<svg viewBox="0 0 16 16"><path d="M5 2.8v10.4M2.6 10.8 5 13.2l2.4-2.4M11 13.2V2.8M8.6 5.2 11 2.8l2.4 2.4"/></svg>'
@@ -11632,6 +11649,7 @@ const DL_KINDS = [
   {k:'chatwork', lb:'Chatwork', ic:'mail',   c:'#c9899a'},
   {k:'gmail',    lb:'Gmail',    ic:'mail',   c:'#c9899a'},
   {k:'line',     lb:'LINE',     ic:'line',   c:'#5aa86a'},
+  {k:'fax',      lb:'FAX',      ic:'fax',    c:'#7d8a9c'},
   {k:'system',   lb:'System',   ic:'msg',    c:'#5f8b93'},
   {k:'meeting',  lb:'Meeting',  ic:'person', c:'#9161d6'},
   {k:'contract', lb:'Contract', ic:'doc',    c:'#c4a22e'},
@@ -11652,7 +11670,7 @@ DL_KINDS.forEach((K, i) => K.grp = i < DL_KINDS.findIndex(x => x.k === 'private'
 /* どこのメモか：Tasks の Board はシアン、Notes はくすみピンクの小さな● */
 const dlSrcDot = b => b && b.id === 'dlnotes'
   ? '<span class="dl-src notes" title="Notes のメモ">●</span>' : '<span class="dl-src tasks" title="Tasks の Board のメモ">●</span>';
-const dlHasFT = k => k === 'chatwork' || k === 'gmail' || k === 'line';
+const dlHasFT = k => k === 'chatwork' || k === 'gmail' || k === 'line' || k === 'fax';
 const dlKind = k => DL_KINDS.find(x => x.k === (k || '')) || DL_KINDS[DL_KINDS.length - 1];
 const dlKBtn = (k, attrs, tag) => {
   const K = dlKind(k), t = tag || 'button';
@@ -11775,7 +11793,72 @@ function dlTextBox(e){
   if(m) return `<div class="dl-text has-tm" data-dledit="1"><span>${esc(m[1])}。</span><span class="dl-tm">${esc(m[2])}</span></div>`;
   /* メッセージ（Chatwork・Gmail・LINE）は引用の線。From が M 以外なら本文を紺色に */
   const cls = dlHasFT(e.kind) ? ' msg' + (e.from && e.from !== 'M' ? ' other' : '') : '';
-  return `<div class="dl-text${cls}" data-dledit="1">${dlTextHTML(e.text)}</div>`;
+  return `<div class="dl-text${cls}" data-dledit="1">${dlHasFT(e.kind) ? dlMsgHTML(e.text) : dlTextHTML(e.text)}</div>`;
+}
+/* ---- メッセージの中の引用：行の頭の「>」（メールの返信）や Chatwork の [qt]…[/qt] を、深さぶんの縦線で見せる ---- */
+function dlMsgHTML(text){
+  const lines = dlMsgLines(text);
+  if(!lines.some(l => l[0] > 0)) return dlTextHTML(text);
+  return lines.map(([d, t]) => d ? `<div class="dl-ql" style="--qd:${Math.min(d, 6)}">${dlTextHTML(t) || '&nbsp;'}</div>` : `<div class="dl-q0">${dlTextHTML(t) || '&nbsp;'}</div>`).join('');
+}
+/* 本文を [深さ, 行] の並びに */
+function dlMsgLines(text){
+  let depth = 0;
+  const lines = [];
+  String(text || '').replace(/\r/g, '').split('\n').forEach(raw => {
+    /* Chatwork：[qt] で一段深く、[/qt] で戻る。[qtmeta …] などの目印は消す */
+    let line = raw, out = '';
+    const parts = line.split(/(\[qt\]|\[\/qt\])/);
+    let started = false;
+    parts.forEach(p => {
+      if(p === '[qt]'){ if(out.trim()){ lines.push([depth, out]); out = ''; } depth++; started = true; return; }
+      if(p === '[/qt]'){ if(out.trim()){ lines.push([depth, out]); out = ''; } depth = Math.max(0, depth - 1); started = true; return; }
+      out += p.replace(/\[qtmeta[^\]]*\]/g, '');
+    });
+    if(started && !out.trim()) return;
+    /* メール：行の頭の > ＞ の数だけ深く */
+    const m = /^((?:\s*[>＞]\s?)+)/.exec(out);
+    const d = m ? (m[1].match(/[>＞]/g) || []).length : 0;
+    lines.push([depth + d, m ? out.slice(m[1].length) : out]);
+  });
+  return lines;
+}
+/* 引用して返信：もとのメッセージを一段深い「> 」付きの文にする */
+function dlQuoteText(e){
+  const lines = dlMsgLines(e.text).filter((l, i, a) => !(i === a.length - 1 && !l[1].trim()));
+  return lines.map(([d, t]) => '> '.repeat(d + 1) + t).join('\n');
+}
+/* ---- メモ群（字下げ）：いちばん上の親メモ（字下げなし）と、その下に字下げした子メモ ---- */
+function dlRootOf(e, b){
+  if(!(e.ind > 0)) return e;
+  if(e.root){ const r = (b.dlog || []).find(x => x.id === e.root); if(r) return r; }
+  /* 目印がないときは、同じ日・同じボードで、すぐ上の字下げなしのメモ */
+  const day = (e.at || '').slice(0, 10);
+  const list = (b.dlog || []).filter(x => (x.at || '').slice(0, 10) === day).sort((x, y) => dlOrd(x) - dlOrd(y));
+  for(let i = list.indexOf(e) - 1; i >= 0; i--) if(!(list[i].ind > 0)) return list[i];
+  return e;
+}
+const dlGroupKey = r => r.b.id + '|' + dlRootOf(r.e, r.b).id;
+/* 検索：言葉に合うメモがあれば、そのメモ群（親メモと子メモ）をまとめて出す */
+function dlSearchRows(rows, q){
+  const keys = new Set(rows.filter(r => dlMatch(r, q)).map(dlGroupKey));
+  return rows.filter(r => keys.has(dlGroupKey(r)));
+}
+let dlReply = null;          // 引用して返信するときの、もとのメッセージ（To を決めるのに使う）
+function dlQuoteReply(row, e, b){
+  const inPanel = !!row.closest('.dlpanel');
+  const txt = dlQuoteText(e) + '\n\n';      // 引用を上に、その下に返信を書く
+  dlNewKind = e.kind;
+  dlReply = {to:(e.from && e.from !== 'M') ? [e.from] : (dlToArr(e).filter(n => n !== 'M').slice(0, 1))};
+  /* 返信は今日の記録として書く（過去の日を見ていたときは今日へ） */
+  if(inPanel){ if(dlPDay && dlPDay !== dlToday()){ dlPDay = dlToday(); dlPRef = dlPDay; } dlDrawPanel(true, txt); }
+  else {
+    if(dlDay && dlDay !== dlToday()){ dlDay = dlToday(); dlCalM = dlDay.slice(0, 7); }
+    dlPageSel = b.id; renderDlogPage.keepText = txt; dlToComp = 'post'; renderDlogPage();
+  }
+  const root = inPanel ? document.querySelector('.dlpanel') : document.querySelector('#view .dl-pcomp');
+  const tx = root && root.querySelector('#dlTx');
+  if(tx){ setTimeout(() => { tx.focus(); const n = tx.value.length; tx.setSelectionRange(n, n); tx.scrollTop = tx.scrollHeight; tx.closest('.dl-new')?.scrollIntoView({block:'center'}); }, 60); }
 }
 /* ---- 本文：URL だけの行はカードに、文中の URL はリンクに ---- */
 function dlTextHTML(s){
@@ -11846,12 +11929,15 @@ function dlEntryHTML(e, b, opt){
         <button type="button" class="grip" data-dlgrip="1" title="ドラッグで並べ替え（ほかの日へ移すと日付も変わります）">${DL_IC.grip}</button>
         <button type="button" data-dlind="-1" title="字下げを戻す"${ind ? '' : ' disabled'}>${DL_IC.outd}</button>
         <button type="button" data-dlind="1" title="字下げする（アイコンごと）"${ind >= 3 ? ' disabled' : ''}>${DL_IC.ind}</button>
+        ${ind ? '' : `<button type="button" data-dltitle="1" title="メモ群（このメモと字下げした下のメモ）にタイトルを付ける">${DL_IC.gtitle}</button>`}
         <button type="button" data-dldate="1" title="日付を変える">${DL_IC.cal}</button>
+        ${dlHasFT(e.kind) ? `<button type="button" data-dlquote="1" title="このメッセージを引用して書く">${DL_IC.quote}</button>` : ''}
         <button type="button" data-dlatt="1" title="画像・ファイルを足す">${DL_IC.clip}</button>
         ${DL_NOTE ? '' : `<button type="button" data-dledit="1" title="メモを直す">${DL_IC.edit}</button>`}
         <button type="button" class="del" data-dldel="1" title="この記録を消す">${DL_IC.trash}</button>
       </span><button type="button" class="dl-pin${e.pin ? ' on' : ''}" data-dlpin="1" title="${e.pin ? 'ピンを外す' : 'ピンを付ける（大事なメモ）'}">${DL_IC.pin}</button>${e.tag ? `<span class="dl-tag" data-dltag="1" title="クリックでタグを直す">${esc(e.tag)}</span>`
                : `<span class="dl-tag dl-tadd" data-dltag="1" title="タグを付ける">${DL_IC.tag}タグ</span>`}${dlMemoBtn(e)}${bd}<button type="button" class="dl-more" data-dlmore="1" title="操作（削除・字下げ・日付など）">⋯</button></div>
+    ${e.gtitle && !ind ? `<div class="dl-gt" data-dltitle="1" title="クリックでタイトルを直す">${esc(e.gtitle)}</div>` : ''}
     ${dlHasFT(e.kind) ? dlFromTo(e, b) : ''}
     ${dlTextBox(e)}
     <div class="dl-files">${(e.files || []).map(f => dlFileHTML(f, `data-dlrm="${f.id}"`)).join('')}</div>
@@ -12052,6 +12138,13 @@ function dlWireComposer(root, b0, redraw, dayFn){
     const ne = {id:uid(), at:(d0 ? d0 + dlNow().slice(10) : dlNow()), ord:0, kind:dlNewKind, text, files:dlPend, ...(tag ? {tag} : {})};
     ne.ord = dlOrdFor(ne.at);
     dlFTDefault(ne, b);
+    /* 引用して返信したときは、From は M、To はもとのメッセージの相手 */
+    if(dlReply && dlHasFT(ne.kind)){
+      ne.from = 'M'; ne.to = dlReply.to.slice();
+      const L = dlContacts(b); ne.to.forEach(n => { if(!L.includes(n)) L.push(n); });
+      dlFixTo(ne, b);
+    }
+    dlReply = null;
     (b.dlog ||= []).push(ne);
     dlPend = []; dlNewKind = ''; dlNewTag = tag ? '' : dlNewTag;
     save(); redraw(true, '');
@@ -12181,14 +12274,30 @@ function dlWireList(root, redraw){
       row.classList.toggle('dlact');
     });
     /* スマホ：⋯ で、削除・字下げ・日付などのボタンを出す */
+    row.querySelectorAll('[data-dltitle]').forEach(x => x.onclick = () => {
+      const {e} = get(); if(!e) return;
+      const v = prompt('メモ群のタイトル（空にすると消えます）', e.gtitle || '');
+      if(v === null) return;
+      if(v.trim()) e.gtitle = v.trim(); else delete e.gtitle;
+      save(); redraw();
+    });
+    const qb = row.querySelector('[data-dlquote]');
+    if(qb) qb.onclick = () => { const {b, e} = get(); if(e) dlQuoteReply(row, e, b); };
     const mr = row.querySelector('[data-dlmore]');
     if(mr) mr.onclick = ev => { ev.stopPropagation(); row.classList.toggle('dlact'); };
     const mb = row.querySelector('[data-dlmemo]');
     if(mb) mb.onclick = () => { const {e} = get(); if(e) dlMemoGo(e); };
     row.querySelectorAll('[data-dlind]').forEach(x => x.onclick = () => {
-      const {e} = get(); if(!e) return;
+      const {b, e} = get(); if(!e) return;
       const n = Math.max(0, Math.min(3, (e.ind || 0) + (+x.dataset.dlind)));
       if(n) e.ind = n; else delete e.ind;
+      if(n){
+        /* 字下げしたら、いちばん上の親メモにつなぎ、親メモのタグを付ける */
+        delete e.root;
+        const r = dlRootOf(e, b);
+        if(r !== e){ e.root = r.id; if(r.tag) e.tag = r.tag; }
+        delete e.gtitle;
+      } else delete e.root;
       save(); redraw();
     });
     row.querySelector('[data-dlpin]').onclick = () => {
@@ -12203,7 +12312,18 @@ function dlWireList(root, redraw){
       const inp = document.createElement('input');
       inp.className = 'dl-tagin'; inp.setAttribute('list', 'dlTagList'); inp.value = e.tag || ''; inp.placeholder = 'タグ';
       tagEl.replaceWith(inp); inp.focus(); inp.select();
-      const fin = ok => { if(ok){ const v = inp.value.trim(); if(v) e.tag = v; else delete e.tag; save(); } redraw(); };
+      const fin = ok => {
+        if(ok){
+          const old = e.tag || '', v = inp.value.trim();
+          if(v) e.tag = v; else delete e.tag;
+          /* 親メモのタグを変えたら、同じタグだった子メモも合わせる */
+          if(!(e.ind > 0)) (b.dlog || []).forEach(x => {
+            if(x !== e && x.ind > 0 && dlRootOf(x, b) === e && (x.tag || '') === old){ if(v) x.tag = v; else delete x.tag; }
+          });
+          save();
+        }
+        redraw();
+      };
       inp.onblur = () => fin(true);
       inp.onkeydown = k => { if(k.key === 'Enter'){ inp.onblur = null; fin(true); } if(k.key === 'Escape'){ inp.onblur = null; fin(false); } };
     };
@@ -12392,7 +12512,7 @@ function dlDrawPanel(scrollEnd, keepText){
   let rows = (b.dlog || []).map(e => ({e, b}));
   if(dlTagF) rows = rows.filter(r => (r.e.tag || '') === dlTagF);
   if(S.dlogPinOnly) rows = rows.filter(r => r.e.pin);
-  if(dlPQ.trim()) rows = rows.filter(r => dlMatch(r, dlPQ));
+  if(dlPQ.trim()) rows = dlSearchRows(rows, dlPQ);
   const pmarks = {};
   rows.forEach(r => { const d = (r.e.at || '').slice(0, 10); if(d) pmarks[d] = (pmarks[d] || 0) + 1; });
   Object.keys(pmarks).forEach(d => pmarks[d] += ' 件');
@@ -12615,7 +12735,7 @@ function renderDlogPage(){
   if(dlTagF && !ptags.includes(dlTagF)) dlTagF = '';
   if(dlTagF) rows = rows.filter(r => (r.e.tag || '') === dlTagF);
   if(S.dlogPinOnly) rows = rows.filter(r => r.e.pin);
-  if(dlQ.trim()) rows = rows.filter(r => dlMatch(r, dlQ));
+  if(dlQ.trim()) rows = dlSearchRows(rows, dlQ);
   /* 左のカレンダー：記録がある日に印。日を押すとその日だけ表示 */
   const marks = {};
   rows.forEach(r => { const d = (r.e.at || '').slice(0, 10); if(d) marks[d] = (marks[d] || 0) + 1; });
@@ -12719,7 +12839,7 @@ let dlQ = '', dlPQ = '';
 function dlMatch(r, q){
   const words = String(q || '').toLowerCase().split(/[\s\u3000]+/).filter(Boolean);
   if(!words.length) return true;
-  const e = r.e, hay = [e.text, e.tag, e.from, ...(Array.isArray(e.to) ? e.to : []), dlKind(e.kind).lb, r.b.name,
+  const e = r.e, hay = [e.text, e.gtitle, e.tag, e.from, ...(Array.isArray(e.to) ? e.to : []), dlKind(e.kind).lb, r.b.name,
     ...(e.files || []).map(f => f.name)].join(' ').toLowerCase();
   return words.every(w => hay.includes(w));
 }
@@ -13055,14 +13175,16 @@ function dlsRec(e, bid){
   const r = {id:e.id, bid, at:e.at || '', ord:typeof e.ord === 'number' ? e.ord : null, kind:e.kind || '',
     text:DL_NOTE ? (e.text || '') : dlsNoUrl(e.text), tag:e.tag || '', pin:!!e.pin, ind:e.ind || 0, from:e.from || '', to:Array.isArray(e.to) ? e.to : (e.to ? [e.to] : [])};
   if(e.src) r.src = e.src;
-  if(e.memo) r.memo = e.memo;           // Notes の Memo & Note のメモとのつながり
+  if(e.memo) r.memo = e.memo;
+  if(e.gtitle) r.gtitle = e.gtitle;       // メモ群のタイトル
+  if(e.root) r.root = e.root;             // 字下げした子メモの親           // Notes の Memo & Note のメモとのつながり
   return r;
 }
 /* 届いた1件の指紋（手元の指紋と同じ作り方。Tasks は URL を抜いた本文で比べる） */
 const dlsRemoteHash = rr => dlsHash({bid:rr.bid, at:rr.at || '', ord:typeof rr.ord === 'number' ? rr.ord : null, kind:rr.kind || '',
-  text:DL_NOTE ? (rr.text || '') : dlsNoUrl(rr.text), tag:rr.tag || '', pin:!!rr.pin, ind:rr.ind || 0, memo:rr.memo || '', from:rr.from || '', to:rr.to || []});
+  text:DL_NOTE ? (rr.text || '') : dlsNoUrl(rr.text), tag:rr.tag || '', pin:!!rr.pin, ind:rr.ind || 0, memo:rr.memo || '', gtitle:rr.gtitle || '', root:rr.root || '', from:rr.from || '', to:rr.to || []});
 function dlsHash(r){
-  const s = JSON.stringify([r.bid, r.at, r.ord, r.kind, r.text, r.tag, r.pin, r.from, r.to].concat(r.ind ? [r.ind] : [], r.memo ? ['m:' + r.memo] : []));
+  const s = JSON.stringify([r.bid, r.at, r.ord, r.kind, r.text, r.tag, r.pin, r.from, r.to].concat(r.ind ? [r.ind] : [], r.memo ? ['m:' + r.memo] : [], r.gtitle ? ['t:' + r.gtitle] : [], r.root ? ['r:' + r.root] : []));
   let h = 5381; for(let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
   return h.toString(36) + '.' + s.length;
 }
@@ -13105,6 +13227,8 @@ function dlsApply(r, rboards){
   if(r.pin) e.pin = true; else delete e.pin;
   if(r.ind) e.ind = r.ind; else delete e.ind;
   if(r.memo) e.memo = r.memo; else delete e.memo;
+  if(r.gtitle) e.gtitle = r.gtitle; else delete e.gtitle;
+  if(r.root) e.root = r.root; else delete e.root;
   if(dlHasFT(r.kind) || r.from || (r.to && r.to.length)){ e.from = r.from || 'M'; e.to = r.to || []; }
   else { delete e.from; delete e.to; }
   if(r.src) e.src = r.src;
