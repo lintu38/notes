@@ -436,6 +436,8 @@
   .covitem{display:block;padding:0;border:0;background:none;cursor:pointer;aspect-ratio:2/3;
     border-radius:4px;overflow:hidden;box-shadow:0 2px 8px rgba(60,40,30,.16);transition:transform .15s}
   .covitem:hover{transform:translateY(-2px)}
+  .covitem.drag{opacity:.4}
+  .seg button.shdrop{outline:2px dashed var(--accent,#b5677d);outline-offset:-2px;background:var(--accent-soft,#f6e9ec)}
   .covitem img{width:100%;height:100%;object-fit:cover;display:block}
   .covttl{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
     width:100%;height:100%;box-sizing:border-box;padding:10px;background:#efe6dc;color:#5a4636;
@@ -5120,6 +5122,35 @@ function wireShelfTools(v){
     if(sb) view = {type:'board', id:sb.id};
     render();
   });
+  /* 本をドラッグして、NOW の「読んでる」「気になる」…の上に落とすと、その棚へ移る */
+  v.querySelectorAll('[data-shcov]').forEach(el => {
+    el.draggable = true;
+    el.ondragstart = ev => {
+      dragId = el.dataset.shcov;
+      ev.dataTransfer.effectAllowed = 'move';
+      ev.dataTransfer.setData('text/plain', dragId);
+      setTimeout(() => el.classList.add('drag'), 0);
+    };
+    el.ondragend = () => {
+      dragId = null;
+      document.querySelectorAll('.drag,.shdrop').forEach(e => e.classList.remove('drag', 'shdrop'));
+    };
+  });
+  v.querySelectorAll('[data-shtab]').forEach(el => {
+    const isBook = () => { const f = dragId && findCard(dragId); return !!(f && f.card.type === 'book'); };
+    el.ondragover = ev => { if(!isBook()) return; ev.preventDefault(); ev.dataTransfer.dropEffect = 'move'; el.classList.add('shdrop'); };
+    el.ondragleave = () => el.classList.remove('shdrop');
+    el.ondrop = ev => {
+      if(!isBook()) return;
+      ev.preventDefault(); ev.stopPropagation();
+      el.classList.remove('shdrop');
+      const f = findCard(dragId); dragId = null;
+      const B = (f.card.book ||= {});
+      if(B.shelf === el.dataset.shtab) return;
+      B.shelf = el.dataset.shtab;
+      touch(f.card); save(); render();
+    };
+  });
   const pk = document.getElementById('shPick');
   if(pk) pk.onclick = () => pickBookMenu();
   const shp = document.getElementById('shAdd');
@@ -5835,7 +5866,11 @@ function wireCards(root){
       touch(k); save();
       if(f === 'cover') render();
     };
-    el.onchange = () => { set(); refreshDatalists(); };
+    el.onchange = () => {
+      set(); refreshDatalists();
+      /* 日付を入れ終えたら、その本のページの Reading Log のメモにもすぐ出す */
+      if(['met', 'buy', 'startAt', 'doneAt', 'media'].includes(f)){ try{ if(dlsReadMemos()) render(); }catch(e){} }
+    };
     if(el.tagName === 'INPUT' && el.type === 'text') el.oninput = set;
   });
   root.querySelectorAll('[data-bck]').forEach(el => el.onchange = () => {
@@ -10079,7 +10114,7 @@ function tlItems(){
   if(sh){
     const all = sh.cols.flatMap(c => c.cards);
     const books = new Set(all.filter(k => k.type === 'book').map(k => k.id));
-    all.forEach(k => { if(k.parent && books.has(k.parent)) out.push(k); });
+    all.forEach(k => { if(k.parent && books.has(k.parent) && !(k.read && k.read.auto)) out.push(k); });
   }
   return out.map(k => ({k, key: tlDateOf(k) + ' ' + (tlTimeOf(k) || '')}))
     .sort((a, b) => b.key.localeCompare(a.key)).map(x => x.k);
@@ -13412,6 +13447,7 @@ function dlsReadMemos(){
   const out = {};
   S.boards.forEach(bd => (bd.cols || []).forEach(c => (c.cards || []).forEach(k => {
     if(k.type !== 'read' || !k.parent || !k.read || !(k.read.viaRead || Array.isArray(k.read.acts))) return;
+    if(k.read.auto) return;               /* Bookshelf の日付から自動で作った Reading Log は、bk- の記録で足りる */
     const bk = (findCard(k.parent) || {}).card; if(!bk) return;
     const B = bk.book || {};
     const title = (B.title || plain(bk.title || '') || '').replace(/<[^>]*>/g, '').trim() || '（タイトルなし）';
@@ -13420,6 +13456,7 @@ function dlsReadMemos(){
   })));
   /* Bookshelf の本：出会った日・購入日・初読開始（チェック）に日付が入ったら、その日の Daily Log に記録する */
   const FULL = /^\d{4}-\d{2}-\d{2}$/;
+  const autos = {};                       /* Reading Log に自動で作るメモ */
   S.boards.forEach(bd => (bd.cols || []).forEach(c => (c.cards || []).forEach(k => {
     const B = k.book;
     if(k.type !== 'book' || !B || !B.registered) return;
@@ -13445,6 +13482,10 @@ function dlsReadMemos(){
       const SHORT = {buy:'購入。', start:'読み始めた。', done:'読み終えた。'};
       const text = FULLT[keys[0]] + keys.slice(1).map(x => SHORT[x]).join('');
       out['bk-' + keys[0] + '-' + k.id] = {at:day + 'T00:0' + ORDER.indexOf(keys[0]), text, src:'book'};
+      const RSHORT = {met:'出会った。' + (mediaHas(B, 'Kindle Sample') ? '（Kindle Sampleをダウンロード）' : ''), buy:'購入。', start:'読み始めた。', done:'読み終えた。'};
+      const RFLAG = {buy:'購入した', start:'読み始めた', done:'読了！'};
+      autos['ar-' + keys[0] + '-' + k.id] = {bk:k, col:c, day, ord:ORDER.indexOf(keys[0]),
+        memo:keys.map(x => RSHORT[x]).join(''), flags:keys.map(x => RFLAG[x]).filter(Boolean)};
     });
   })));
   const rd = (DLS.rd ||= {});
@@ -13463,8 +13504,33 @@ function dlsReadMemos(){
     delete rd[id]; ch = true;             // 元のメモを消したら、Daily Log からも消す
     const cur = dlsFindLocal(id); if(cur) cur.b.dlog.splice(cur.i, 1);
   });
+  /* Reading Log：同じ内容を、その本の Reading Log のメモとしても置く */
+  let cardCh = false;
+  Object.entries(autos).forEach(([id, v]) => {
+    const sig = v.day + '|' + v.memo + '|' + v.flags.join(',');
+    const cur = findCard(id);
+    if(cur){
+      if(cur.card.read && cur.card.read.autoSig !== sig){      /* 元の日付が変わったときだけ書き直す */
+        Object.assign(cur.card.read, {date:v.day, memo:esc(v.memo), flags:[...v.flags], autoSig:sig});
+        cur.card.ctime = '00:0' + v.ord; cur.card.updated = today(); cardCh = true;
+      }
+      return;
+    }
+    const k = {id, type:'read', title:'', body:'', color:'', start:'', due:'',
+      repeat:{unit:'', n:1, days:[]}, done:false, subs:[], tags:[],
+      read:{author:'', source:'', media:'', memo:esc(v.memo), card:false, registered:true, date:v.day,
+        viaRead:true, auto:true, autoSig:sig, acts:[], p1:'', p2:'', flags:[...v.flags],
+        no: Math.max(0, ...allCards().map(x => +((x.card.read && x.card.read.no) || 0))) + 1},
+      parent:v.bk.id, ctime:'00:0' + v.ord, created:today(), updated:today()};
+    v.col.cards.unshift(k); cardCh = true;
+  });
+  S.boards.forEach(bd => (bd.cols || []).forEach(c => {          /* 日付を消したら、自動のメモも消す */
+    const keep = (c.cards || []).filter(k => !(k.type === 'read' && k.read && k.read.auto && !autos[k.id]));
+    if(keep.length !== (c.cards || []).length){ c.cards = keep; cardCh = true; }
+  }));
+  if(cardCh) save();
   if(ch){ try{ localStorage.setItem(DLS_DATAK, JSON.stringify(DLS)); }catch(e){} }
-  return ch;
+  return ch || cardCh;
 }
 
 /* ---- 合わせる：取ってくる → 手元の変更を足す → 必要なら送る ---- */
@@ -13668,6 +13734,8 @@ function render(){
     shelfCtxPrev = sc;
   }
   try{ lnkPrune(); }catch(e){}
+  /* Bookshelf の日付から作る Reading Log・Daily Log のメモを、表示のたびに合わせる（同期の設定がなくても） */
+  try{ if(DL_NOTE) dlsReadMemos(); }catch(e){}
   /* ページを移ったら、スマホのカレンダーは1週間・Pin Memo は閉じた状態に戻す */
   const vk = view.type + '|' + (view.id || '');
   if(vk !== tlLastView){ tlCalOpen = false; tlPinOpen = false; tlLastView = vk; tlFilt = ''; }
