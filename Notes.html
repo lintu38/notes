@@ -11638,6 +11638,7 @@ const DL_IC = {
   quote:'<svg viewBox="0 0 16 16"><path d="M6.4 3.4 2.6 7l3.8 3.6"/><path d="M2.8 7h6.4a4 4 0 0 1 4 4v1.6"/></svg>',
   fax:'<svg viewBox="0 0 16 16"><path d="M4.4 6V2.2h5.4l1.8 1.8V6"/><rect x="2" y="6" width="12" height="6.4" rx="1.2"/><path d="M4.6 12.4v1.8h6.8v-1.8M4.6 9.2h4.4"/><circle cx="11.6" cy="8.6" r=".6"/></svg>',
   gtitle:'<svg viewBox="0 0 16 16"><path d="M3 3.4h10M8 3.4v9.4"/></svg>',
+  sns:'<svg viewBox="0 0 16 16"><circle cx="4" cy="8" r="2"/><circle cx="12" cy="3.8" r="2"/><circle cx="12" cy="12.2" r="2"/><path d="M5.8 7.1l4.4-2.3M5.8 8.9l4.4 2.3"/></svg>',
   chev:'<svg viewBox="0 0 12 12"><path d="M3 4.6l3 3 3-3"/></svg>',
   log:'<svg viewBox="0 0 16 16"><rect x="2.2" y="3.4" width="11.6" height="10.4" rx="1.6"/><path d="M2.2 6.6h11.6M5.4 1.9v2.6M10.6 1.9v2.6"/><path d="M5.6 10.1l1.6 1.6 3.2-3.2"/></svg>',
   sort:'<svg viewBox="0 0 16 16"><path d="M5 2.8v10.4M2.6 10.8 5 13.2l2.4-2.4M11 13.2V2.8M8.6 5.2 11 2.8l2.4 2.4"/></svg>'
@@ -11661,6 +11662,7 @@ const DL_KINDS = [
   {k:'tv',       lb:'TV',       ic:'tv',     c:'#7a8ca8'},
   {k:'reading',  lb:'Book',     ic:'bookck', c:'#c8443c'},
   {k:'people',   lb:'People',   ic:'people', c:'#b6809a'},
+  {k:'sns',      lb:'SNS',      ic:'sns',    c:'#c27a9e'},
   {k:'tools',    lb:'Tools',    ic:'phone',  c:'#c2a54e'},
   {k:'mori',     lb:'Mori',     ic:'mori',   c:'#8a7a64'},
   {k:'',         lb:'Other',    ic:'',       c:'#b9aea9'}
@@ -11670,7 +11672,18 @@ DL_KINDS.forEach((K, i) => K.grp = i < DL_KINDS.findIndex(x => x.k === 'private'
 /* どこのメモか：Tasks の Board はシアン、Notes はくすみピンクの小さな● */
 const dlSrcDot = b => b && b.id === 'dlnotes'
   ? '<span class="dl-src notes" title="Notes のメモ">●</span>' : '<span class="dl-src tasks" title="Tasks の Board のメモ">●</span>';
-const dlHasFT = k => k === 'chatwork' || k === 'gmail' || k === 'line' || k === 'fax';
+const dlHasFT = k => k === 'chatwork' || k === 'gmail' || k === 'line' || k === 'fax' || k === 'sns';
+/* メニューの並び。LINE は Works と Others の両方に出す（Others では SNS の下） */
+const DL_BOTH = {line:'sns'};
+function dlKindsOf(g){
+  const L = DL_KINDS.filter(K => K.grp === g);
+  if(g === 'Others') Object.entries(DL_BOTH).forEach(([k, after]) => {
+    const K = DL_KINDS.find(x => x.k === k), i = L.findIndex(x => x.k === after);
+    if(K && !L.includes(K)) L.splice(i < 0 ? L.length - 1 : i + 1, 0, K);
+  });
+  return L;
+}
+const dlInGrp = (k, g) => dlKindsOf(g).some(K => K.k === (k || ''));
 const dlKind = k => DL_KINDS.find(x => x.k === (k || '')) || DL_KINDS[DL_KINDS.length - 1];
 const dlKBtn = (k, attrs, tag) => {
   const K = dlKind(k), t = tag || 'button';
@@ -12189,7 +12202,8 @@ function dlKindMenu(anchor, cur, cb){
   const r = anchor.getBoundingClientRect();
   const m = document.createElement('div');
   m.className = 'dl-menu';
-  m.innerHTML = DL_KINDS.map((K, i) => (i === 0 || DL_KINDS[i - 1].grp !== K.grp ? `<div class="dl-mh">${K.grp}</div>` : '') + `<button type="button" data-k="${K.k}" class="${(cur || '') === K.k ? 'on' : ''}">${dlKBtn(K.k, '', 'span')}${esc(K.lb)}</button>`).join('');
+  m.innerHTML = ['Works', 'Others'].map(g => `<div class="dl-mh">${g}</div>` + dlKindsOf(g).map(K =>
+    `<button type="button" data-k="${K.k}" class="${(cur || '') === K.k ? 'on' : ''}">${dlKBtn(K.k, '', 'span')}${esc(K.lb)}</button>`).join('')).join('');
   document.body.appendChild(m);
   const mw = m.offsetWidth, mh = m.offsetHeight;
   m.style.left = Math.max(8, Math.min(innerWidth - mw - 8, r.left - 6)) + 'px';
@@ -12729,7 +12743,7 @@ function renderDlogPage(){
   dlBoards().forEach(b => (b.dlog || []).forEach(e => rows.push({e, b})));
   if(dlFilter) rows = rows.filter(r => r.b.id === dlFilter);
   const kf = S.dlogKind || 'all';
-  if(kf.startsWith('grp:')) rows = rows.filter(r => dlKind(r.e.kind).grp === kf.slice(4));   // Works / Others まとめて
+  if(kf.startsWith('grp:')) rows = rows.filter(r => dlInGrp(r.e.kind, kf.slice(4)));   // Works / Others まとめて
   else if(kf !== 'all') rows = rows.filter(r => (r.e.kind || '') === kf);
   const ptags = [...new Set(rows.map(r => (r.e.tag || '').trim()).filter(Boolean))];
   if(dlTagF && !ptags.includes(dlTagF)) dlTagF = '';
@@ -12759,7 +12773,7 @@ function renderDlogPage(){
         `<option value="${b.id}" ${dlFilter === b.id ? 'selected' : ''}>${esc(b.name)}</option>`).join('')}</select>
 
       ${dlTagSel(ptags)}${dlTagEdBtn(ptags)}
-      <select id="dlKf"><option value="all">すべての種類</option>${['Works', 'Others'].map(g => `<optgroup label="${g}"><option value="grp:${g}" ${kf === 'grp:' + g ? 'selected' : ''}>${g}（すべて）</option>${DL_KINDS.filter(K => K.grp === g).map(K =>
+      <select id="dlKf"><option value="all">すべての種類</option>${['Works', 'Others'].map(g => `<optgroup label="${g}"><option value="grp:${g}" ${kf === 'grp:' + g ? 'selected' : ''}>${g}（すべて）</option>${dlKindsOf(g).map(K =>
         `<option value="${K.k}" ${kf === K.k ? 'selected' : ''}>${esc(K.lb)}</option>`).join('')}</optgroup>`).join('')}</select>
       ${dlPinBtn()}
       ${dlOrdBtn()}
