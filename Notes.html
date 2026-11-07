@@ -2716,6 +2716,33 @@
   button.dl-wx.on{background:#fbf4ea;color:#b98a3c}
   button.dl-wx.on.wx-rain, button.dl-wx.on.wx-snow{background:#eef3fb;color:#5b86c9}
   button.dl-wx.on.wx-cloud, button.dl-wx.on.wx-wind{background:#f0f2f4;color:#7e8892}
+  /* リアクションのグラフ */
+  .dl-rgb svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;margin-right:3px;vertical-align:-2px}
+  .dl-rg-ov{position:fixed;inset:0;z-index:9000;background:rgba(60,50,52,.28);display:flex;align-items:center;justify-content:center;padding:16px}
+  .dl-rg{background:#fff;border-radius:14px;width:min(580px,100%);max-height:84vh;display:flex;flex-direction:column;box-shadow:0 10px 40px rgba(0,0,0,.2);font-family:'Montserrat',sans-serif}
+  .dl-rg-h{display:flex;align-items:baseline;gap:10px;padding:14px 18px 6px}
+  .dl-rg-h b{font-size:15px;font-weight:600;color:var(--brown,#6b5a50);letter-spacing:.04em}
+  .dl-rg-h span{font-size:11.5px;color:#a7a0a2}
+  .dl-rg-x{margin-left:auto;font-size:20px;line-height:1;color:#a7a0a2;padding:2px 8px;border-radius:7px}
+  .dl-rg-x:hover{background:#f1ecea;color:#6e6668}
+  .dl-rg-lg{display:flex;flex-wrap:wrap;gap:4px 14px;padding:4px 18px 10px;border-bottom:1px solid var(--dl-line,#eee7e4);font-size:11px}
+  .dl-rg-lg span{display:inline-flex;align-items:center;gap:4px;color:var(--rc)}
+  .dl-rg-lg i{font-style:normal;color:#8d8587}
+  .dl-rg-b{overflow:auto;padding:4px 18px 16px}
+  .dl-rgrow{display:flex;align-items:flex-start;gap:12px;padding:7px 0;border-bottom:1px solid var(--dl-line,#f1ecea)}
+  .dl-rgd{flex:0 0 78px;font-size:12px;color:#6e6668;padding-top:2px}
+  .dl-rgd span{margin-left:2px;color:#a7a0a2}
+  .dl-rgd .wd-sat{color:#5f7d99}.dl-rgd .wd-sun{color:#8e3a4f}
+  .dl-rgbar{flex:1;min-width:0;display:flex;flex-wrap:wrap;gap:2px 3px}
+  .dl-rgn{flex:0 0 26px;text-align:right;font-size:12px;color:#8d8587;padding-top:2px}
+  .dl-rgi,.dl-rg-lg span{color:var(--rc)}
+  .dl-rg svg{width:19px;height:19px;fill:currentColor;stroke:currentColor;stroke-width:.6;stroke-linecap:round;stroke-linejoin:round}
+  .dl-rg-lg svg{width:15px;height:15px}
+  .dl-rg .in{fill:none;stroke:#fff}
+  .dl-rg circle.in{fill:#fff}
+  .dl-rg .inf{fill:#fff;stroke:#fff}
+  .dl-rg .ck{fill:#ff8fa3;stroke:none}
+  .dl-rg [data-k="moved"] svg > path:not(.in){fill:url(#dlRb);stroke:url(#dlRb)}
   /* 日付の下：リアクションの数 */
   .dl-rsum{display:flex;justify-content:center;flex-wrap:wrap;gap:4px 14px;margin:-8px 0 14px 10px;font:600 11.5px 'Montserrat',sans-serif}
   .dl-rsum span{display:inline-flex;align-items:center;gap:3px;color:var(--rc,#b9afa5)}
@@ -12053,7 +12080,7 @@ const DL_REACTS = [
    ic:'<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13.8S2.2 10.2 2.2 6.3A3.1 3.1 0 0 1 8 4.8a3.1 3.1 0 0 1 5.8 1.5C13.8 10.2 8 13.8 8 13.8z"/></svg>'},
   {k:'glad', en:'Happy!',  lb:'嬉しい', c:'#e3ac2c',
    ic:'<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.4"/><path class="in" d="M4.9 4.9l1.6 1-1.6 1M11.1 4.9l-1.6 1 1.6 1" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/><path class="in" d="M5.2 9.5h5.6a2.8 2.6 0 0 1-5.6 0z" stroke-width="1" stroke-linejoin="round"/><ellipse class="ck" cx="3.6" cy="8.9" rx="1" ry=".7"/><ellipse class="ck" cx="12.4" cy="8.9" rx="1" ry=".7"/></svg>'},
-  {k:'relief', en:'So glad!', lb:'いいね！/よかった', c:'#5aa86a',
+  {k:'relief', en:'So glad!', lb:'いいね！or よかった', c:'#5aa86a',
    ic:'<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 8C5.2 6.2 5.2 2.6 7.2 2.6c.5 0 .8.4.8.8 0-.4.3-.8.8-.8 2 0 2 3.6-.8 5.4z"/><path d="M8 8C5.2 6.2 5.2 2.6 7.2 2.6c.5 0 .8.4.8.8 0-.4.3-.8.8-.8 2 0 2 3.6-.8 5.4z" transform="rotate(90 8 8)"/><path d="M8 8C5.2 6.2 5.2 2.6 7.2 2.6c.5 0 .8.4.8.8 0-.4.3-.8.8-.8 2 0 2 3.6-.8 5.4z" transform="rotate(180 8 8)"/><path d="M8 8C5.2 6.2 5.2 2.6 7.2 2.6c.5 0 .8.4.8.8 0-.4.3-.8.8-.8 2 0 2 3.6-.8 5.4z" transform="rotate(270 8 8)"/><path d="M8 8c0 3 1 5 2.8 6.2"/></svg>'}
 ];
 /* 押したときの音（ファイルは使わず、その場で鳴らす）と、大きく一瞬出る文字 */
@@ -12328,6 +12355,40 @@ document.addEventListener('click', ev => {
   if(!cur.length) delete dm.weather[d];
   dlWxStamp(d); save(); dlWxPaint(d); dlWxSoon();
 });
+/* ---- リアクション（グッジョブなど）の数を、日ごとの横向きの積み上げグラフで見る ---- */
+function dlReactChart(){
+  const by = {};
+  dlBoards().forEach(b => (b.dlog || []).forEach(e => {
+    const d = (e.at || '').slice(0, 10);
+    if(!d || !(e.react || []).length) return;
+    e.react.forEach(x => { const k = String(x).replace(/2$/, ''); const o = (by[d] ||= {}); o[k] = (o[k] || 0) + 1; });
+  }));
+  const days = Object.keys(by).sort().reverse();
+  const tot = {};
+  days.forEach(d => Object.entries(by[d]).forEach(([k, n]) => { tot[k] = (tot[k] || 0) + n; }));
+  const thisYear = new Date().getFullYear();
+  const rowsHTML = days.map(d => {
+    const dt = parse(d), wd = dt.getDay();
+    const y = dt.getFullYear() !== thisYear ? dt.getFullYear() + '/' : '';
+    const all = Object.values(by[d]).reduce((a, b) => a + b, 0);
+    return `<div class="dl-rgrow"><div class="dl-rgd">${y}${dt.getMonth() + 1}/${dt.getDate()}<span class="${wd === 0 ? 'wd-sun' : wd === 6 ? 'wd-sat' : ''}">(${DL_WD[wd]})</span></div>`
+      + `<div class="dl-rgbar">${DL_REACTS.map(R => `<span class="dl-rgi" data-k="${R.k}" style="--rc:${R.c}" title="${esc(R.lb)}">${R.ic}</span>`.repeat(by[d][R.k] || 0)).join('')}</div>`
+      + `<div class="dl-rgn">${all}</div></div>`;
+  }).join('');
+  document.querySelectorAll('.dl-rg-ov').forEach(n => n.remove());
+  const ov = document.createElement('div');
+  ov.className = 'dl-rg-ov';
+  ov.innerHTML = `<div class="dl-rg" role="dialog" aria-label="リアクションのグラフ">
+    <div class="dl-rg-h"><b>Reactions</b><span>日ごとの数</span><button type="button" class="dl-rg-x" aria-label="閉じる">×</button></div>
+    <div class="dl-rg-lg">${DL_REACTS.map(R => `<span data-k="${R.k}" style="--rc:${R.c}">${R.ic}${esc(R.lb)}<i>${tot[R.k] || 0}</i></span>`).join('')}</div>
+    <div class="dl-rg-b">${days.length ? rowsHTML : '<div class="dl-empty">まだリアクションはありません。</div>'}</div></div>`;
+  document.body.appendChild(ov);
+  const close = () => { ov.remove(); document.removeEventListener('keydown', onKey); };
+  const onKey = e => { if(e.key === 'Escape') close(); };
+  document.addEventListener('keydown', onKey);
+  ov.onclick = e => { if(e.target === ov) close(); };
+  ov.querySelector('.dl-rg-x').onclick = close;
+}
 /* その日の記録についた リアクション（グッジョブなど）の数を、日付の下に並べる */
 function dlReactSum(rows, d){
   const n = {};
@@ -13055,6 +13116,7 @@ function renderDlogPage(){
       <select id="dlKf"><option value="all">すべての種類</option>${['Works', 'Others'].map(g => `<optgroup label="${g}"><option value="grp:${g}" ${kf === 'grp:' + g ? 'selected' : ''}>${g}（すべて）</option>${dlKindsOf(g).map(K =>
         `<option value="${K.k}" ${kf === K.k ? 'selected' : ''}>${esc(K.lb)}</option>`).join('')}</optgroup>`).join('')}</select>
       ${dlPinBtn()}
+      <button type="button" class="dl-ord dl-rgb" id="dlRg" title="リアクションの数を、日ごとのグラフで見る"><svg viewBox="0 0 16 16"><path d="M2.6 13.4h10.8M4.4 13.4V8.4M8 13.4V3.6M11.6 13.4V6.4"/></svg>Reactions</button>
       ${dlOrdBtn()}
       <span class="cnt">${rows.length} 件${dlQ.trim() ? '（すべての日から検索）' : ''}</span>
       <span class="sp" style="flex:1"></span>${typeof dlsStateHTML === 'function' ? dlsStateHTML() : ''}
@@ -13087,6 +13149,7 @@ function renderDlogPage(){
   const te = v.querySelector('#dlTagEd');
   if(te) te.onclick = () => dlTagManager(te, dlFilter ? [dlBoard(dlFilter)] : dlBoards(), () => { renderDlogPage(); if(dlOpenId) dlDrawPanel(false); });
   v.querySelector('#dlPinF').onclick = () => { S.dlogPinOnly = !S.dlogPinOnly; save(); renderDlogPage(); if(dlOpenId) dlDrawPanel(false); };
+  v.querySelector('#dlRg').onclick = () => dlReactChart();
   v.querySelector('#dlOrd').onclick = () => { S.dlogNewest = !S.dlogNewest; save(); renderDlogPage(); if(dlOpenId) dlDrawPanel(true); };
   document.addEventListener('click', dlsStateClick);
   dlWireList(v, () => { renderDlogPage(); if(dlOpenId) dlDrawPanel(false); });
