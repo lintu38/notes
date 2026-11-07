@@ -2882,6 +2882,7 @@
   /* Notes：画像・ファイルは Tasks だけ（共有しない） */
   body.dl-noteapp .dl-att,body.dl-noteapp [data-dlatt],body.dl-noteapp .dl-rm{display:none!important}
   /* 共有（Tasks ⇄ Notes）の状態ボタンと設定 */
+  .dlnote{margin-left:7px;font-size:9.5px;font-weight:400;letter-spacing:.02em;color:#b3a9ab;white-space:nowrap}
   .dl-share{display:inline-flex;align-items:center;gap:5px;font:11px var(--fdisp);color:var(--muted);padding:4px 9px;border-radius:8px;border:1px solid var(--line);background:#fff}
   .dl-share svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
   .dl-share.on{color:#5f7f6a}
@@ -8764,12 +8765,12 @@ function bookSection(k, fixed){
       <input data-bf="trans|${k.id}" value="${esc(B.trans || '')}" placeholder="（いれば）">
       <label>出版社</label>
       <input data-bf="pub|${k.id}" value="${esc(B.pub || '')}" placeholder="例）CCCメディアハウス">
-      <label>出会った日</label>
+      <label>出会った日<small class="dlnote">Daily Logに記録</small></label>
       <div class="brows"><input type="text" data-bf="met|${k.id}" value="${esc(B.met || '')}"
         placeholder="2023 / 2023-12 / 2023-12-27" autocapitalize="off" autocorrect="off" spellcheck="false">
         <button class="dmini" data-btoday="met|${k.id}" title="今日の日付にする">今日</button>
         <button class="dmini" data-bunk="met|${k.id}" title="不明にする">不明</button></div>
-      <label>購入日</label>
+      <label>購入日<small class="dlnote">Daily Logに記録</small></label>
       <div class="brows"><input type="text" data-bf="buy|${k.id}" value="${esc(B.buy || '')}"
         placeholder="2023 / 2023-12 / 2023-12-27" autocapitalize="off" autocorrect="off" spellcheck="false">
         <button class="dmini" data-btoday="buy|${k.id}" title="今日の日付にする">今日</button>
@@ -8779,14 +8780,14 @@ function bookSection(k, fixed){
         `<button class="bsb med ${mediaHas(B, m) ? 'on' : ''}" data-bmed="${esc(m)}|${k.id}">${m}</button>`).join('')}</div>
       <div class="brows" style="margin-top:10px">
         <label class="bck"><input type="checkbox" data-bck="start|${k.id}" ${B.startOn?'checked':''}>
-          <span>初読開始</span></label>
+          <span>初読開始</span><small class="dlnote">Daily Logに記録</small></label>
         <input type="text" data-bf="startAt|${k.id}" value="${esc(B.startAt || '')}"
           placeholder="2023 / 2023-12 / 2023-12-27" autocapitalize="off" autocorrect="off" spellcheck="false">
         <button class="dmini" data-bunk="startAt|${k.id}" title="不明にする">不明</button>
       </div>
       <div class="brows">
         <label class="bck"><input type="checkbox" data-bck="done|${k.id}" ${B.doneOn?'checked':''}>
-          <span>初読了日</span></label>
+          <span>初読了日</span><small class="dlnote">Daily Logに記録</small></label>
         <input type="text" data-bf="doneAt|${k.id}" value="${esc(B.doneAt || '')}"
           placeholder="2023 / 2023-12 / 2023-12-27" autocapitalize="off" autocorrect="off" spellcheck="false">
         <button class="dmini" data-bunk="doneAt|${k.id}" title="不明にする">不明</button>
@@ -13274,6 +13275,21 @@ function dlsReadMemos(){
     const day = k.read.date || k.created || today();
     out['rd-' + k.id] = {at:day + 'T' + (k.ctime || '00:00'), text:`『${title}』\n` + dlsHtmlText(k.read.memo)};
   })));
+  /* Bookshelf の本：出会った日・購入日・初読開始（チェック）に日付が入ったら、その日の Daily Log に記録する */
+  const FULL = /^\d{4}-\d{2}-\d{2}$/;
+  S.boards.forEach(bd => (bd.cols || []).forEach(c => (c.cards || []).forEach(k => {
+    const B = k.book;
+    if(k.type !== 'book' || !B || !B.registered) return;
+    const title = (B.title || plain(k.title || '') || '').replace(/<[^>]*>/g, '').trim() || '（タイトルなし）';
+    const add = (key, day, min, text) => {
+      if(!FULL.test(String(day || '').trim())) return;
+      out['bk-' + key + '-' + k.id] = {at:String(day).trim() + 'T00:0' + min, text, src:'book'};
+    };
+    add('met', B.met, 0, `『${title}』という本に出会った。` + (mediaHas(B, 'Kindle Sample') ? '（Kindle Sampleをダウンロード）' : ''));
+    add('buy', B.buy, 1, `『${title}』を購入した。`);
+    if(B.startOn) add('start', B.startAt, 2, `『${title}』を読み始めた。`);
+    if(B.doneOn) add('done', B.doneAt, 3, `『${title}』を読み終えた。`);
+  })));
   const rd = (DLS.rd ||= {});
   let ch = false;
   Object.entries(out).forEach(([id, v]) => {
@@ -13283,7 +13299,7 @@ function dlsReadMemos(){
     const cur = dlsFindLocal(id);
     if(cur){ cur.e.at = v.at; cur.e.text = v.text; return; }
     const b = dlsBoardFor(DLS_NOTES);
-    (b.dlog ||= []).push({id, at:v.at, ord:dlAtMs(v.at) || Date.now(), kind:'reading', text:v.text, src:'read'});
+    (b.dlog ||= []).push({id, at:v.at, ord:dlAtMs(v.at) || Date.now(), kind:'reading', text:v.text, src:v.src || 'read'});
   });
   Object.keys(rd).forEach(id => {
     if(out[id]) return;
