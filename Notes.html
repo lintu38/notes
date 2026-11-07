@@ -2865,6 +2865,54 @@
   /* ピン：囲み線を濃いめのボードの色に */
   .dl-e.pinned .dl-text{border-color:color-mix(in srgb, var(--bc,#c9a227) 75%, #000 0%)}
   .dl-text:empty{display:none}
+  /* メモ枠の右上のリアクション（肉球と同じ：ふだんは薄く、押すと濃く塗られる） */
+  .dl-tw{position:relative;display:flow-root}
+  .dl-react{position:absolute;top:6px;right:8px;display:inline-flex;gap:3px;z-index:1}
+  .dl-tw:has(.dl-react) > .dl-text{padding-right:174px}
+  .dl-tw:has(.dl-edit) .dl-react{display:none}
+  .dl-rx{width:30px;height:30px;padding:0;border:0;background:none;display:inline-flex;align-items:center;
+    justify-content:center;color:#e2dcd2;cursor:pointer;transition:color .15s}
+  .dl-rx svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.35;stroke-linecap:round;stroke-linejoin:round}
+  .dl-rx:hover{color:#cbc1b1}
+  .dl-rx.on{color:var(--rc,#b9afa5)}
+  .dl-rx.on svg{fill:currentColor;stroke:currentColor;stroke-width:.6}
+  .dl-rx .in{fill:none;stroke:currentColor}
+  .dl-rx.on .in{fill:none;stroke:#fff}
+  .dl-rx.on circle.in{fill:#fff}
+  .dl-rx .inf{fill:none;stroke:currentColor;stroke-linejoin:round}
+  .dl-rx.on .inf{fill:#fff;stroke:#fff}
+  .dl-rx .ck{fill:none;stroke:none}
+  .dl-rx.on .ck{fill:#ff8fa3;stroke:none}
+  .dl-rx.on2{filter:drop-shadow(0 0 3px var(--rc)) drop-shadow(0 0 8px var(--rc));animation:dlGlow 1.7s ease-in-out infinite}
+  @keyframes dlGlow{50%{filter:drop-shadow(0 0 5px var(--rc)) drop-shadow(0 0 15px var(--rc)) brightness(1.12)}}
+  .dl-rx[data-dlreact="moved"].on2{animation:dlRbGlow 2.2s linear infinite}
+  .dl-rx[data-dlreact="glad"].on.stamp{animation:dlGladJump .7s ease-in-out 1}
+  .dl-rx[data-dlreact="glad"].on2.stamp{animation:dlGladJump .7s ease-in-out 1, dlGlow 1.7s ease-in-out .7s infinite}
+  .dl-rpop.big{font-size:36px}
+  @keyframes dlGladJump{0%,100%{transform:translateY(0)}25%{transform:translateY(-5px) rotate(-8deg)}50%{transform:translateY(0)}70%{transform:translateY(-3px) rotate(6deg)}}
+  /* 感動：虹色のしずくが光る */
+  .dl-rx[data-dlreact="moved"].on svg > path:not(.in){fill:url(#dlRb);stroke:url(#dlRb)}
+  .dl-rx[data-dlreact="moved"].on .in{stroke:#fff;opacity:.9}
+  .dl-rx[data-dlreact="moved"].on2{filter:drop-shadow(0 0 3px rgba(160,190,255,.95)) drop-shadow(0 0 7px rgba(255,200,240,.7));
+    animation:dlRbGlow 2.6s linear infinite}
+  @keyframes dlRbGlow{
+    0%{filter:drop-shadow(0 0 3px rgba(160,190,255,.95)) drop-shadow(0 0 7px rgba(255,200,240,.7)) hue-rotate(0deg)}
+    50%{filter:drop-shadow(0 0 5px rgba(255,255,255,1)) drop-shadow(0 0 10px rgba(180,220,255,.8)) hue-rotate(180deg)}
+    100%{filter:drop-shadow(0 0 3px rgba(160,190,255,.95)) drop-shadow(0 0 7px rgba(255,200,240,.7)) hue-rotate(360deg)}}
+  .dl-rpop.rb{background:linear-gradient(90deg,#ff6b8b,#ffb347,#f4e04d,#5fd38d,#4fb7f0,#a77bf0);
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;
+    text-shadow:none}
+  .dl-rx.on.stamp svg{animation:dlRxPop .42s cubic-bezier(.2,1.5,.35,1) both}
+  .dl-rpop{position:fixed;z-index:9999;pointer-events:none;transform:translate(-50%,0);white-space:nowrap;
+    font:500 29px/1.1 'Montserrat','Segoe UI Variable Display','Segoe UI',system-ui,sans-serif;text-transform:uppercase;color:var(--rc,#e0922f);letter-spacing:.1em;
+    animation:dlRPop 1s ease-out both}
+  @keyframes dlRPop{
+    0%{transform:translate(-50%,0) scale(.3);opacity:0}
+    18%{transform:translate(-50%,-10px) scale(1.55);opacity:1}
+    38%{transform:translate(-50%,-14px) scale(1.25);opacity:1}
+    75%{transform:translate(-50%,-22px) scale(1.3);opacity:.9}
+    100%{transform:translate(-50%,-34px) scale(1.4);opacity:0}}
+  @keyframes dlRxPop{0%{transform:scale(1.8);opacity:0}35%{transform:scale(.8);opacity:1}65%{transform:scale(1.15)}100%{transform:scale(1)}}
   /* From・To が M 以外のときは、そのボードの色 */
   .dl-ft select.other{background:color-mix(in srgb, var(--bc,#c9a227) 5.5%, #f7f4ef);color:color-mix(in srgb, var(--bc,#c9a227) 55%, #2a2224)}
   .dl-ft select.other:hover{background:color-mix(in srgb, var(--bc,#c9a227) 11%, #f7f4ef)}
@@ -11929,6 +11977,77 @@ async function dlAddFiles(list, onDone){
   onDone(out);
 }
 
+/* ---- メモ枠の右上のリアクション（グッジョブ・感動・好き）。押すと色が濃くなる ---- */
+const DL_REACTS = [
+  {k:'good', en:'Good job!',  lb:'グッジョブ', c:'#f0c48a',
+   ic:'<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.4 7.2h2.6v6.4H2.4z"/><path d="M5 7.4l2.5-4.9c.9-.2 1.6.4 1.6 1.3v2.4h3.5c.9 0 1.5.8 1.3 1.6l-.9 4.1c-.2.7-.8 1.2-1.5 1.2H5"/></svg>'},
+  {k:'moved', en:'Touching!', lb:'感動', c:'#5b8fd6',
+   ic:'<svg viewBox="0 0 16 16" aria-hidden="true"><defs><linearGradient id="dlRb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff6b8b"/><stop offset=".2" stop-color="#ffb347"/><stop offset=".4" stop-color="#f4e04d"/><stop offset=".6" stop-color="#5fd38d"/><stop offset=".8" stop-color="#4fb7f0"/><stop offset="1" stop-color="#a77bf0"/></linearGradient></defs><path d="M8 1.9S3.7 6.8 3.7 9.8a4.3 4.3 0 0 0 8.6 0C12.3 6.8 8 1.9 8 1.9z"/><path class="in" d="M6.1 10.4a2.1 2.1 0 0 0 1.7 1.9"/></svg>'},
+  {k:'like', en:'Love it!',  lb:'好き', c:'#d9627f',
+   ic:'<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13.8S2.2 10.2 2.2 6.3A3.1 3.1 0 0 1 8 4.8a3.1 3.1 0 0 1 5.8 1.5C13.8 10.2 8 13.8 8 13.8z"/></svg>'},
+  {k:'glad', en:'Happy!',  lb:'嬉しい', c:'#e3ac2c',
+   ic:'<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.4"/><path class="in" d="M4.9 4.9l1.6 1-1.6 1M11.1 4.9l-1.6 1 1.6 1" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/><path class="in" d="M5.2 9.5h5.6a2.8 2.6 0 0 1-5.6 0z" stroke-width="1" stroke-linejoin="round"/><ellipse class="ck" cx="3.6" cy="8.9" rx="1" ry=".7"/><ellipse class="ck" cx="12.4" cy="8.9" rx="1" ry=".7"/></svg>'},
+  {k:'relief', en:'So glad!', lb:'よかった', c:'#5aa86a',
+   ic:'<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 8C5.2 6.2 5.2 2.6 7.2 2.6c.5 0 .8.4.8.8 0-.4.3-.8.8-.8 2 0 2 3.6-.8 5.4z"/><path d="M8 8C5.2 6.2 5.2 2.6 7.2 2.6c.5 0 .8.4.8.8 0-.4.3-.8.8-.8 2 0 2 3.6-.8 5.4z" transform="rotate(90 8 8)"/><path d="M8 8C5.2 6.2 5.2 2.6 7.2 2.6c.5 0 .8.4.8.8 0-.4.3-.8.8-.8 2 0 2 3.6-.8 5.4z" transform="rotate(180 8 8)"/><path d="M8 8C5.2 6.2 5.2 2.6 7.2 2.6c.5 0 .8.4.8.8 0-.4.3-.8.8-.8 2 0 2 3.6-.8 5.4z" transform="rotate(270 8 8)"/><path d="M8 8c0 3 1 5 2.8 6.2"/></svg>'}
+];
+/* 押したときの音（ファイルは使わず、その場で鳴らす）と、大きく一瞬出る文字 */
+/* シャラララ〜ン：きらきらした上昇アルペジオを、長めの余韻とエコーで響かせる */
+const DL_RFX = {
+  good:  {root:523.25, sc:[0, 4, 7, 12, 16, 19, 24, 28], step:.055},
+  moved: {root:587.33, sc:[0, 3, 7, 10, 14, 17, 21, 26], step:.065},
+  like:  {root:659.25, sc:[0, 4, 7, 11, 14, 19, 23, 28], step:.06},
+  glad:  {root:587.33, sc:[0, 2, 4, 7, 9, 12, 16, 19, 24], step:.05},
+  relief:{root:493.88, sc:[0, 5, 7, 12, 16, 19, 24], step:.07}
+};
+let dlAC = null, dlFx = null;
+function dlReactSound(k){
+  const F = DL_RFX[k]; if(!F) return;
+  try{
+    const AC = window.AudioContext || window.webkitAudioContext; if(!AC) return;
+    if(!dlAC){
+      dlAC = new AC();
+      const out = dlAC.createGain(); out.gain.value = .9; out.connect(dlAC.destination);
+      /* エコー（響き） */
+      const dl = dlAC.createDelay(1), fb = dlAC.createGain(), wet = dlAC.createGain();
+      dl.delayTime.value = .21; fb.gain.value = .38; wet.gain.value = .5;
+      dl.connect(fb); fb.connect(dl); dl.connect(wet); wet.connect(out);
+      dlFx = {out, send:dl};
+    }
+    if(dlAC.state === 'suspended') dlAC.resume();
+    const t0 = dlAC.currentTime + .02;
+    F.sc.forEach((semi, i) => {
+      const f = F.root * 2 * Math.pow(2, semi / 12), at = t0 + i * F.step;
+      const last = i === F.sc.length - 1, dur = last ? 1.8 : .7;
+      /* 鈴：ひびきの違う倍音を重ね、はじめはするどく、すぐ減っていく */
+      [[1, .14, 1], [2.76, .05, .5], [5.4, .02, .25]].forEach(([mul, vol, dm]) => {
+        const o = dlAC.createOscillator(), g = dlAC.createGain();
+        o.type = 'sine'; o.frequency.value = f * mul;
+        g.gain.setValueAtTime(0, at);
+        g.gain.linearRampToValueAtTime(vol * (last ? 1.3 : 1), at + .003);
+        g.gain.exponentialRampToValueAtTime(.0008, at + dur * dm);
+        o.connect(g); g.connect(dlFx.out); g.connect(dlFx.send);
+        o.start(at); o.stop(at + dur * dm + .05);
+      });
+    });
+  }catch(_){}
+}
+function dlReactPop(k, rect, big){
+  const R = DL_REACTS.find(x => x.k === k); if(!R || !rect) return;
+  const el = document.createElement('div');
+  el.className = 'dl-rpop' + (k === 'moved' ? ' rb' : '') + (big ? ' big' : ''); el.textContent = R.en || R.lb;
+  el.style.cssText = `left:${rect.left + rect.width / 2}px;top:${rect.top}px;--rc:${R.c}`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1100);
+}
+let dlReactStamp = '';                 /* 押したばかりのものだけ動かす目印 */
+function dlReactHTML(e){
+  const on = e.react || [];
+  /* 1回押す＝色が濃くなる／もう1回押す＝光る／もう1回で消える */
+  return `<span class="dl-react">${DL_REACTS.map(R => {
+    const lit = on.includes(R.k) || on.includes(R.k + '2');     /* 押すと色が濃くなり、光る */
+    return `<button type="button" class="dl-rx${lit ? ' on on2' : ''}${dlReactStamp === e.id + '|' + R.k ? ' stamp' : ''}" data-dlreact="${R.k}" style="--rc:${R.c}" title="${R.lb}">${R.ic}</button>`;
+  }).join('')}</span>`;
+}
 /* ---- 1件ぶん ---- */
 function dlEntryHTML(e, b, opt){
   const K = dlKind(e.kind);
@@ -11953,7 +12072,7 @@ function dlEntryHTML(e, b, opt){
                : `<span class="dl-tag dl-tadd" data-dltag="1" title="タグを付ける">${DL_IC.tag}タグ</span>`}${dlMemoBtn(e)}${bd}<button type="button" class="dl-more" data-dlmore="1" title="操作（削除・字下げ・日付など）">⋯</button></div>
     ${e.gtitle && !ind ? `<div class="dl-gt" data-dltitle="1" title="クリックでタイトルを直す">${esc(e.gtitle)}</div>` : ''}
     ${dlHasFT(e.kind) ? dlFromTo(e, b) : ''}
-    ${dlTextBox(e)}
+    <div class="dl-tw">${dlTextBox(e)}${(String(e.text || '').trim() && !/^(起床|就寝)（\d{1,2}:\d{2}）。$/.test(String(e.text).trim())) ? dlReactHTML(e) : ''}</div>
     <div class="dl-files">${(e.files || []).map(f => dlFileHTML(f, `data-dlrm="${f.id}"`)).join('')}</div>
   </div>`;
 }
@@ -12314,6 +12433,22 @@ function dlWireList(root, redraw){
         delete e.gtitle;
       } else delete e.root;
       save(); redraw();
+    });
+    row.querySelectorAll('[data-dlreact]').forEach(btn => btn.onclick = ev => {
+      ev.stopPropagation();
+      const {e} = get(); if(!e) return;
+      const k = btn.dataset.dlreact, cur = new Set(e.react || []);
+      const rect0 = btn.getBoundingClientRect();
+      /* 押すたびに 付く（光る）⇄ 外れる */
+      const turnOn = !(cur.has(k) || cur.has(k + '2'));
+      cur.delete(k); cur.delete(k + '2');
+      if(turnOn) cur.add(k);
+      dlReactStamp = turnOn ? e.id + '|' + k : '';
+      const L = DL_REACTS.map(R => cur.has(R.k) ? R.k : '').filter(Boolean);
+      if(L.length) e.react = L; else delete e.react;
+      save(); redraw();
+      dlReactStamp = '';
+      if(turnOn){ dlReactSound(k); dlReactPop(k, rect0, false); }
     });
     row.querySelector('[data-dlpin]').onclick = () => {
       const {e} = get(); if(!e) return;
@@ -13192,14 +13327,15 @@ function dlsRec(e, bid){
   if(e.src) r.src = e.src;
   if(e.memo) r.memo = e.memo;
   if(e.gtitle) r.gtitle = e.gtitle;       // メモ群のタイトル
+  if(e.react && e.react.length) r.react = e.react.slice();   // グッジョブ・感動・好き
   if(e.root) r.root = e.root;             // 字下げした子メモの親           // Notes の Memo & Note のメモとのつながり
   return r;
 }
 /* 届いた1件の指紋（手元の指紋と同じ作り方。Tasks は URL を抜いた本文で比べる） */
 const dlsRemoteHash = rr => dlsHash({bid:rr.bid, at:rr.at || '', ord:typeof rr.ord === 'number' ? rr.ord : null, kind:rr.kind || '',
-  text:DL_NOTE ? (rr.text || '') : dlsNoUrl(rr.text), tag:rr.tag || '', pin:!!rr.pin, ind:rr.ind || 0, memo:rr.memo || '', gtitle:rr.gtitle || '', root:rr.root || '', from:rr.from || '', to:rr.to || []});
+  text:DL_NOTE ? (rr.text || '') : dlsNoUrl(rr.text), tag:rr.tag || '', pin:!!rr.pin, ind:rr.ind || 0, memo:rr.memo || '', gtitle:rr.gtitle || '', root:rr.root || '', react:rr.react || [], from:rr.from || '', to:rr.to || []});
 function dlsHash(r){
-  const s = JSON.stringify([r.bid, r.at, r.ord, r.kind, r.text, r.tag, r.pin, r.from, r.to].concat(r.ind ? [r.ind] : [], r.memo ? ['m:' + r.memo] : [], r.gtitle ? ['t:' + r.gtitle] : [], r.root ? ['r:' + r.root] : []));
+  const s = JSON.stringify([r.bid, r.at, r.ord, r.kind, r.text, r.tag, r.pin, r.from, r.to].concat(r.ind ? [r.ind] : [], r.memo ? ['m:' + r.memo] : [], r.gtitle ? ['t:' + r.gtitle] : [], r.root ? ['r:' + r.root] : [], (r.react && r.react.length) ? ['x:' + r.react.join(',')] : []));
   let h = 5381; for(let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
   return h.toString(36) + '.' + s.length;
 }
@@ -13244,6 +13380,7 @@ function dlsApply(r, rboards){
   if(r.memo) e.memo = r.memo; else delete e.memo;
   if(r.gtitle) e.gtitle = r.gtitle; else delete e.gtitle;
   if(r.root) e.root = r.root; else delete e.root;
+  if(r.react && r.react.length) e.react = r.react.slice(); else delete e.react;
   if(dlHasFT(r.kind) || r.from || (r.to && r.to.length)){ e.from = r.from || 'M'; e.to = r.to || []; }
   else { delete e.from; delete e.to; }
   if(r.src) e.src = r.src;
@@ -13286,7 +13423,7 @@ function dlsReadMemos(){
       out['bk-' + key + '-' + k.id] = {at:String(day).trim() + 'T00:0' + min, text, src:'book'};
     };
     add('met', B.met, 0, `『${title}』という本に出会った。` + (mediaHas(B, 'Kindle Sample') ? '（Kindle Sampleをダウンロード）' : ''));
-    add('buy', B.buy, 1, `『${title}』を購入した。`);
+    add('buy', B.buy, 1, `『${title}』を購入。`);
     if(B.startOn) add('start', B.startAt, 2, `『${title}』を読み始めた。`);
     if(B.doneOn) add('done', B.doneAt, 3, `『${title}』を読み終えた。`);
   })));
