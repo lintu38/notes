@@ -13127,7 +13127,13 @@ function dlWireQuick(root){
 }
 /* ---- Notes：Daily Log → Memo & Note（詳しく書く）・本のページ ---- */
 const dlMemoCard = e => (e.memo && typeof findCard === 'function') ? findCard(e.memo) : null;
-const dlReadSrc = e => (e.src === 'read' && /^rd-/.test(e.id) && typeof findCard === 'function') ? findCard(e.id.slice(3)) : null;
+const dlReadSrc = e => {
+  if(typeof findCard !== 'function') return null;
+  if(e.src === 'read' && /^rd-/.test(e.id)) return findCard(e.id.slice(3));
+  /* Bookshelf の出会った日・購入日・初読開始・初読了日から作った記録 → その本 */
+  const m = e.src === 'book' && /^bk-(?:met|buy|start|done)-(.+)$/.exec(e.id || '');
+  return m ? findCard(m[1]) : null;
+};
 function dlMemoBtn(e){
   /* Tasks：Notes で詳しいメモを書いた記録には、色付きの鉛筆だけ（押しても飛ばない） */
   if(!DL_NOTE) return e.memo ? `<span class="dl-memob on still" title="Notes の Memo & Note に詳しいメモがあります">${DL_IC.edit}</span>` : '';
