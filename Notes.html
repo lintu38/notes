@@ -62,6 +62,20 @@
   .app{display:flex;height:100vh;overflow:hidden}
 
 
+  /* 今日はじめて開いたときの Quote */
+  .qd-ov{position:fixed;inset:0;z-index:9500;background:rgba(60,50,52,.32);display:flex;align-items:center;justify-content:center;padding:18px;animation:qdIn .35s ease}
+  @keyframes qdIn{from{opacity:0}to{opacity:1}}
+  .qd{background:var(--quote-bg,#f5f1f0);border-radius:16px;width:min(520px,100%);max-height:84vh;overflow:auto;padding:22px 26px 18px;
+    box-shadow:0 12px 44px rgba(0,0,0,.22);font-family:"游明朝","Yu Mincho","Hiragino Mincho ProN",serif;color:var(--brown,#54402e)}
+  .qd-h{font-family:'Montserrat',sans-serif;font-size:11px;letter-spacing:.14em;color:#a7a0a2;display:flex;align-items:center;margin-bottom:12px}
+  .qd-x{margin-left:auto;font-size:20px;line-height:1;color:#a7a0a2;padding:2px 8px;border-radius:7px}
+  .qd-x:hover{background:#ebe4e1;color:#6e6668}
+  .qd-t{font-size:17px;line-height:2;word-break:break-word}
+  .qd-t p,.qd-t div{margin:0}
+  .qd-c{margin-top:12px;font-size:13px;color:#8d8587;text-align:right}
+  .qd-f{display:flex;justify-content:flex-end;gap:6px;margin-top:14px;font-family:'Montserrat',sans-serif}
+  .qd-f button{font-size:11.5px;color:#8d8587;padding:4px 10px;border-radius:8px}
+  .qd-f button:hover{background:#ebe4e1;color:#6e6668}
   /* 暗証番号ロック */
   body.locked .app,body.locked #sideShow,body.locked #rsideShow{visibility:hidden}
   .lockwrap{position:fixed;inset:0;z-index:999;background:var(--bg);display:none;
@@ -15737,9 +15751,46 @@ async function rescue(){
     }
   }catch(e){}
 }
+/* ---- その日（朝5時〜）最初に開いたとき、Quotes からひとつランダムに表示 ---- */
+function quoteOfTheDay(){
+  try{
+    const KEY = 'notes.qotd';
+    const d = today();
+    let seen = ''; try{ seen = localStorage.getItem(KEY) || ''; }catch(e){}
+    if(seen === d) return;
+    try{ localStorage.setItem(KEY, d); }catch(e){}
+    const list = allCards().map(x => x.card).filter(k => k.quote && plain(k.quote.text).trim());
+    if(!list.length) return;
+    let cur = null;
+    const ov = document.createElement('div');
+    ov.className = 'qd-ov';
+    const close = () => { ov.remove(); document.removeEventListener('keydown', onKey); };
+    const onKey = e => { if(e.key === 'Escape') close(); };
+    const draw = () => {
+      let k; do{ k = list[Math.floor(Math.random() * list.length)]; }while(list.length > 1 && k === cur);
+      cur = k;
+      const tmp = document.createElement('div');
+      tmp.innerHTML = quoteCardHTML(k, true);
+      const cite = (tmp.querySelector('.qc-cite') || {}).textContent || '';
+      ov.innerHTML = `<div class="qd" role="dialog" aria-label="Quote">
+        <div class="qd-h"><span>TODAY'S QUOTE</span><button type="button" class="qd-x" aria-label="閉じる">×</button></div>
+        <div class="qd-t">${clean(k.quote.text)}</div>
+        ${cite ? `<div class="qd-c">${esc(cite.replace(/^—\s*/, '— '))}</div>` : ''}
+        <div class="qd-f"><button type="button" data-qdn>別の Quote</button><button type="button" data-qdo>開く ⤢</button></div></div>`;
+      ov.querySelector('.qd-x').onclick = close;
+      ov.querySelector('[data-qdn]').onclick = draw;
+      ov.querySelector('[data-qdo]').onclick = () => { close(); view = {type:'card', id:cur.id}; render(); };
+    };
+    ov.onclick = e => { if(e.target === ov) close(); };
+    document.addEventListener('keydown', onKey);
+    draw();
+    document.body.appendChild(ov);
+  }catch(e){}
+}
 const boot2 = () => {
   boot();
   setTimeout(rescue, 800);
+  if(APP === 'note') setTimeout(quoteOfTheDay, 500);
   setTimeout(checkUpdate, 2500);
   if(syncOn() && !syncDirty) syncPull().then(ok => { if(ok){ render(); syncTag('取り込みました'); } })
     .catch(e => syncTag('同期できません：' + e.message, true));
