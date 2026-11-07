@@ -2700,6 +2700,32 @@
   .dl-day b{font-size:14px;font-weight:600;color:var(--brown);letter-spacing:.04em}
   .dl-day span{font-size:12px;color:var(--dl-time)}
   .dl-day .wd-sat{color:#5f7d99}.dl-day .wd-sun{color:#8e3a4f}
+  /* 日付の下：祝日・月齢・天気（Memo & Note の Daily と同じ見た目） */
+  .dl-sub{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px 12px;margin:-8px 0 10px 10px;
+    font:400 11.5px 'Montserrat',sans-serif;color:var(--dl-time,#a7a0a2)}
+  .dl-sub + .dl-rsum{margin-top:-2px}
+  .dl-hol{color:#8e3a4f;font-weight:500;letter-spacing:.04em}
+  .dl-age{display:inline-flex;align-items:center;gap:4px;font-variant-numeric:tabular-nums}
+  .dl-moon{width:14px;height:14px}
+  .dl-moon .mn-d{fill:#ece6e3;stroke:#d6ccc8;stroke-width:.7}
+  .dl-moon .mn-l{fill:#e2c977}
+  .dl-wxsel{display:inline-flex;gap:2px}
+  .dl-wx .wxico{width:15px;height:15px}
+  button.dl-wx{display:inline-flex;width:24px;height:24px;border-radius:7px;align-items:center;justify-content:center;color:#d3cac6;padding:0}
+  button.dl-wx:hover{background:#efe9e7;color:#8b8285}
+  button.dl-wx.on{background:#fbf4ea;color:#b98a3c}
+  button.dl-wx.on.wx-rain, button.dl-wx.on.wx-snow{background:#eef3fb;color:#5b86c9}
+  button.dl-wx.on.wx-cloud, button.dl-wx.on.wx-wind{background:#f0f2f4;color:#7e8892}
+  /* 日付の下：リアクションの数 */
+  .dl-rsum{display:flex;justify-content:center;flex-wrap:wrap;gap:4px 14px;margin:-8px 0 14px 10px;font:600 11.5px 'Montserrat',sans-serif}
+  .dl-rsum span{display:inline-flex;align-items:center;gap:3px;color:var(--rc,#b9afa5)}
+  .dl-rsum i{font-style:normal;color:#8d8587}
+  .dl-rsum svg{width:15px;height:15px;fill:currentColor;stroke:currentColor;stroke-width:.6;stroke-linecap:round;stroke-linejoin:round}
+  .dl-rsum .in{fill:none;stroke:#fff}
+  .dl-rsum circle.in{fill:#fff}
+  .dl-rsum .inf{fill:#fff;stroke:#fff}
+  .dl-rsum .ck{fill:#ff8fa3;stroke:none}
+  .dl-rsum span[data-k="moved"] svg > path:not(.in){fill:url(#dlRb);stroke:url(#dlRb)}
   .dl-e{position:relative;margin:0 0 20px calc(var(--pad) + var(--ind,0) * 28px);min-height:24px}
   .dl-e > .dl-time{position:absolute;left:calc(-1 * var(--pad));width:var(--gut);top:1px;text-align:right;
     font:400 12px/22px 'Montserrat',sans-serif;color:var(--dl-time);font-variant-numeric:tabular-nums;letter-spacing:.02em;
@@ -8746,7 +8772,7 @@ function renderDaily(b){
     const i = cur.indexOf(k);
     if(i >= 0) cur.splice(i, 1); else cur.push(k);
     if(!cur.length) delete b.weather[dd];
-    save(); el.classList.toggle('on', i < 0);
+    dlWxStamp(dd); save(); el.classList.toggle('on', i < 0); dlWxPaint(dd); dlWxSoon();
   });
   const dt = document.getElementById('dailyToday');
   if(dt) dt.onclick = () => {
@@ -9996,7 +10022,7 @@ function tlDeco(root){
       const cur = wxOf(dm, dd), i = cur.indexOf(k);
       if(i >= 0) cur.splice(i, 1); else cur.push(k);
       if(!cur.length) delete dm.weather[dd];
-      save(); el.classList.toggle('on', i < 0);
+      dlWxStamp(dd); save(); el.classList.toggle('on', i < 0); dlWxPaint(dd); dlWxSoon();
     });
     /* 書いてすぐ、何も書かずに離れた新しいメモは消す */
     drop.querySelectorAll('.card.tl.note [data-body]').forEach(ed => ed.addEventListener('blur', () => setTimeout(() => {
@@ -12231,6 +12257,83 @@ function dlToMenu(anchor, e, b, done){
   draw();
 }
 
+/* ---- 日付の下：祝日・月齢・天気（Memo & Note の Daily と同じもの。どちらで選んでも両方に反映される） ---- */
+function dlMoonJD(k){
+  const T = k / 1236.85, r = Math.PI / 180;
+  const JDE = 2451550.09766 + 29.530588861 * k + 0.00015437 * T * T - 0.00000015 * T ** 3 + 0.00000000073 * T ** 4;
+  const E = 1 - 0.002516 * T - 0.0000074 * T * T;
+  const M = (2.5534 + 29.1053567 * k - 0.0000014 * T * T) * r;
+  const Mp = (201.5643 + 385.81693528 * k + 0.0107582 * T * T + 0.00001238 * T ** 3) * r;
+  const F = (160.7108 + 390.67050284 * k - 0.0016118 * T * T - 0.00000227 * T ** 3) * r;
+  const Om = (124.7746 - 1.56375588 * k + 0.0020672 * T * T) * r;
+  const s = Math.sin;
+  return JDE - 0.4072 * s(Mp) + 0.17241 * E * s(M) + 0.01608 * s(2 * Mp) + 0.01039 * s(2 * F)
+    + 0.00739 * E * s(Mp - M) - 0.00514 * E * s(Mp + M) + 0.00208 * E * E * s(2 * M)
+    - 0.00111 * s(Mp - 2 * F) - 0.00057 * s(Mp + 2 * F) + 0.00056 * E * s(2 * Mp + M)
+    - 0.00042 * s(3 * Mp) + 0.00042 * E * s(M + 2 * F) + 0.00038 * E * s(M - 2 * F)
+    - 0.00024 * E * s(2 * Mp - M) - 0.00017 * s(Om);
+}
+function dlMoonAge(d){
+  const jd = Date.UTC(+d.slice(0, 4), +d.slice(5, 7) - 1, +d.slice(8, 10), 3) / 864e5 + 2440587.5;
+  let k = Math.floor((jd - 2451550.09766) / 29.530588861);
+  if(dlMoonJD(k) > jd) k--;
+  if(dlMoonJD(k + 1) <= jd) k++;
+  return jd - dlMoonJD(k);
+}
+function dlMoonSVG(age){
+  const p = age / 29.530588853, rx = Math.abs(Math.cos(2 * Math.PI * p)) * 6;
+  const wax = p < .5, cres = p < .25 || p > .75;
+  const outer = `M8 2A6 6 0 0 ${wax ? 1 : 0} 8 14`;
+  const term = `A${rx.toFixed(2)} 6 0 0 ${wax ? (cres ? 0 : 1) : (cres ? 1 : 0)} 8 2`;
+  return `<svg class="dl-moon" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" class="mn-d"/><path d="${outer}${term}Z" class="mn-l"/></svg>`;
+}
+const dlWxBoard = () => S.boards.find(b => b.daily);
+const dlWxGet = d => { const b = dlWxBoard(); return b ? ((b.weather || {})[d] || []) : []; };
+/* 天気を選んだ時刻を覚える（Tasks ⇄ Notes で新しいほうを採るため） */
+function dlWxStamp(d){ const b = dlWxBoard(); if(b) (b.weatherAt ||= {})[d] = Date.now(); }
+/* 画面に出ている同じ日の天気ボタンを、いまの状態に合わせる */
+function dlWxPaint(d){
+  const cur = dlWxGet(d);
+  document.querySelectorAll('[data-dlwx],[data-wx],[data-tlwx]').forEach(el => {
+    const v = el.dataset.dlwx || el.dataset.wx || el.dataset.tlwx || '';
+    const [k, dd] = v.split('|');
+    if(dd === d) el.classList.toggle('on', cur.includes(k));
+  });
+}
+let dlWxT = null;
+function dlWxSoon(){
+  clearTimeout(dlWxT);
+  dlWxT = setTimeout(() => { try{ if(typeof dlsOn === 'function' && dlsOn()) dlsSync('wx'); }catch(e){} }, 1500);
+}
+function dlDaySub(d){
+  const hol = holName(d), age = dlMoonAge(d), cur = dlWxGet(d);
+  return `<div class="dl-sub">${hol ? `<span class="dl-hol">${esc(hol)}</span>` : ''}`
+    + `<span class="dl-age" title="月齢">${dlMoonSVG(age)}${age.toFixed(1)}</span>`
+    + `<span class="dl-wxsel">${WEATHER.map(([k, lb, path]) =>
+      `<button type="button" class="dl-wx wx-${k}${cur.includes(k) ? ' on' : ''}" data-dlwx="${k}|${d}" title="${lb}">`
+      + `<svg class="wxico" viewBox="0 0 16 16">${path}</svg></button>`).join('')}</span></div>`;
+}
+document.addEventListener('click', ev => {
+  const el = ev.target && ev.target.closest && ev.target.closest('[data-dlwx]');
+  if(!el) return;
+  const dm = dlWxBoard(); if(!dm) return;
+  const [k, d] = el.dataset.dlwx.split('|');
+  const cur = ((dm.weather ||= {})[d] ||= []), i = cur.indexOf(k);
+  if(i >= 0) cur.splice(i, 1); else cur.push(k);
+  if(!cur.length) delete dm.weather[d];
+  dlWxStamp(d); save(); dlWxPaint(d); dlWxSoon();
+});
+/* その日の記録についた リアクション（グッジョブなど）の数を、日付の下に並べる */
+function dlReactSum(rows, d){
+  const n = {};
+  rows.forEach(r => {
+    if((r.e.at || '').slice(0, 10) !== d) return;
+    (r.e.react || []).forEach(x => { const k = String(x).replace(/2$/, ''); n[k] = (n[k] || 0) + 1; });
+  });
+  const L = DL_REACTS.filter(R => n[R.k]);
+  if(!L.length) return '';
+  return `<div class="dl-rsum">${L.map(R => `<span data-k="${R.k}" style="--rc:${R.c}" title="${R.lb}">${R.ic}<i>×${n[R.k]}</i></span>`).join('')}</div>`;
+}
 /* 日付ごとに区切って並べる */
 function dlListHTML(rows, opt){
   if(!rows.length) return `<div class="dl-empty">まだ記録はありません。<br>上の欄に書いて「記録」を押してください。</div>`;
@@ -12248,7 +12351,7 @@ function dlListHTML(rows, opt){
       day = d;
       const dt = parse(d), wd = dt.getDay();
       const y = dt.getFullYear() !== new Date().getFullYear() ? dt.getFullYear() + '/' : '';
-      h += `<div class="dl-day" data-day="${d}"><b>${y}${dt.getMonth() + 1}/${dt.getDate()}</b><span class="${wd === 0 ? 'wd-sun' : wd === 6 ? 'wd-sat' : ''}">(${DL_WD[wd]})</span></div>`;
+      h += `<div class="dl-day" data-day="${d}"><b>${y}${dt.getMonth() + 1}/${dt.getDate()}</b><span class="${wd === 0 ? 'wd-sun' : wd === 6 ? 'wd-sat' : ''}">(${DL_WD[wd]})</span></div>${dlDaySub(d)}${dlReactSum(rows, d)}`;
     }
     const next = rows[i + 1];
     const last = !next || (next.e.at || '').slice(0, 10) !== d;
@@ -13331,13 +13434,13 @@ async function dlsGet(c){
   if(!r.ok) throw new Error('取得できません（' + r.status + '）');
   const g = await r.json();
   const f = g.files && g.files[DLS_FILE];
-  if(!f) return {entries:{}, boards:[]};
+  if(!f) return {entries:{}, boards:[], wx:{}};
   let txt = f.content;
   if(f.truncated && f.raw_url) txt = await (await fetch(f.raw_url, {cache:'no-store'})).text();
   const w = JSON.parse(txt || '{}');
-  if(!w.payload) return {entries:{}, boards:[]};
+  if(!w.payload) return {entries:{}, boards:[], wx:{}};
   const d = await dlsDec(w.payload, c.pass);
-  return {entries:d.entries || {}, boards:d.boards || []};
+  return {entries:d.entries || {}, boards:d.boards || [], wx:d.wx || {}};
 }
 async function dlsPut(c, data){
   const payload = await dlsEnc(data, c.pass);
@@ -13575,6 +13678,26 @@ async function dlsSync(why){
     });
     /* 「消した」印は 60 日で片付ける */
     Object.keys(out).forEach(id => { if(out[id].del && now - (out[id].upd || 0) > 60 * 864e5) delete out[id]; });
+    /* 天気：日付ごとに、あとで選んだほうを採る（Memo & Note の Daily の天気と同じもの） */
+    const wxOut = {...(remote.wx || {})};
+    let wxApplied = false;
+    {
+      const dmb = S.boards.find(b => b.daily), rwx = remote.wx || {};
+      if(dmb){
+        const at = dmb.weatherAt || {}, wv = dmb.weather || {};
+        new Set([...Object.keys(at), ...Object.keys(wv), ...Object.keys(rwx)]).forEach(d => {
+          const lu = at[d] || (wv[d] ? 1 : 0), ru = (rwx[d] && rwx[d].upd) || 0;
+          if(ru > lu){
+            dmb.weather ||= {}; dmb.weatherAt ||= {};
+            if((rwx[d].k || []).length) dmb.weather[d] = rwx[d].k.slice(); else delete dmb.weather[d];
+            dmb.weatherAt[d] = ru; changed = true; wxApplied = true;
+          } else if(lu > ru){
+            wxOut[d] = {k:(wv[d] || []).slice(), upd:lu}; push = true;
+          }
+        });
+      }
+    }
+    if(wxApplied) dlsSaveQuiet();
     /* Board の一覧（名前・色・From/To の名前）は Tasks が出す。Notes は受け取って、写しの Board 名を合わせる */
     let boards = remote.boards || [];
     if(!DL_NOTE){
@@ -13592,7 +13715,7 @@ async function dlsSync(why){
       /* Tasks で消した Board（記録が残っていないもの）は一覧から外す */
       DLS.boards = DLS.boards.filter(b => b.id === DLS_NOTES || boards.some(x => x.id === b.id) || (b.dlog || []).length);
     }
-    if(push) await dlsPut(c, {entries:out, boards});
+    if(push) await dlsPut(c, {entries:out, boards, wx:wxOut});
     /* 指紋を覚え直す（いま手元にあるもの） */
     const nk = {};
     dlBoards().forEach(b => (b.dlog || []).forEach(e => {
