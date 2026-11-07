@@ -15773,18 +15773,19 @@ function quoteOfTheDay(){
       tmp.innerHTML = quoteCardHTML(k, true);
       const cite = (tmp.querySelector('.qc-cite') || {}).textContent || '';
       ov.innerHTML = `<div class="qd" role="dialog" aria-label="Quote">
-        <div class="qd-h"><span>TODAY'S QUOTE</span><button type="button" class="qd-x" aria-label="閉じる">×</button></div>
+        <div class="qd-h"><span>A Message for You Today</span><button type="button" class="qd-x" aria-label="閉じる">×</button></div>
         <div class="qd-t">${clean(k.quote.text)}</div>
         ${cite ? `<div class="qd-c">${esc(cite.replace(/^—\s*/, '— '))}</div>` : ''}
         <div class="qd-f"><button type="button" data-qdn>別の Quote</button><button type="button" data-qdo>開く ⤢</button></div></div>`;
       ov.querySelector('.qd-x').onclick = close;
-      ov.querySelector('[data-qdn]').onclick = draw;
+      ov.querySelector('[data-qdn]').onclick = () => { draw(); try{ chime(); }catch(e){} };
       ov.querySelector('[data-qdo]').onclick = () => { close(); view = {type:'card', id:cur.id}; render(); };
     };
     ov.onclick = e => { if(e.target === ov) close(); };
     document.addEventListener('keydown', onKey);
     draw();
     document.body.appendChild(ov);
+    try{ chime(); }catch(e){}
   }catch(e){}
 }
 const boot2 = () => {
