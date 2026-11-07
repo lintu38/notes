@@ -2898,10 +2898,10 @@
   .dl-react{position:absolute;top:6px;right:8px;display:inline-flex;gap:3px;z-index:1}
   .dl-tw:has(.dl-react) > .dl-text{padding-right:174px}
   .dl-tw:has(.dl-edit) .dl-react{display:none}
-  /* スマホ・狭い画面：メモの幅を取らないよう、ボタンはメモの下の右寄せに */
+  /* スマホ・狭い画面：メモの幅を取らないよう、ボタンはメモの枠の中の右下に */
   @media (max-width:860px){
-    .dl-react{position:static;display:flex;justify-content:flex-end;gap:2px;margin:2px 4px 0 0}
-    .dl-tw:has(.dl-react) > .dl-text{padding-right:11px}
+    .dl-react{position:absolute;top:auto;bottom:5px;right:7px}
+    .dl-tw:has(.dl-react) > .dl-text{padding-right:11px;padding-bottom:38px}
   }
   .dl-rx{width:30px;height:30px;padding:0;border:0;background:none;display:inline-flex;align-items:center;
     justify-content:center;color:#e2dcd2;cursor:pointer;transition:color .15s}
