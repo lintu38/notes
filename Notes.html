@@ -13424,14 +13424,28 @@ function dlsReadMemos(){
     const B = k.book;
     if(k.type !== 'book' || !B || !B.registered) return;
     const title = (B.title || plain(k.title || '') || '').replace(/<[^>]*>/g, '').trim() || '（タイトルなし）';
-    const add = (key, day, min, text) => {
-      if(!FULL.test(String(day || '').trim())) return;
-      out['bk-' + key + '-' + k.id] = {at:String(day).trim() + 'T00:0' + min, text, src:'book'};
-    };
-    add('met', B.met, 0, `『${title}』という本に出会った。` + (mediaHas(B, 'Kindle Sample') ? '（Kindle Sampleをダウンロード）' : ''));
-    add('buy', B.buy, 1, `『${title}』を購入。`);
-    if(B.startOn) add('start', B.startAt, 2, `『${title}』を読み始めた。`);
-    if(B.doneOn) add('done', B.doneAt, 3, `『${title}』を読み終えた。`);
+    /* 同じ日の出来事は、ひとつの記録にまとめる（出会った日と購入日が同じ日なら「購入。」だけ） */
+    const ORDER = ['met', 'buy', 'start', 'done'];
+    const days = {};
+    const note = (key, day) => { day = String(day || '').trim(); if(FULL.test(day)) (days[day] ||= []).push(key); };
+    note('met', B.met);
+    note('buy', B.buy);
+    if(B.startOn) note('start', B.startAt);
+    if(B.doneOn) note('done', B.doneAt);
+    Object.entries(days).forEach(([day, keys]) => {
+      if(keys.includes('met') && keys.includes('buy')) keys = keys.filter(x => x !== 'met');
+      keys = ORDER.filter(x => keys.includes(x));
+      if(!keys.length) return;
+      const FULLT = {
+        met:   `『${title}』という本に出会った。` + (mediaHas(B, 'Kindle Sample') ? '（Kindle Sampleをダウンロード）' : ''),
+        buy:   `『${title}』を購入。`,
+        start: `『${title}』を読み始めた。`,
+        done:  `『${title}』を読み終えた。`
+      };
+      const SHORT = {buy:'購入。', start:'読み始めた。', done:'読み終えた。'};
+      const text = FULLT[keys[0]] + keys.slice(1).map(x => SHORT[x]).join('');
+      out['bk-' + keys[0] + '-' + k.id] = {at:day + 'T00:0' + ORDER.indexOf(keys[0]), text, src:'book'};
+    });
   })));
   const rd = (DLS.rd ||= {});
   let ch = false;
