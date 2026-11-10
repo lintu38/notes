@@ -1546,7 +1546,8 @@
 
   /* ---------- popover ---------- */
   .pop{position:fixed;z-index:60;background:var(--panel);border:1px solid var(--line);border-radius:11px;
-    box-shadow:0 10px 32px rgba(30,25,15,.16);padding:5px;min-width:172px}
+    box-shadow:0 10px 32px rgba(30,25,15,.16);padding:5px;min-width:172px;
+    max-height:calc(100vh - 16px);overflow-y:auto;overscroll-behavior:contain}
   .pop button{display:flex;align-items:center;gap:9px;width:100%;text-align:left;
     padding:7px 10px;border-radius:7px;font-size:13px}
   .pop button:hover{background:#f5f1f0}
@@ -11792,6 +11793,7 @@ const DL_IC = {
   home:'<svg viewBox="0 0 16 16"><path d="M2.4 7.6 8 2.8l5.6 4.8"/><path d="M3.8 6.6v6.8h8.4V6.6"/><path d="M6.6 13.4V9.8h2.8v3.6"/></svg>',
   search:'<svg viewBox="0 0 16 16"><circle cx="7.2" cy="7.2" r="4.6"/><path d="M10.6 10.6l3.2 3.2"/></svg>',
   quote:'<svg viewBox="0 0 16 16"><path d="M6.4 3.4 2.6 7l3.8 3.6"/><path d="M2.8 7h6.4a4 4 0 0 1 4 4v1.6"/></svg>',
+  tel:'<svg viewBox="0 0 16 16"><path d="M3.2 2.6h2.4l1.1 2.9-1.5 1c.8 1.6 2 2.8 3.6 3.6l1-1.5 2.9 1.1v2.4a1.3 1.3 0 0 1-1.4 1.3C6.5 13.1 2.9 9.5 1.9 4a1.3 1.3 0 0 1 1.3-1.4z"/></svg>',
   fax:'<svg viewBox="0 0 16 16"><path d="M4.4 6V2.2h5.4l1.8 1.8V6"/><rect x="2" y="6" width="12" height="6.4" rx="1.2"/><path d="M4.6 12.4v1.8h6.8v-1.8M4.6 9.2h4.4"/><circle cx="11.6" cy="8.6" r=".6"/></svg>',
   gtitle:'<svg viewBox="0 0 16 16"><path d="M3 3.4h10M8 3.4v9.4"/></svg>',
   sns:'<svg viewBox="0 0 16 16"><circle cx="4" cy="8" r="2"/><circle cx="12" cy="3.8" r="2"/><circle cx="12" cy="12.2" r="2"/><path d="M5.8 7.1l4.4-2.3M5.8 8.9l4.4 2.3"/></svg>',
@@ -11807,6 +11809,7 @@ const DL_KINDS = [
   {k:'gmail',    lb:'Gmail',    ic:'mail',   c:'#c9899a'},
   {k:'line',     lb:'LINE',     ic:'line',   c:'#5aa86a'},
   {k:'fax',      lb:'FAX',      ic:'fax',    c:'#7d8a9c'},
+  {k:'tel',      lb:'TEL',      ic:'tel',    c:'#c9899a'},
   {k:'system',   lb:'System',   ic:'msg',    c:'#5f8b93'},
   {k:'meeting',  lb:'Meeting',  ic:'person', c:'#9161d6'},
   {k:'contract', lb:'Contract', ic:'doc',    c:'#c4a22e'},
@@ -11828,7 +11831,7 @@ DL_KINDS.forEach((K, i) => K.grp = i < DL_KINDS.findIndex(x => x.k === 'private'
 /* どこのメモか：Tasks の Board はシアン、Notes はくすみピンクの小さな● */
 const dlSrcDot = b => b && b.id === 'dlnotes'
   ? '<span class="dl-src notes" title="Notes のメモ">●</span>' : '<span class="dl-src tasks" title="Tasks の Board のメモ">●</span>';
-const dlHasFT = k => k === 'chatwork' || k === 'gmail' || k === 'line' || k === 'fax' || k === 'sns';
+const dlHasFT = k => k === 'chatwork' || k === 'gmail' || k === 'line' || k === 'fax' || k === 'tel' || k === 'sns';
 /* メニューの並び。LINE は Works と Others の両方に出す（Others では SNS の下） */
 const DL_BOTH = {line:'sns'};
 function dlKindsOf(g){
@@ -12362,13 +12365,18 @@ function dlDaySub(d){
 document.addEventListener('click', ev => {
   const el = ev.target && ev.target.closest && ev.target.closest('[data-dlwx]');
   if(!el) return;
-  const dm = dlWxBoard(); if(!dm) return;
+  ev.stopPropagation();   /* ほかのクリック処理に先に取られたり、二重に動いたりしないように */
+  let dm = dlWxBoard();
+  if(!dm){   /* Daily Memo ボードが無いときは、天気の保存先として作る */
+    dm = {id:uid(), name:'Daily Memo', color:'#b5677d', daily:true, days:{}, cols:[], icon:'cal'};
+    S.boards.push(dm);
+  }
   const [k, d] = el.dataset.dlwx.split('|');
   const cur = ((dm.weather ||= {})[d] ||= []), i = cur.indexOf(k);
   if(i >= 0) cur.splice(i, 1); else cur.push(k);
   if(!cur.length) delete dm.weather[d];
   dlWxStamp(d); save(); dlWxPaint(d); dlWxSoon();
-});
+}, true);
 /* ---- リアクション（グッジョブなど）の数を、日ごとの横向きの積み上げグラフで見る ---- */
 function dlReactChart(){
   const by = {};
@@ -12446,7 +12454,18 @@ function dlListHTML(rows, opt){
 const dlAtMs = at => { const t = Date.parse(at) || 0; const h = +(String(at || '').slice(11, 13)) || 0; return h < 5 && t ? t + 864e5 : t; };
 const dlOrd = e => (typeof e.ord === 'number' && e.ord > 1e11) ? e.ord : dlAtMs(e.at) + (typeof e.ord === 'number' ? e.ord / 1e6 : 0);
 /* 新しく書く記録の番号：今日なら今の時刻、ほかの日ならその日のその時刻 */
-const dlOrdFor = at => { const t = dlAtMs(at), n = Date.now(); return Math.abs(n - t) < 6e4 * 2 ? n : t + (n % 60000); };
+const dlOrdFor = at => {
+  const t = dlAtMs(at), n = Date.now();
+  let o = Math.abs(n - t) < 6e4 * 2 ? n : t + (n % 60000);
+  /* 新しく書いたものは、その日の記録のいちばん後ろ（新しい順ならいちばん上）に。
+     過去の日に足したときや、時刻が先の記録があるときも、時刻順で途中に混ざらないように */
+  const day = String(at || '').slice(0, 10);
+  let mx = 0;
+  dlBoards().forEach(b => (b.dlog || []).forEach(e => {
+    if(String(e.at || '').slice(0, 10) === day){ const v = dlOrd(e); if(v > mx) mx = v; }
+  }));
+  return mx >= o ? mx + 1000 : o;
+};
 const dlFind = key => {
   const [bid, eid] = String(key || '').split('|');
   const b = dlBoard(bid); if(!b) return {};
@@ -13324,7 +13343,12 @@ function dlWireQuick(root){
   root.querySelectorAll('[data-dlq]').forEach(x => x.onclick = () => {
     const q = DL_QUICK[+x.dataset.dlq];
     /* 起床・就寝は押した時刻も（本文なので、あとから直せる） */
-    if(q.time){ const n = new Date(); return dlQuickAdd(`${q.t}（${n.getHours()}:${String(n.getMinutes()).padStart(2, '0')}）。`, q.kind, -1, q.to); }
+    if(q.time){
+      const n = new Date();
+      dlQuickAdd(`${q.t}（${n.getHours()}:${String(n.getMinutes()).padStart(2, '0')}）。`, q.kind, -1, q.to);
+      if(q.t === '起床' && typeof quoteOfTheDay === 'function') setTimeout(quoteOfTheDay, 250);
+      return;
+    }
     const add = t => dlQuickAdd(t + '。', q.kind, q.title ? t.indexOf('』') : -1, q.to);
     if(!q.opt) return add(q.t);
     /* 選ぶもの（洗濯：全乾燥/半乾燥、屋外の掃除：場所）があるときは小さなメニュー */
@@ -15751,14 +15775,9 @@ async function rescue(){
     }
   }catch(e){}
 }
-/* ---- その日（朝5時〜）最初に開いたとき、Quotes からひとつランダムに表示 ---- */
+/* ---- Daily Log の「起床」ボタンを押したとき、Quotes からひとつランダムに表示 ---- */
 function quoteOfTheDay(){
   try{
-    const KEY = 'notes.qotd';
-    const d = today();
-    let seen = ''; try{ seen = localStorage.getItem(KEY) || ''; }catch(e){}
-    if(seen === d) return;
-    try{ localStorage.setItem(KEY, d); }catch(e){}
     const list = allCards().map(x => x.card).filter(k => k.quote && plain(k.quote.text).trim());
     if(!list.length) return;
     let cur = null;
@@ -15791,7 +15810,6 @@ function quoteOfTheDay(){
 const boot2 = () => {
   boot();
   setTimeout(rescue, 800);
-  if(APP === 'note') setTimeout(quoteOfTheDay, 500);
   setTimeout(checkUpdate, 2500);
   if(syncOn() && !syncDirty) syncPull().then(ok => { if(ok){ render(); syncTag('取り込みました'); } })
     .catch(e => syncTag('同期できません：' + e.message, true));
