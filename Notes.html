@@ -5625,6 +5625,7 @@ function quoteCardHTML(k, inCard){
       <span>No. ${String(Q.no || 1).padStart(3, '0')}　・　<b class="ndate" data-ndate="quote|${k.id}"
         title="クリックで日付を変更">${Q.date || today()}</b>　・　Quote</span>
       <span class="qc-act">
+        <button data-qedit="${k.id}" title="ここで編集する">✎</button>
         <button data-openpage="${k.id}" title="ページで開いて編集">⤢</button>
       </span>
     </div>
